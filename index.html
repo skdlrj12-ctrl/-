@@ -9,15 +9,27 @@
     body { background-color: #121212; color: #ffffff; display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 20px; }
     h1 { margin-top: 10px; font-size: 1.8rem; display: flex; align-items: center; gap: 8px; }
     p.sub { color: #888; font-size: 0.9rem; margin-bottom: 20px; }
-    .card-box { background-color: #1e1e1e; border-radius: 16px; padding: 24px; width: 100%; max-width: 400px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
-    input { width: 100%; padding: 12px; margin: 12px 0; border-radius: 8px; border: 1px solid #333; background: #2a2a2a; color: #fff; text-align: center; font-size: 1.1rem; text-transform: uppercase; }
-    button { width: 100%; padding: 12px; font-size: 1rem; font-weight: bold; border-radius: 8px; border: none; background: #ffffff; color: #000; cursor: pointer; margin-bottom: 10px; transition: opacity 0.2s; }
+    .card-box { background-color: #1e1e1e; border-radius: 16px; padding: 24px; width: 100%; max-width: 420px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+    
+    .setting-group { text-align: left; background: #2a2a2a; padding: 15px; border-radius: 12px; margin-bottom: 15px; }
+    .setting-group label { font-size: 0.85rem; color: #aaa; display: block; margin-bottom: 6px; }
+    
+    input[type="number"], input[type="text"] { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 8px; border: 1px solid #333; background: #1a1a1a; color: #fff; text-align: center; font-size: 1rem; }
+    
+    button { width: 100%; padding: 12px; font-size: 1rem; font-weight: bold; border-radius: 8px; border: none; background: #ffffff; color: #000; cursor: pointer; margin-bottom: 8px; transition: opacity 0.2s; }
     button:active { opacity: 0.8; }
-    .room-info { background: #2a2a2a; padding: 12px; border-radius: 8px; margin-bottom: 15px; font-weight: bold; letter-spacing: 1px; color: #4dabf7; }
+    button.btn-share { background: #4dabf7; color: #fff; margin-top: 5px; }
+
+    .room-info { background: #2a2a2a; padding: 14px; border-radius: 10px; margin-bottom: 15px; font-weight: bold; }
+    .room-code { color: #4dabf7; font-size: 1.2rem; letter-spacing: 1px; }
+    
     .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 15px; }
-    .kuji-btn { aspect-ratio: 1; border-radius: 8px; border: none; background: #3b3b4f; color: #fff; font-size: 1.2rem; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; margin: 0; transition: transform 0.1s; }
+    .kuji-btn { aspect-ratio: 1; border-radius: 8px; border: none; background: #3b3b4f; color: #fff; font-size: 1.1rem; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.1s; }
     .kuji-btn:active { transform: scale(0.95); }
     .kuji-btn.picked { background: #222; color: #ffeb3b; cursor: not-allowed; border: 1px solid #444; }
+    /* 당첨 카드 스타일 */
+    .kuji-btn.win { background: #e74c3c !important; color: #fff !important; font-size: 1.2rem; font-weight: 900; box-shadow: 0 0 10px rgba(231, 76, 60, 0.8); }
+    
     .hidden { display: none; }
   </style>
 
@@ -28,25 +40,35 @@
 <body>
 
   <h1>🎟️ MY KUJI</h1>
-  <p class="sub">30장의 쿠지를 함께 뽑아보세요</p>
+  <p class="sub">실시간 제비뽑기 게임</p>
 
-  <!-- 메인 대기실 화면 -->
+  <!-- 대기실 화면 -->
   <div id="lobby" class="card-box">
-    <button onclick="createRoom()">방 만들기</button>
-    <div style="color: #666; margin: 10px 0;">또는</div>
-    <input type="text" id="roomInput" placeholder="방 코드 입력" maxlength="6">
+    <div class="setting-group">
+      <label>1. 카드 총 수량 (최대 50장)</label>
+      <input type="number" id="totalCardsInput" value="30" min="10" max="50">
+      
+      <label>2. 당첨 번호 (쉼표로 구분, 예: 7, 15, 23)</label>
+      <input type="text" id="winningNumsInput" placeholder="당첨번호 입력 (선택사항)">
+    </div>
+
+    <button onclick="createRoom()" style="background: #22c55e; color: #fff;">방 만들기</button>
+    <div style="color: #666; margin: 12px 0;">— 또는 —</div>
+    <input type="text" id="roomInput" placeholder="방 코드 6자리 입력" maxlength="6" style="text-transform: uppercase;">
     <button onclick="joinRoom()">방 참가하기</button>
   </div>
 
-  <!-- 게임 진행 화면 -->
+  <!-- 게임 화면 -->
   <div id="game" class="card-box hidden">
-    <div class="room-info">방 코드: <span id="currentRoomCode"></span></div>
-    <div id="status">남은 카드: 30장</div>
+    <div class="room-info">
+      <div>방 코드: <span id="currentRoomCode" class="room-code"></span></div>
+      <button onclick="copyShareLink()" class="btn-share">📋 방 코드 & 링크 복사</button>
+    </div>
+    <div id="status">남은 카드: -장</div>
     <div class="grid" id="grid"></div>
   </div>
 
   <script>
-    // Firebase 연동 설정
     const firebaseConfig = {
       apiKey: "AIzaSyCK9pczUoVYyMcckD136aW",
       authDomain: "my-kuji-4d235.firebaseapp.com",
@@ -57,29 +79,45 @@
       appId: "1:47327791417:web:e22ef4062"
     };
 
-    // Firebase 초기화
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-
     let currentRoom = null;
+    let winningNumbers = [];
 
-    // 랜덤 방 코드 생성 (6자리)
+    // 배열 섞기
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
     function generateRoomCode() {
       return Math.random().toString(36).substring(2, 8).toUpperCase();
     }
 
     // 방 만들기
     function createRoom() {
+      let total = parseInt(document.getElementById('totalCardsInput').value) || 30;
+      if (total < 5) total = 5;
+      if (total > 50) total = 50;
+
+      // 당첨 번호 파싱
+      const winInput = document.getElementById('winningNumsInput').value;
+      const wins = winInput.split(',').map(n => parseInt(n.trim())).filter(n => !isNaN(n));
+
       const code = generateRoomCode();
-      const initialCards = Array(30).fill(false); // 30장 (false: 안 뽑힘)
+      const numbers = Array.from({length: total}, (_, i) => i + 1);
+      const shuffled = shuffle(numbers);
+      const initialCards = shuffled.map(num => ({ value: num, picked: false }));
 
       db.ref('rooms/' + code).set({
         cards: initialCards,
+        winningNumbers: wins,
         createdAt: Date.now()
       }).then(() => {
         enterRoom(code);
-      }).catch((err) => {
-        alert('방 생성 오류: Database 규칙 설정을 확인해 주세요.');
       });
     }
 
@@ -87,56 +125,71 @@
     function joinRoom() {
       const code = document.getElementById('roomInput').value.trim().toUpperCase();
       if (!code) return alert('방 코드를 입력하세요.');
-
+      
       db.ref('rooms/' + code).once('value', (snapshot) => {
-        if (snapshot.exists()) {
-          enterRoom(code);
-        } else {
-          alert('존재하지 않는 방 코드입니다.');
-        }
+        if (snapshot.exists()) enterRoom(code);
+        else alert('존재하지 않는 방 코드입니다.');
       });
     }
 
-    // 게임방 입장 및 실시간 동기화
+    // 방 입장
     function enterRoom(code) {
       currentRoom = code;
       document.getElementById('lobby').classList.add('hidden');
       document.getElementById('game').classList.remove('hidden');
       document.getElementById('currentRoomCode').textContent = code;
 
-      // 실시간 데이터 변경 감지
-      db.ref('rooms/' + code + '/cards').on('value', (snapshot) => {
-        const cards = snapshot.val() || [];
-        renderGrid(cards);
+      // 데이터 실시간 감지
+      db.ref('rooms/' + code).on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (!data) return;
+        winningNumbers = data.winningNumbers || [];
+        renderGrid(data.cards || []);
       });
     }
 
-    // 화면 그리드 구성
+    // 화면 그리기
     function renderGrid(cards) {
       const grid = document.getElementById('grid');
       grid.innerHTML = '';
       let remaining = 0;
 
-      cards.forEach((isPicked, index) => {
-        if (!isPicked) remaining++;
+      cards.forEach((card, index) => {
+        if (!card.picked) remaining++;
         const btn = document.createElement('button');
-        btn.className = 'kuji-btn' + (isPicked ? ' picked' : '');
         
-        // 💡 수정된 핵심 로직: 안 뽑았으면 '?', 뽑았으면 '진짜 번호(index + 1)'
-        btn.textContent = isPicked ? (index + 1) : '?';
+        const isWin = card.picked && winningNumbers.includes(card.value);
+        btn.className = 'kuji-btn' + (card.picked ? ' picked' : '') + (isWin ? ' win' : '');
         
-        btn.disabled = isPicked;
+        // 안 뽑았으면 '?', 뽑았으면 숫자를 보여줌 (당첨은 🔥 추가)
+        if (card.picked) {
+          btn.textContent = isWin ? `🔥${card.value}` : card.value;
+        } else {
+          btn.textContent = '?';
+        }
+
+        btn.disabled = card.picked;
         btn.onclick = () => pickCard(index);
         grid.appendChild(btn);
       });
 
-      document.getElementById('status').textContent = `남은 카드: ${remaining}장`;
+      document.getElementById('status').textContent = `남은 카드: ${remaining} / ${cards.length}장`;
     }
 
-    // 카드 뽑기 (서버에 실시간 반영)
+    // 카드 뽑기
     function pickCard(index) {
       if (!currentRoom) return;
-      db.ref('rooms/' + currentRoom + '/cards/' + index).set(true);
+      db.ref('rooms/' + currentRoom + '/cards/' + index + '/picked').set(true);
+    }
+
+    // 방 코드 & 링크 복사 기능
+    function copyShareLink() {
+      const shareText = `🎟️ MY KUJI 쿠지 게임에 초대합니다!\n방 코드: ${currentRoom}\n접속 링크: https://skdlrj12-ctrl.github.io/-/`;
+      navigator.clipboard.writeText(shareText).then(() => {
+        alert('방 코드와 링크가 복사되었습니다! 카카오톡 등에 붙여넣기 하세요.');
+      }).catch(() => {
+        alert('복사에 실패했습니다. 수동으로 코드(' + currentRoom + ')를 전달해 주세요.');
+      });
     }
   </script>
 </body>
