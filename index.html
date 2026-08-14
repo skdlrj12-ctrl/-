@@ -15,8 +15,9 @@
     button:active { opacity: 0.8; }
     .room-info { background: #2a2a2a; padding: 12px; border-radius: 8px; margin-bottom: 15px; font-weight: bold; letter-spacing: 1px; color: #4dabf7; }
     .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 15px; }
-    .kuji-btn { aspect-ratio: 1; border-radius: 8px; border: none; background: #2b2b36; color: #fff; font-size: 1rem; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; margin: 0; }
-    .kuji-btn.picked { background: #444; color: #888; cursor: not-allowed; text-decoration: line-through; }
+    .kuji-btn { aspect-ratio: 1; border-radius: 8px; border: none; background: #3b3b4f; color: #fff; font-size: 1.2rem; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; margin: 0; transition: transform 0.1s; }
+    .kuji-btn:active { transform: scale(0.95); }
+    .kuji-btn.picked { background: #222; color: #ffeb3b; cursor: not-allowed; border: 1px solid #444; }
     .hidden { display: none; }
   </style>
 
@@ -120,7 +121,10 @@
         if (!isPicked) remaining++;
         const btn = document.createElement('button');
         btn.className = 'kuji-btn' + (isPicked ? ' picked' : '');
-        btn.textContent = isPicked ? 'X' : (index + 1);
+        
+        // 💡 수정된 핵심 로직: 안 뽑았으면 '?', 뽑았으면 '진짜 번호(index + 1)'
+        btn.textContent = isPicked ? (index + 1) : '?';
+        
         btn.disabled = isPicked;
         btn.onclick = () => pickCard(index);
         grid.appendChild(btn);
