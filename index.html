@@ -9,45 +9,33 @@
     body { background-color: #121212; color: #ffffff; display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 20px; }
     h1 { margin-top: 10px; font-size: 2.2rem; display: flex; align-items: center; gap: 8px; }
     p.sub { color: #888; font-size: 1rem; margin-bottom: 25px; }
-    
     .card-box { background-color: #1e1e1e; border-radius: 16px; padding: 24px; width: 95%; max-width: 1200px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
-    
     .setting-group { text-align: left; background: #2a2a2a; padding: 18px; border-radius: 12px; margin-bottom: 15px; max-width: 500px; margin-left: auto; margin-right: auto; }
     .setting-group label { font-size: 0.95rem; color: #aaa; display: block; margin-bottom: 6px; }
-    
     input[type="number"], input[type="text"] { width: 100%; padding: 12px; margin-bottom: 12px; border-radius: 8px; border: 1px solid #333; background: #1a1a1a; color: #fff; text-align: center; font-size: 1.1rem; }
-    
     button { width: 100%; padding: 14px; font-size: 1.1rem; font-weight: bold; border-radius: 8px; border: none; background: #ffffff; color: #000; cursor: pointer; margin-bottom: 8px; transition: all 0.2s; }
     button:active { opacity: 0.8; }
     button.btn-share { background: #4dabf7; color: #fff; margin-top: 8px; max-width: 300px; }
-
     .control-btns { display: flex; gap: 12px; margin-bottom: 15px; justify-content: center; }
     .btn-sub { font-size: 1rem; padding: 12px 20px; border-radius: 8px; width: auto; min-width: 160px; }
     .btn-slow { background: #333; color: #aaa; border: 1px solid #555; }
     .btn-slow.active { background: #f39c12; color: #fff; border-color: #f39c12; font-weight: bold; }
     .btn-random { background: #8e44ad; color: #fff; }
-
     .room-info { background: #2a2a2a; padding: 16px; border-radius: 10px; margin-bottom: 20px; font-weight: bold; }
     .room-code { color: #4dabf7; font-size: 1.4rem; letter-spacing: 1px; }
-    
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; margin-top: 15px; }
-    
     .kuji-card { position: relative; aspect-ratio: 1.4 / 1; border-radius: 10px; overflow: hidden; background: #222; touch-action: none; cursor: pointer; border: 1px solid #333; }
-    
     .card-number { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 900; color: #ffeb3b; z-index: 1; letter-spacing: -0.5px; }
     
-    /* 캐릭터 이미지 커버 (외부 트래픽 안정성 확보) */
-    .card-cover { position: absolute; inset: 0; background-size: cover; background-position: center center; z-index: 2; transition: transform 0.2s ease-out; box-shadow: 2px 0 10px rgba(0,0,0,0.5); }
-    
+    /* 카드 덮개 (슬라이드 애니메이션) */
+    .card-cover { position: absolute; inset: 0; background-size: cover; background-position: center center; z-index: 2; cursor: grab; box-shadow: 0 0 10px rgba(0,0,0,0.3); }
     .kuji-card.picked .card-cover { display: none; }
     .kuji-card.picked { border: 1px solid #555; background: #181818; }
     .kuji-card.win { background: #e74c3c !important; border-color: #ff6b6b; }
     .kuji-card.win .card-number { color: #fff !important; font-size: 2rem; font-weight: 900; }
-    
     .hidden { display: none; }
   </style>
 
-  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 </head>
@@ -60,11 +48,9 @@
     <div class="setting-group">
       <label>1. 카드 총 수량 (최대 50장)</label>
       <input type="number" id="totalCardsInput" value="30" min="10" max="50">
-      
-      <label>2. 당첨 번호 (쉼표로 구분, 예: 7, 15, 23)</label>
-      <input type="text" id="winningNumsInput" placeholder="당첨번호 입력 (선택사항)">
+      <label>2. 당첨 번호 (쉼표 구분)</label>
+      <input type="text" id="winningNumsInput" placeholder="예: 7, 15, 23">
     </div>
-
     <div style="max-width: 500px; margin: 0 auto;">
       <button onclick="createRoom()" style="background: #22c55e; color: #fff;">방 만들기</button>
       <div style="color: #666; margin: 12px 0;">— 또는 —</div>
@@ -78,12 +64,10 @@
       <div>방 코드: <span id="currentRoomCode" class="room-code"></span></div>
       <button onclick="copyShareLink()" class="btn-share">📋 방 코드 & 링크 복사</button>
     </div>
-
     <div class="control-btns">
       <button id="slowBtn" onclick="toggleSlowMode()" class="btn-sub btn-slow active">🍦 슬라이드 뜯기: ON</button>
       <button onclick="pickRandomCard()" class="btn-sub btn-random">🎲 랜덤 뽑기</button>
     </div>
-
     <div id="status" style="font-size: 1.1rem; font-weight: bold; margin-bottom: 10px;">남은 카드: -장</div>
     <div class="grid" id="grid"></div>
   </div>
@@ -106,11 +90,10 @@
     let isSlowMode = true;
     let currentCardsData = [];
 
-    // 💡 차단 없이 100% 뜨는 검증된 캐릭터 이미지 URL
     const charImages = [
-      'https://upload.wikimedia.org/wikipedia/en/2/22/Himiko_Toga_My_Hero_Academia.png', // 토가 히미코
-      'https://upload.wikimedia.org/wikipedia/en/9/90/My_Dress-Up_Darling_anime_key_visual.jpg', // 키타가와 마린
-      'https://upload.wikimedia.org/wikipedia/en/9/93/Hatsune_Miku_v3.png'  // 하츠네 미쿠
+      'https://upload.wikimedia.org/wikipedia/en/2/22/Himiko_Toga_My_Hero_Academia.png',
+      'https://upload.wikimedia.org/wikipedia/en/9/90/My_Dress-Up_Darling_anime_key_visual.jpg',
+      'https://upload.wikimedia.org/wikipedia/en/9/93/Hatsune_Miku_v3.png'
     ];
 
     function shuffle(array) {
@@ -121,54 +104,28 @@
       return array;
     }
 
-    function generateRoomCode() {
-      return Math.random().toString(36).substring(2, 8).toUpperCase();
-    }
+    function generateRoomCode() { return Math.random().toString(36).substring(2, 8).toUpperCase(); }
 
     function toggleSlowMode() {
       isSlowMode = !isSlowMode;
       const btn = document.getElementById('slowBtn');
-      if (isSlowMode) {
-        btn.textContent = "🍦 슬라이드 뜯기: ON";
-        btn.classList.add('active');
-      } else {
-        btn.textContent = "🍦 터치 뜯기: Direct";
-        btn.classList.remove('active');
-      }
+      btn.textContent = isSlowMode ? "🍦 슬라이드 뜯기: ON" : "🍦 터치 뜯기: Direct";
+      isSlowMode ? btn.classList.add('active') : btn.classList.remove('active');
     }
 
     function createRoom() {
       let total = parseInt(document.getElementById('totalCardsInput').value) || 30;
-      if (total < 5) total = 5;
-      if (total > 50) total = 50;
-
       const winInput = document.getElementById('winningNumsInput').value;
       const wins = winInput.split(',').map(n => parseInt(n.trim())).filter(n => !isNaN(n));
-
       const code = generateRoomCode();
-      const numbers = Array.from({length: total}, (_, i) => i + 1);
-      const shuffled = shuffle(numbers);
-      
-      const initialCards = shuffled.map(num => ({ 
-        value: num, 
-        picked: false,
-        img: charImages[Math.floor(Math.random() * charImages.length)]
-      }));
-
-      db.ref('rooms/' + code).set({
-        cards: initialCards,
-        winningNumbers: wins,
-        createdAt: Date.now()
-      }).then(() => enterRoom(code));
+      const numbers = shuffle(Array.from({length: total}, (_, i) => i + 1));
+      const initialCards = numbers.map(num => ({ value: num, picked: false, img: charImages[Math.floor(Math.random() * charImages.length)] }));
+      db.ref('rooms/' + code).set({ cards: initialCards, winningNumbers: wins, createdAt: Date.now() }).then(() => enterRoom(code));
     }
 
     function joinRoom() {
       const code = document.getElementById('roomInput').value.trim().toUpperCase();
-      if (!code) return alert('방 코드를 입력하세요.');
-      db.ref('rooms/' + code).once('value', (snapshot) => {
-        if (snapshot.exists()) enterRoom(code);
-        else alert('존재하지 않는 방 코드입니다.');
-      });
+      db.ref('rooms/' + code).once('value', (snapshot) => { snapshot.exists() ? enterRoom(code) : alert('방 없음'); });
     }
 
     function enterRoom(code) {
@@ -176,10 +133,8 @@
       document.getElementById('lobby').classList.add('hidden');
       document.getElementById('game').classList.remove('hidden');
       document.getElementById('currentRoomCode').textContent = code;
-
       db.ref('rooms/' + code).on('value', (snapshot) => {
         const data = snapshot.val();
-        if (!data) return;
         winningNumbers = data.winningNumbers || [];
         currentCardsData = data.cards || [];
         renderGrid(currentCardsData);
@@ -189,34 +144,20 @@
     function renderGrid(cards) {
       const grid = document.getElementById('grid');
       grid.innerHTML = '';
-      let remaining = 0;
-
       cards.forEach((card, index) => {
-        if (!card.picked) remaining++;
-        
         const cardElem = document.createElement('div');
         const isWin = card.picked && winningNumbers.includes(card.value);
-        
         cardElem.className = 'kuji-card' + (card.picked ? ' picked' : '') + (isWin ? ' win' : '');
-        
-        const numElem = document.createElement('div');
-        numElem.className = 'card-number';
-        numElem.textContent = isWin ? `🔥${card.value}` : card.value;
-        cardElem.appendChild(numElem);
-
+        cardElem.innerHTML = `<div class="card-number">${isWin ? '🔥' + card.value : card.value}</div>`;
         if (!card.picked) {
           const coverElem = document.createElement('div');
           coverElem.className = 'card-cover';
           coverElem.style.backgroundImage = `url('${card.img || charImages[0]}')`;
           cardElem.appendChild(coverElem);
-
           attachDragEvent(cardElem, coverElem, index);
         }
-
         grid.appendChild(cardElem);
       });
-
-      document.getElementById('status').textContent = `남은 카드: ${remaining} / ${cards.length}장`;
     }
 
     function attachDragEvent(cardElem, coverElem, index) {
@@ -225,34 +166,30 @@
       let isDragging = false;
 
       function onStart(e) {
-        if (!isSlowMode) {
-          pickCard(index);
-          return;
-        }
+        if (!isSlowMode) return pickCard(index);
         isDragging = true;
-        startX = e.touches ? e.touches[0].clientX : e.clientX;
+        startX = (e.touches ? e.touches[0].clientX : e.clientX) - currentX;
         coverElem.style.transition = 'none';
       }
 
       function onMove(e) {
         if (!isDragging) return;
         const x = e.touches ? e.touches[0].clientX : e.clientX;
-        const diffX = x - startX;
-
-        if (diffX > 0) {
-          currentX = Math.min(diffX, cardElem.clientWidth);
-          coverElem.style.transform = `translateX(${currentX}px)`;
-        }
+        // 저항감(0.7)을 주어 느릿하게 움직이게 설정
+        currentX = (x - startX) * 0.7; 
+        coverElem.style.transform = `translateX(${currentX}px)`;
       }
 
       function onEnd() {
         if (!isDragging) return;
         isDragging = false;
-        coverElem.style.transition = 'transform 0.25s ease-out';
-
-        if (currentX > cardElem.clientWidth * 0.4) {
-          coverElem.style.transform = `translateX(100%)`;
-          setTimeout(() => pickCard(index), 200);
+        // 뜯기 완료 애니메이션 시간을 0.4초로 늘려 더 느리게 표현
+        coverElem.style.transition = 'transform 0.4s ease-out';
+        
+        // 양방향 판단 (40% 이상 밀렸을 때)
+        if (Math.abs(currentX) > cardElem.clientWidth * 0.4) {
+          coverElem.style.transform = `translateX(${currentX > 0 ? '100%' : '-100%'})`;
+          setTimeout(() => pickCard(index), 300);
         } else {
           coverElem.style.transform = `translateX(0px)`;
         }
@@ -262,31 +199,17 @@
       cardElem.addEventListener('touchstart', onStart);
       cardElem.addEventListener('touchmove', onMove);
       cardElem.addEventListener('touchend', onEnd);
-
       cardElem.addEventListener('mousedown', onStart);
       window.addEventListener('mousemove', onMove);
       window.addEventListener('mouseup', onEnd);
     }
 
-    function pickCard(index) {
-      if (!currentRoom) return;
-      db.ref('rooms/' + currentRoom + '/cards/' + index + '/picked').set(true);
-    }
-
+    function pickCard(index) { if (currentRoom) db.ref('rooms/' + currentRoom + '/cards/' + index + '/picked').set(true); }
     function pickRandomCard() {
-      const unpicked = currentCardsData.map((c, i) => c.picked ? null : i).filter(i => i !== null);
-      if (unpicked.length === 0) return alert('모든 카드가 이미 뽑혔습니다!');
-      
-      const randIdx = unpicked[Math.floor(Math.random() * unpicked.length)];
-      pickCard(randIdx);
+        const unpicked = currentCardsData.map((c, i) => c.picked ? null : i).filter(i => i !== null);
+        if (unpicked.length > 0) pickCard(unpicked[Math.floor(Math.random() * unpicked.length)]);
     }
-
-    function copyShareLink() {
-      const shareText = `🎟️ MY KUJI 쿠지 게임에 초대합니다!\n방 코드: ${currentRoom}\n접속 링크: https://skdlrj12-ctrl.github.io/-/`;
-      navigator.clipboard.writeText(shareText).then(() => {
-        alert('방 코드와 링크가 복사되었습니다!');
-      });
-    }
+    function copyShareLink() { navigator.clipboard.writeText(`https://skdlrj12-ctrl.github.io/-/`).then(() => alert('링크 복사 완료!')); }
   </script>
 </body>
 </html>
