@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>🎟️ MY KUJI</title>
   <style>
-    /* 기존 스타일 유지 */
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; user-select: none; }
     body { background-color: #121212; color: #ffffff; display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 20px; }
     h1 { margin-top: 10px; font-size: 2.2rem; display: flex; align-items: center; gap: 8px; }
@@ -25,10 +24,13 @@
     .room-info { background: #2a2a2a; padding: 16px; border-radius: 10px; margin-bottom: 20px; font-weight: bold; }
     .room-code { color: #4dabf7; font-size: 1.4rem; letter-spacing: 1px; }
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; margin-top: 15px; }
-    .kuji-card { position: relative; aspect-ratio: 1.4 / 1; border-radius: 10px; overflow: hidden; background: #222; touch-action: none; cursor: pointer; border: 1px solid #333; }
+    
+    /* 세로형 비율로 변경하여 얼굴이 잘리지 않도록 맞춤 */
+    .kuji-card { position: relative; aspect-ratio: 1 / 1.3; border-radius: 10px; overflow: hidden; background: #222; touch-action: none; cursor: pointer; border: 1px solid #333; }
     .card-number { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 900; color: #ffeb3b; z-index: 1; letter-spacing: -0.5px; }
     
-    .card-cover { position: absolute; inset: 0; background-size: cover; background-position: center center; background-color: #444; z-index: 10; transition: transform 0.2s ease-out; cursor: grab; box-shadow: 0 0 10px rgba(0,0,0,0.5); }
+    /* background-position: center top 으로 설정하여 인물 얼굴 위주로 출력 */
+    .card-cover { position: absolute; inset: 0; background-size: cover; background-position: center top; background-color: #444; z-index: 10; transition: transform 0.2s ease-out; cursor: grab; box-shadow: 0 0 10px rgba(0,0,0,0.5); }
     .kuji-card.picked .card-cover { display: none; }
     .kuji-card.picked { border: 1px solid #555; background: #181818; }
     .kuji-card.win { background: #e74c3c !important; border-color: #ff6b6b; }
@@ -90,14 +92,11 @@
     let isSlowMode = true;
     let currentCardsData = [];
 
-    // --- 수정된 고화질 이미지 목록 ---
+    // --- ibb.co 페이지 주소를 i.ibb.co 이미지 직접 링크로 변환 완료 ---
     const charImages = [
-      // 하츠네 미쿠 (고화질 제품 이미지)
-      'https://images.goodsmile.info/cgm/images/product/20220805/12975/92160/large/b9b3e108e42f63f5383a54b3e34a66e5.jpg',
-      // 키타가와 마린 (얼굴이 잘리지 않은 이미지)
-      'https://i.ibb.co/6wYdD3h/marin-full.jpg',
-      // 토가 히미코
-      'https://i.ibb.co/hC09wSj/1000026179.jpg'
+      'https://i.ibb.co/nMGG93YS/miku.jpg',   // 하츠네 미쿠 (직접 링크)
+      'https://i.ibb.co/vx66H5YR/marin.jpg',  // 키타가와 마린 (직접 링크)
+      'https://i.ibb.co/hC09wSj/1000026179.jpg' // 토가 히미코
     ];
 
     function shuffle(array) {
@@ -204,7 +203,10 @@
 
     function pickCard(index) { if (currentRoom) db.ref('rooms/' + currentRoom + '/cards/' + index + '/picked').set(true); }
     function pickRandomCard() { const unpicked = currentCardsData.map((c, i) => c.picked ? null : i).filter(i => i !== null); if (unpicked.length > 0) pickCard(unpicked[Math.floor(Math.random() * unpicked.length)]); }
-    function copyShareLink() { navigator.clipboard.writeText(`https://skdlrj12-ctrl.github.io/-/`).then(() => alert('링크 복사 완료!')); }
+    
+    function copyShareLink() { 
+      navigator.clipboard.writeText(`https://skdlrj12-ctrl.github.io/-/`).then(() => alert('링크 복사 완료!')); 
+    }
   </script>
 </body>
 </html>
