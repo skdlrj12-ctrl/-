@@ -2,10 +2,10 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>🎟️ MY KUJI</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; user-select: none; }
     body { background-color: #121212; color: #ffffff; display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 20px; }
     h1 { margin-top: 10px; font-size: 1.8rem; display: flex; align-items: center; gap: 8px; }
     p.sub { color: #888; font-size: 0.9rem; margin-bottom: 20px; }
@@ -20,7 +20,6 @@
     button:active { opacity: 0.8; }
     button.btn-share { background: #4dabf7; color: #fff; margin-top: 5px; }
 
-    /* 서브 컨트롤 버튼 (쫄깃하게 뜯기, 랜덤선택) */
     .control-btns { display: flex; gap: 8px; margin-bottom: 12px; }
     .btn-sub { font-size: 0.85rem; padding: 10px; border-radius: 8px; }
     .btn-slow { background: #333; color: #aaa; border: 1px solid #555; }
@@ -31,19 +30,17 @@
     .room-code { color: #4dabf7; font-size: 1.2rem; letter-spacing: 1px; }
     
     .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 15px; }
-    .kuji-btn { aspect-ratio: 1; border-radius: 8px; border: none; background: #3b3b4f; color: #fff; font-size: 1.1rem; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.1s; }
-    .kuji-btn:active { transform: scale(0.95); }
-    .kuji-btn.picked { background: #222; color: #ffeb3b; cursor: not-allowed; border: 1px solid #444; }
     
-    /* 쫄깃하게 개봉 중 연출 */
-    .kuji-btn.revealing { background: #e67e22 !important; color: #fff !important; animation: pulse 0.6s infinite alternate; }
-    @keyframes pulse {
-      0% { transform: scale(0.95); opacity: 0.8; }
-      100% { transform: scale(1.05); opacity: 1; }
-    }
-
-    /* 당첨 카드 스타일 */
-    .kuji-btn.win { background: #e74c3c !important; color: #fff !important; font-size: 1.2rem; font-weight: 900; box-shadow: 0 0 10px rgba(231, 76, 60, 0.8); }
+    /* 카드 밀당 연출을 위한 커스텀 구조 */
+    .kuji-card { position: relative; aspect-ratio: 1; border-radius: 8px; overflow: hidden; background: #222; touch-action: none; cursor: pointer; }
+    .card-number { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; font-weight: bold; color: #ffeb3b; z-index: 1; }
+    .card-cover { position: absolute; inset: 0; background: #3b3b4f; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; font-weight: bold; z-index: 2; transition: transform 0.2s ease-out; }
+    
+    /* 이미 뽑힌 카드 */
+    .kuji-card.picked .card-cover { display: none; }
+    .kuji-card.picked { border: 1px solid #444; }
+    .kuji-card.win { background: #e74c3c !important; }
+    .kuji-card.win .card-number { color: #fff !important; font-size: 1.2rem; font-weight: 900; }
     
     .hidden { display: none; }
   </style>
@@ -57,7 +54,6 @@
   <h1>🎟️ MY KUJI</h1>
   <p class="sub">실시간 제비뽑기 게임</p>
 
-  <!-- 대기실 화면 -->
   <div id="lobby" class="card-box">
     <div class="setting-group">
       <label>1. 카드 총 수량 (최대 50장)</label>
@@ -73,16 +69,14 @@
     <button onclick="joinRoom()">방 참가하기</button>
   </div>
 
-  <!-- 게임 화면 -->
   <div id="game" class="card-box hidden">
     <div class="room-info">
       <div>방 코드: <span id="currentRoomCode" class="room-code"></span></div>
       <button onclick="copyShareLink()" class="btn-share">📋 방 코드 & 링크 복사</button>
     </div>
 
-    <!-- 기능 제어 버튼 모음 -->
     <div class="control-btns">
-      <button id="slowBtn" onclick="toggleSlowMode()" class="btn-sub btn-slow">🔍 쫄깃하게 뜯기: OFF</button>
+      <button id="slowBtn" onclick="toggleSlowMode()" class="btn-sub btn-slow active">🍦 슬라이드 뜯기: ON</button>
       <button onclick="pickRandomCard()" class="btn-sub btn-random">🎲 랜덤 뽑기</button>
     </div>
 
@@ -105,10 +99,9 @@
     const db = firebase.database();
     let currentRoom = null;
     let winningNumbers = [];
-    let isSlowMode = false;
+    let isSlowMode = true; // 기본적으로 뜯기 모드 ON
     let currentCardsData = [];
 
-    // 배열 섞기
     function shuffle(array) {
       for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -121,20 +114,18 @@
       return Math.random().toString(36).substring(2, 8).toUpperCase();
     }
 
-    // 쫄깃하게 모드 토글
     function toggleSlowMode() {
       isSlowMode = !isSlowMode;
       const btn = document.getElementById('slowBtn');
       if (isSlowMode) {
-        btn.textContent = "🔍 쫄깃하게 뜯기: ON";
+        btn.textContent = "🍦 슬라이드 뜯기: ON";
         btn.classList.add('active');
       } else {
-        btn.textContent = "🔍 쫄깃하게 뜯기: OFF";
+        btn.textContent = "🍦 터치 뜯기: Direct";
         btn.classList.remove('active');
       }
     }
 
-    // 방 만들기
     function createRoom() {
       let total = parseInt(document.getElementById('totalCardsInput').value) || 30;
       if (total < 5) total = 5;
@@ -152,23 +143,18 @@
         cards: initialCards,
         winningNumbers: wins,
         createdAt: Date.now()
-      }).then(() => {
-        enterRoom(code);
-      });
+      }).then(() => enterRoom(code));
     }
 
-    // 방 참가하기
     function joinRoom() {
       const code = document.getElementById('roomInput').value.trim().toUpperCase();
       if (!code) return alert('방 코드를 입력하세요.');
-      
       db.ref('rooms/' + code).once('value', (snapshot) => {
         if (snapshot.exists()) enterRoom(code);
         else alert('존재하지 않는 방 코드입니다.');
       });
     }
 
-    // 방 입장
     function enterRoom(code) {
       currentRoom = code;
       document.getElementById('lobby').classList.add('hidden');
@@ -184,7 +170,6 @@
       });
     }
 
-    // 화면 그리기
     function renderGrid(cards) {
       const grid = document.getElementById('grid');
       grid.innerHTML = '';
@@ -192,83 +177,104 @@
 
       cards.forEach((card, index) => {
         if (!card.picked) remaining++;
-        const btn = document.createElement('button');
-        btn.id = 'card-' + index;
         
+        const cardElem = document.createElement('div');
         const isWin = card.picked && winningNumbers.includes(card.value);
-        btn.className = 'kuji-btn' + (card.picked ? ' picked' : '') + (isWin ? ' win' : '');
         
-        if (card.picked) {
-          btn.textContent = isWin ? `🔥${card.value}` : card.value;
-        } else {
-          btn.textContent = '?';
+        cardElem.className = 'kuji-card' + (card.picked ? ' picked' : '') + (isWin ? ' win' : '');
+        
+        const numElem = document.createElement('div');
+        numElem.className = 'card-number';
+        numElem.textContent = isWin ? `🔥${card.value}` : card.value;
+        cardElem.appendChild(numElem);
+
+        if (!card.picked) {
+          const coverElem = document.createElement('div');
+          coverElem.className = 'card-cover';
+          coverElem.textContent = '?';
+          cardElem.appendChild(coverElem);
+
+          // 드래그 터키 아이스크림 연출 이벤트 등록
+          attachDragEvent(cardElem, coverElem, index);
         }
 
-        btn.disabled = card.picked;
-        btn.onclick = () => handleCardClick(index);
-        grid.appendChild(btn);
+        grid.appendChild(cardElem);
       });
 
       document.getElementById('status').textContent = `남은 카드: ${remaining} / ${cards.length}장`;
     }
 
-    // 카드 클릭 처리 (일반 / 쫄깃하게 모드)
-    function handleCardClick(index) {
-      if (!currentRoom) return;
+    // 터키 아이스크림 스타일 슬라이드 뜯기 드래그 함수
+    function attachDragEvent(cardElem, coverElem, index) {
+      let startX = 0;
+      let currentX = 0;
+      let isDragging = false;
 
-      if (isSlowMode) {
-        const btn = document.getElementById('card-' + index);
-        if (btn.classList.contains('revealing')) return; // 이미 개봉 진행 중이면 무시
-        
-        btn.classList.add('revealing');
-        let count = 3;
-        btn.textContent = count;
-
-        const timer = setInterval(() => {
-          count--;
-          if (count > 0) {
-            btn.textContent = count;
-          } else {
-            clearInterval(timer);
-            btn.classList.remove('revealing');
-            pickCard(index);
-          }
-        }, 800);
-      } else {
-        pickCard(index);
+      function onStart(e) {
+        if (!isSlowMode) {
+          pickCard(index);
+          return;
+        }
+        isDragging = true;
+        startX = e.touches ? e.touches[0].clientX : e.clientX;
+        coverElem.style.transition = 'none';
       }
+
+      function onMove(e) {
+        if (!isDragging) return;
+        const x = e.touches ? e.touches[0].clientX : e.clientX;
+        const diffX = x - startX;
+
+        // 오른쪽으로 밀 때만 커버 이동 (최대 카드 폭까지)
+        if (diffX > 0) {
+          currentX = Math.min(diffX, cardElem.clientWidth);
+          coverElem.style.transform = `translateX(${currentX}px)`;
+        }
+      }
+
+      function onEnd() {
+        if (!isDragging) return;
+        isDragging = false;
+        coverElem.style.transition = 'transform 0.25s ease-out';
+
+        // 절반 이상 밀었으면 완전히 뜯김, 안 미달이면 다시 닫힘 (놀리기 연출)
+        if (currentX > cardElem.clientWidth * 0.45) {
+          coverElem.style.transform = `translateX(100%)`;
+          setTimeout(() => pickCard(index), 200);
+        } else {
+          coverElem.style.transform = `translateX(0px)`;
+        }
+        currentX = 0;
+      }
+
+      // 모바일 터치 이벤트
+      cardElem.addEventListener('touchstart', onStart);
+      cardElem.addEventListener('touchmove', onMove);
+      cardElem.addEventListener('touchend', onEnd);
+
+      // PC 마우스 이벤트
+      cardElem.addEventListener('mousedown', onStart);
+      window.addEventListener('mousemove', onMove);
+      window.addEventListener('mouseup', onEnd);
     }
 
-    // 카드 뽑기 (서버 반영)
     function pickCard(index) {
+      if (!currentRoom) return;
       db.ref('rooms/' + currentRoom + '/cards/' + index + '/picked').set(true);
     }
 
-    // 🎲 랜덤 카드 뽑기
     function pickRandomCard() {
-      if (!currentCardsData.length) return;
+      const unpicked = currentCardsData.map((c, i) => c.picked ? null : i).filter(i => i !== null);
+      if (unpicked.length === 0) return alert('모든 카드가 이미 뽑혔습니다!');
       
-      const unpickedIndexes = [];
-      currentCardsData.forEach((card, idx) => {
-        if (!card.picked) unpickedIndexes.push(idx);
-      });
-
-      if (unpickedIndexes.length === 0) {
-        alert('모든 카드가 이미 뽑혔습니다!');
-        return;
-      }
-
-      const randomIndex = unpickedIndexes[Math.floor(Math.random() * unpickedIndexes.length)];
-      handleCardClick(randomIndex);
+      const randIdx = unpicked[Math.floor(Math.random() * unpicked.length)];
+      pickCard(randIdx);
     }
 
-    // 방 코드 & 링크 복사
     function copyShareLink() {
       const shareText = `🎟️ MY KUJI 쿠지 게임에 초대합니다!\n방 코드: ${currentRoom}\n접속 링크: https://skdlrj12-ctrl.github.io/-/`;
       navigator.clipboard.writeText(shareText).then(() => {
-        alert('방 코드와 링크가 복사되었습니다! 카카오톡 등에 붙여넣기 하세요.');
-      }).catch(() => {
-        alert('복사에 실패했습니다. 수동으로 코드(' + currentRoom + ')를 전달해 주세요.');
+        alert('방 코드와 링크가 복사되었습니다!');
       });
     }
   </script>
