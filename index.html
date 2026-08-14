@@ -10,7 +10,6 @@
     h1 { margin-top: 10px; font-size: 2.2rem; display: flex; align-items: center; gap: 8px; }
     p.sub { color: #888; font-size: 1rem; margin-bottom: 25px; }
     
-    /* 웹/PC 화면 대응: 너비를 95%까지 꽉 차게 확장 (최대 1200px) */
     .card-box { background-color: #1e1e1e; border-radius: 16px; padding: 24px; width: 95%; max-width: 1200px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
     
     .setting-group { text-align: left; background: #2a2a2a; padding: 18px; border-radius: 12px; margin-bottom: 15px; max-width: 500px; margin-left: auto; margin-right: auto; }
@@ -31,17 +30,15 @@
     .room-info { background: #2a2a2a; padding: 16px; border-radius: 10px; margin-bottom: 20px; font-weight: bold; }
     .room-code { color: #4dabf7; font-size: 1.4rem; letter-spacing: 1px; }
     
-    /* 카드 그리드: 화면이 넓어지면 반응형으로 개수 자동 조절 */
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; margin-top: 15px; }
     
-    /* 💡 가로로 긴 직사각형 카드 스타일 (가로:세로 = 1.4 : 1) */
     .kuji-card { position: relative; aspect-ratio: 1.4 / 1; border-radius: 10px; overflow: hidden; background: #222; touch-action: none; cursor: pointer; border: 1px solid #333; }
     
-    /* 💡 번호 글씨 크기 대폭 확대 (2rem) */
     .card-number { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 900; color: #ffeb3b; z-index: 1; letter-spacing: -0.5px; }
-    .card-cover { position: absolute; inset: 0; background: #3b3b4f; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: bold; z-index: 2; transition: transform 0.2s ease-out; }
     
-    /* 이미 뽑힌 카드 및 당첨 카드 연출 */
+    /* 💡 캐릭터 이미지가 들어가는 커버 스타일 */
+    .card-cover { position: absolute; inset: 0; background-size: cover; background-position: center; z-index: 2; transition: transform 0.2s ease-out; box-shadow: 2px 0 10px rgba(0,0,0,0.5); }
+    
     .kuji-card.picked .card-cover { display: none; }
     .kuji-card.picked { border: 1px solid #555; background: #181818; }
     .kuji-card.win { background: #e74c3c !important; border-color: #ff6b6b; }
@@ -109,6 +106,13 @@
     let isSlowMode = true;
     let currentCardsData = [];
 
+    // 💡 캐릭터 이미지 URL 목록 (토가, 마린, 미쿠)
+    const charImages = [
+      'https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=600&q=80', // 애니 일러스트풍 예시 1 (토가 스타일)
+      'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?auto=format&fit=crop&w=600&q=80', // 애니 일러스트풍 예시 2 (마린 스타일)
+      'https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=600&q=80'  // 애니 일러스트풍 예시 3 (미쿠 스타일)
+    ];
+
     function shuffle(array) {
       for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -144,7 +148,13 @@
       const code = generateRoomCode();
       const numbers = Array.from({length: total}, (_, i) => i + 1);
       const shuffled = shuffle(numbers);
-      const initialCards = shuffled.map(num => ({ value: num, picked: false }));
+      
+      // 이미지 무작위 할당
+      const initialCards = shuffled.map(num => ({ 
+        value: num, 
+        picked: false,
+        img: charImages[Math.floor(Math.random() * charImages.length)]
+      }));
 
       db.ref('rooms/' + code).set({
         cards: initialCards,
@@ -198,7 +208,8 @@
         if (!card.picked) {
           const coverElem = document.createElement('div');
           coverElem.className = 'card-cover';
-          coverElem.textContent = '?';
+          // 카드에 부여된 캐릭터 배경 이미지 설정
+          coverElem.style.backgroundImage = `url('${card.img || charImages[0]}')`;
           cardElem.appendChild(coverElem);
 
           attachDragEvent(cardElem, coverElem, index);
