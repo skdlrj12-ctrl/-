@@ -28,13 +28,12 @@
     .kuji-card { position: relative; aspect-ratio: 1 / 1.3; border-radius: 10px; overflow: hidden; background: #222; touch-action: none; cursor: pointer; border: 1px solid #333; }
     .card-number { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 900; color: #ffeb3b; z-index: 1; letter-spacing: -0.5px; }
     
-    /* 이미지가 카드 중앙에 잘 맞춰지도록 수정 (center center / contain) */
     .card-cover { 
       position: absolute; 
       inset: 0; 
-      background-size: contain; 
+      background-size: cover; 
       background-repeat: no-repeat;
-      background-position: center center; 
+      background-position: center top; 
       background-color: #1a1a1a; 
       z-index: 10; 
       transition: transform 0.2s ease-out; 
@@ -102,10 +101,11 @@
     let isSlowMode = true;
     let currentCardsData = [];
 
+    // 최신 토가 이미지 반영
     const charImages = [
       'https://i.ibb.co/nMGG93YS/miku.jpg',   // 미쿠
       'https://i.ibb.co/vx66H5YR/marin.jpg',  // 마린
-      'https://i.ibb.co/CpGSBrWc/toga.jpg'    // 토가
+      'https://i.ibb.co/QjP9RC5F/toga.jpg'    // 토가 (새로 요청하신 이미지)
     ];
 
     function shuffle(array) {
