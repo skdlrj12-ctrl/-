@@ -27,8 +27,7 @@
     .kuji-card { position: relative; aspect-ratio: 1.4 / 1; border-radius: 10px; overflow: hidden; background: #222; touch-action: none; cursor: pointer; border: 1px solid #333; }
     .card-number { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 900; color: #ffeb3b; z-index: 1; letter-spacing: -0.5px; }
     
-    /* 카드 덮개 (슬라이드 애니메이션) */
-    .card-cover { position: absolute; inset: 0; background-size: cover; background-position: center center; z-index: 2; cursor: grab; box-shadow: 0 0 10px rgba(0,0,0,0.3); }
+    .card-cover { position: absolute; inset: 0; background-size: cover; background-position: center center; background-color: #444; z-index: 10; transition: transform 0.2s ease-out; cursor: grab; box-shadow: 0 0 10px rgba(0,0,0,0.5); }
     .kuji-card.picked .card-cover { display: none; }
     .kuji-card.picked { border: 1px solid #555; background: #181818; }
     .kuji-card.win { background: #e74c3c !important; border-color: #ff6b6b; }
@@ -90,10 +89,11 @@
     let isSlowMode = true;
     let currentCardsData = [];
 
+    // --- 토가 히미코 적용 완료 ---
     const charImages = [
-      'https://upload.wikimedia.org/wikipedia/en/2/22/Himiko_Toga_My_Hero_Academia.png',
-      'https://upload.wikimedia.org/wikipedia/en/9/90/My_Dress-Up_Darling_anime_key_visual.jpg',
-      'https://upload.wikimedia.org/wikipedia/en/9/93/Hatsune_Miku_v3.png'
+      'https://maniahouse.co.kr/web/product/big/202208/873f2fa10eebbf7ed73315a6b7e0e7a2.jpg', // 하츠네 미쿠
+      'https://image.yes24.com/goods/167477153/XL', // 키타가와 마린
+      'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTnyV-ay9p0c6T-XoO9zKUU8DP0P2wJdao1PWRGNVCYLA&s=10' // 토가 히미코
     ];
 
     function shuffle(array) {
@@ -144,11 +144,15 @@
     function renderGrid(cards) {
       const grid = document.getElementById('grid');
       grid.innerHTML = '';
+      let remainingCount = 0;
+
       cards.forEach((card, index) => {
+        if (!card.picked) remainingCount++;
         const cardElem = document.createElement('div');
         const isWin = card.picked && winningNumbers.includes(card.value);
         cardElem.className = 'kuji-card' + (card.picked ? ' picked' : '') + (isWin ? ' win' : '');
         cardElem.innerHTML = `<div class="card-number">${isWin ? '🔥' + card.value : card.value}</div>`;
+        
         if (!card.picked) {
           const coverElem = document.createElement('div');
           coverElem.className = 'card-cover';
@@ -158,44 +162,34 @@
         }
         grid.appendChild(cardElem);
       });
+
+      document.getElementById('status').textContent = `남은 카드: ${remainingCount}장`;
     }
 
     function attachDragEvent(cardElem, coverElem, index) {
-      let startX = 0;
-      let currentX = 0;
-      let isDragging = false;
-
+      let startX = 0, currentX = 0, isDragging = false;
       function onStart(e) {
         if (!isSlowMode) return pickCard(index);
         isDragging = true;
         startX = (e.touches ? e.touches[0].clientX : e.clientX) - currentX;
         coverElem.style.transition = 'none';
       }
-
       function onMove(e) {
         if (!isDragging) return;
         const x = e.touches ? e.touches[0].clientX : e.clientX;
-        // 저항감(0.7)을 주어 느릿하게 움직이게 설정
         currentX = (x - startX) * 0.7; 
         coverElem.style.transform = `translateX(${currentX}px)`;
       }
-
       function onEnd() {
         if (!isDragging) return;
         isDragging = false;
-        // 뜯기 완료 애니메이션 시간을 0.4초로 늘려 더 느리게 표현
         coverElem.style.transition = 'transform 0.4s ease-out';
-        
-        // 양방향 판단 (40% 이상 밀렸을 때)
         if (Math.abs(currentX) > cardElem.clientWidth * 0.4) {
           coverElem.style.transform = `translateX(${currentX > 0 ? '100%' : '-100%'})`;
           setTimeout(() => pickCard(index), 300);
-        } else {
-          coverElem.style.transform = `translateX(0px)`;
-        }
+        } else { coverElem.style.transform = `translateX(0px)`; }
         currentX = 0;
       }
-
       cardElem.addEventListener('touchstart', onStart);
       cardElem.addEventListener('touchmove', onMove);
       cardElem.addEventListener('touchend', onEnd);
@@ -205,10 +199,7 @@
     }
 
     function pickCard(index) { if (currentRoom) db.ref('rooms/' + currentRoom + '/cards/' + index + '/picked').set(true); }
-    function pickRandomCard() {
-        const unpicked = currentCardsData.map((c, i) => c.picked ? null : i).filter(i => i !== null);
-        if (unpicked.length > 0) pickCard(unpicked[Math.floor(Math.random() * unpicked.length)]);
-    }
+    function pickRandomCard() { const unpicked = currentCardsData.map((c, i) => c.picked ? null : i).filter(i => i !== null); if (unpicked.length > 0) pickCard(unpicked[Math.floor(Math.random() * unpicked.length)]); }
     function copyShareLink() { navigator.clipboard.writeText(`https://skdlrj12-ctrl.github.io/-/`).then(() => alert('링크 복사 완료!')); }
   </script>
 </body>
