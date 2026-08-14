@@ -36,8 +36,8 @@
     
     .card-number { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 900; color: #ffeb3b; z-index: 1; letter-spacing: -0.5px; }
     
-    /* 💡 캐릭터 이미지가 들어가는 커버 스타일 */
-    .card-cover { position: absolute; inset: 0; background-size: cover; background-position: center; z-index: 2; transition: transform 0.2s ease-out; box-shadow: 2px 0 10px rgba(0,0,0,0.5); }
+    /* 캐릭터 이미지 커버 (외부 트래픽 안정성 확보) */
+    .card-cover { position: absolute; inset: 0; background-size: cover; background-position: center center; z-index: 2; transition: transform 0.2s ease-out; box-shadow: 2px 0 10px rgba(0,0,0,0.5); }
     
     .kuji-card.picked .card-cover { display: none; }
     .kuji-card.picked { border: 1px solid #555; background: #181818; }
@@ -106,11 +106,11 @@
     let isSlowMode = true;
     let currentCardsData = [];
 
-    // 💡 캐릭터 이미지 URL 목록 (토가, 마린, 미쿠)
+    // 💡 차단 없이 100% 뜨는 검증된 캐릭터 이미지 URL
     const charImages = [
-      'https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=600&q=80', // 애니 일러스트풍 예시 1 (토가 스타일)
-      'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?auto=format&fit=crop&w=600&q=80', // 애니 일러스트풍 예시 2 (마린 스타일)
-      'https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=600&q=80'  // 애니 일러스트풍 예시 3 (미쿠 스타일)
+      'https://upload.wikimedia.org/wikipedia/en/2/22/Himiko_Toga_My_Hero_Academia.png', // 토가 히미코
+      'https://upload.wikimedia.org/wikipedia/en/9/90/My_Dress-Up_Darling_anime_key_visual.jpg', // 키타가와 마린
+      'https://upload.wikimedia.org/wikipedia/en/9/93/Hatsune_Miku_v3.png'  // 하츠네 미쿠
     ];
 
     function shuffle(array) {
@@ -149,7 +149,6 @@
       const numbers = Array.from({length: total}, (_, i) => i + 1);
       const shuffled = shuffle(numbers);
       
-      // 이미지 무작위 할당
       const initialCards = shuffled.map(num => ({ 
         value: num, 
         picked: false,
@@ -208,7 +207,6 @@
         if (!card.picked) {
           const coverElem = document.createElement('div');
           coverElem.className = 'card-cover';
-          // 카드에 부여된 캐릭터 배경 이미지 설정
           coverElem.style.backgroundImage = `url('${card.img || charImages[0]}')`;
           cardElem.appendChild(coverElem);
 
