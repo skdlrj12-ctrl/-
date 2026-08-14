@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MY KUJI</title>
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:#111;
+  color:white;
+  font-family:Arial,sans-serif;
+  text-align:center;
+}
+.wrap{max-width:600px;margin:auto;padding:20px}
+h1{font-size:30px;margin:15px 0 5px}
+.sub{color:#aaa;margin-bottom:20px}
+button{
+  border:0;border-radius:12px;padding:14px 20px;
+  font-size:17px;font-weight:bold;cursor:pointer;
+}
+input{
+  width:100%;padding:15px;border-radius:10px;
+  border:1px solid #555;background:#222;color:white;
+  font-size:17px;margin:8px 0 12px;
+}
+#roomBox{background:#1d1d1d;padding:18px;border-radius:15px;margin-bottom:20px}
+#roomCode{font-size:24px;font-weight:bold;letter-spacing:4px;margin:10px}
+#status{color:#aaa;margin:10px}
+.cards{
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:8px;
+}
+.card{
+  aspect-ratio:3/4;
+  border-radius:10px;
+  background:linear-gradient(145deg,#333,#171717);
+  border:1px solid #555;
+  color:white;
+  font-size:25px;
+  font-weight:bold;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  transition:.25s;
+}
+.card:not(.used):active{transform:scale(.94)}
+.card.used{
+  background:#eee;
+  color:#111;
+  border-color:#fff;
+}
+.card.disabled{opacity:.45}
+#message{margin:18px 0;font-size:18px;min-height:25px}
+.hidden{display:none}
+.small{font-size:13px;color:#888;margin-top:15px}
+</style>
+</head>
+
+<body>
+<div class="wrap">
+
+<h1>🎟️ MY KUJI</h1>
+<div class="sub">30장의 쿠지를 함께 뽑아보세요</div>
+
+<div id="start">
+  <div id="roomBox">
+    <button onclick="createRoom()">방 만들기</button>
+    <p>또는</p>
+    <input id="joinCode" placeholder="친구에게 받은 방 코드">
+    <button onclick="joinRoom()">방 참가하기</button>
+  </div>
+</div>
+
+<div id="game" class="hidden">
+
+  <div id="roomBox">
+    <div>방 코드</div>
+    <div id="roomCode"></div>
+    <div id="status"></div>
+  </div>
+
+  <div id="message">카드를 하나 선택하세요.</div>
+
+  <div class="cards" id="cards"></div>
+
+  <div class="small">
+    한 번 공개된 카드는 다시 뽑을 수 없습니다.
+  </div>
+
+</div>
+</div>
+
+<script>
+let peer;
+let host=false;
+let conn=null;
+let connections=[];
+let state={
+  cards:Array(30).fill(null),
+  numbers:[]
+};
+
+const cardsEl=document.getElementById("cards");
+const messageEl=document.getElementById("message");
+const statusEl=document.getElementById("status");
+const roomCodeEl=document.getElementById("roomCode");
+
+function makeCode(){
+  const chars="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let s="";
+  for(let i=0;i<6;i++)
+    s+=chars[Math.floor(Math.random()*chars.length)];
+  return s;
+}
+
+function createRoom(){
+  host=true;
+  const code=makeCode();
+
+  peer=new Peer(code);
+
+  peer.on("open",id=>{
+    roomCodeEl.textContent=id;
+    statusEl.textContent="방장입니다. 친구에게 방 코드를 알려주세요.";
+    document.getElementById("start").classList.add("hidden");
+    document.getElementById("game").classList.remove("hidden");
+    draw();
+  });
+
+  peer.on("connection",c=>{
+    connections.push(c);
+
+    c.on("open",()=>{
+      c.send({type:"state",state:state});
+      updateStatus();
+    });
+
+    c.on("data",data=>{
+      if(data.type==="pick"){
+        pickCard(data.index);
+      }
+    });
+
+    c.on("close",updateStatus);
+  });
+
+  peer.on("error",err=>{
+    messageEl.textContent="방을 만들 수 없습니다. 다시 시도해주세요.";
+  });
+}
+
+function joinRoom(){
+  const code=document.getElementById("joinCode").value.trim().toUpperCase();
+
+  if(!code){
+    alert("방 코드를 입력해주세요.");
+    return;
+  }
+
+  peer=new Peer();
+
+  peer.on("open",()=>{
+    conn=peer.connect(code);
+
+    conn.on("open",()=>{
+      host=false;
+      roomCodeEl.textContent=code;
+      statusEl.textContent="방에 참가했습니다.";
+      document.getElementById("start").classList.add("hidden");
+      document.getElementById("game").classList.remove("hidden");
+      conn.send({type:"requestState"});
+      draw();
+    });
+
+    conn.on("data",data=>{
+      if(data.type==="state"){
+        state=data.state;
+        draw();
+      }
+    });
+
+    conn.on("error",()=>{
+      messageEl.textContent="방에 연결하지 못했습니다.";
+    });
+  });
+}
+
+function pickCard(index){
+
+  if(state.cards[index]!==null){
+    messageEl.textContent="이미 공개된 카드입니다.";
+    return;
+  }
+
+  if(!host){
+    if(conn && conn.open){
+      conn.send({type:"pick",index:index});
+      messageEl.textContent="번호를 확인하는 중...";
+    }
+    return;
+  }
+
+  const used=state.numbers;
+
+  const available=[];
+  for(let n=1;n<=30;n++){
+    if(!used.includes(n)) available.push(n);
+  }
+
+  if(available.length===0){
+    messageEl.textContent="🎉 모든 쿠지를 뽑았습니다!";
+    return;
+  }
+
+  const number=available[Math.floor(Math.random()*available.length)];
+
+  state.cards[index]=number;
+  state.numbers.push(number);
+
+  broadcast();
+  draw();
+
+  if(state.numbers.length===30){
+    messageEl.textContent="🎉 마지막 카드까지 모두 공개되었습니다!";
+  }else{
+    messageEl.textContent="✨ "+number+"번이 나왔습니다!";
+  }
+}
+
+function broadcast(){
+  connections.forEach(c=>{
+    if(c.open){
+      c.send({type:"state",state:state});
+    }
+  });
+}
+
+function draw(){
+  cardsEl.innerHTML="";
+
+  state.cards.forEach((number,index)=>{
+    const card=document.createElement("button");
+    card.className="card";
+
+    if(number!==null){
+      card.classList.add("used");
+      card.textContent=number;
+    }else{
+      card.textContent="?";
+      card.onclick=()=>pickCard(index);
+    }
+
+    cardsEl.appendChild(card);
+  });
+
+  const left=30-state.numbers.length;
+  statusEl.textContent+=
+    (statusEl.textContent.includes("남은")?"":"  |  남은 카드: "+left+"장");
+}
+
+function updateStatus(){
+  statusEl.textContent="방장입니다. 현재 참가자가 연결되었습니다.";
+}
+</script>
+
+</body>
+</html>
