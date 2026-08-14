@@ -7,40 +7,45 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; user-select: none; }
     body { background-color: #121212; color: #ffffff; display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 20px; }
-    h1 { margin-top: 10px; font-size: 1.8rem; display: flex; align-items: center; gap: 8px; }
-    p.sub { color: #888; font-size: 0.9rem; margin-bottom: 20px; }
-    .card-box { background-color: #1e1e1e; border-radius: 16px; padding: 24px; width: 100%; max-width: 420px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+    h1 { margin-top: 10px; font-size: 2.2rem; display: flex; align-items: center; gap: 8px; }
+    p.sub { color: #888; font-size: 1rem; margin-bottom: 25px; }
     
-    .setting-group { text-align: left; background: #2a2a2a; padding: 15px; border-radius: 12px; margin-bottom: 15px; }
-    .setting-group label { font-size: 0.85rem; color: #aaa; display: block; margin-bottom: 6px; }
+    /* 웹/PC 화면 대응: 너비를 95%까지 꽉 차게 확장 (최대 1200px) */
+    .card-box { background-color: #1e1e1e; border-radius: 16px; padding: 24px; width: 95%; max-width: 1200px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
     
-    input[type="number"], input[type="text"] { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 8px; border: 1px solid #333; background: #1a1a1a; color: #fff; text-align: center; font-size: 1rem; }
+    .setting-group { text-align: left; background: #2a2a2a; padding: 18px; border-radius: 12px; margin-bottom: 15px; max-width: 500px; margin-left: auto; margin-right: auto; }
+    .setting-group label { font-size: 0.95rem; color: #aaa; display: block; margin-bottom: 6px; }
     
-    button { width: 100%; padding: 12px; font-size: 1rem; font-weight: bold; border-radius: 8px; border: none; background: #ffffff; color: #000; cursor: pointer; margin-bottom: 8px; transition: all 0.2s; }
+    input[type="number"], input[type="text"] { width: 100%; padding: 12px; margin-bottom: 12px; border-radius: 8px; border: 1px solid #333; background: #1a1a1a; color: #fff; text-align: center; font-size: 1.1rem; }
+    
+    button { width: 100%; padding: 14px; font-size: 1.1rem; font-weight: bold; border-radius: 8px; border: none; background: #ffffff; color: #000; cursor: pointer; margin-bottom: 8px; transition: all 0.2s; }
     button:active { opacity: 0.8; }
-    button.btn-share { background: #4dabf7; color: #fff; margin-top: 5px; }
+    button.btn-share { background: #4dabf7; color: #fff; margin-top: 8px; max-width: 300px; }
 
-    .control-btns { display: flex; gap: 8px; margin-bottom: 12px; }
-    .btn-sub { font-size: 0.85rem; padding: 10px; border-radius: 8px; }
+    .control-btns { display: flex; gap: 12px; margin-bottom: 15px; justify-content: center; }
+    .btn-sub { font-size: 1rem; padding: 12px 20px; border-radius: 8px; width: auto; min-width: 160px; }
     .btn-slow { background: #333; color: #aaa; border: 1px solid #555; }
     .btn-slow.active { background: #f39c12; color: #fff; border-color: #f39c12; font-weight: bold; }
     .btn-random { background: #8e44ad; color: #fff; }
 
-    .room-info { background: #2a2a2a; padding: 14px; border-radius: 10px; margin-bottom: 15px; font-weight: bold; }
-    .room-code { color: #4dabf7; font-size: 1.2rem; letter-spacing: 1px; }
+    .room-info { background: #2a2a2a; padding: 16px; border-radius: 10px; margin-bottom: 20px; font-weight: bold; }
+    .room-code { color: #4dabf7; font-size: 1.4rem; letter-spacing: 1px; }
     
-    .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 15px; }
+    /* 카드 그리드: 화면이 넓어지면 반응형으로 개수 자동 조절 */
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; margin-top: 15px; }
     
-    /* 카드 밀당 연출을 위한 커스텀 구조 */
-    .kuji-card { position: relative; aspect-ratio: 1; border-radius: 8px; overflow: hidden; background: #222; touch-action: none; cursor: pointer; }
-    .card-number { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; font-weight: bold; color: #ffeb3b; z-index: 1; }
-    .card-cover { position: absolute; inset: 0; background: #3b3b4f; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; font-weight: bold; z-index: 2; transition: transform 0.2s ease-out; }
+    /* 💡 가로로 긴 직사각형 카드 스타일 (가로:세로 = 1.4 : 1) */
+    .kuji-card { position: relative; aspect-ratio: 1.4 / 1; border-radius: 10px; overflow: hidden; background: #222; touch-action: none; cursor: pointer; border: 1px solid #333; }
     
-    /* 이미 뽑힌 카드 */
+    /* 💡 번호 글씨 크기 대폭 확대 (2rem) */
+    .card-number { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 900; color: #ffeb3b; z-index: 1; letter-spacing: -0.5px; }
+    .card-cover { position: absolute; inset: 0; background: #3b3b4f; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: bold; z-index: 2; transition: transform 0.2s ease-out; }
+    
+    /* 이미 뽑힌 카드 및 당첨 카드 연출 */
     .kuji-card.picked .card-cover { display: none; }
-    .kuji-card.picked { border: 1px solid #444; }
-    .kuji-card.win { background: #e74c3c !important; }
-    .kuji-card.win .card-number { color: #fff !important; font-size: 1.2rem; font-weight: 900; }
+    .kuji-card.picked { border: 1px solid #555; background: #181818; }
+    .kuji-card.win { background: #e74c3c !important; border-color: #ff6b6b; }
+    .kuji-card.win .card-number { color: #fff !important; font-size: 2rem; font-weight: 900; }
     
     .hidden { display: none; }
   </style>
@@ -63,10 +68,12 @@
       <input type="text" id="winningNumsInput" placeholder="당첨번호 입력 (선택사항)">
     </div>
 
-    <button onclick="createRoom()" style="background: #22c55e; color: #fff;">방 만들기</button>
-    <div style="color: #666; margin: 12px 0;">— 또는 —</div>
-    <input type="text" id="roomInput" placeholder="방 코드 6자리 입력" maxlength="6" style="text-transform: uppercase;">
-    <button onclick="joinRoom()">방 참가하기</button>
+    <div style="max-width: 500px; margin: 0 auto;">
+      <button onclick="createRoom()" style="background: #22c55e; color: #fff;">방 만들기</button>
+      <div style="color: #666; margin: 12px 0;">— 또는 —</div>
+      <input type="text" id="roomInput" placeholder="방 코드 6자리 입력" maxlength="6" style="text-transform: uppercase;">
+      <button onclick="joinRoom()">방 참가하기</button>
+    </div>
   </div>
 
   <div id="game" class="card-box hidden">
@@ -80,7 +87,7 @@
       <button onclick="pickRandomCard()" class="btn-sub btn-random">🎲 랜덤 뽑기</button>
     </div>
 
-    <div id="status">남은 카드: -장</div>
+    <div id="status" style="font-size: 1.1rem; font-weight: bold; margin-bottom: 10px;">남은 카드: -장</div>
     <div class="grid" id="grid"></div>
   </div>
 
@@ -99,7 +106,7 @@
     const db = firebase.database();
     let currentRoom = null;
     let winningNumbers = [];
-    let isSlowMode = true; // 기본적으로 뜯기 모드 ON
+    let isSlowMode = true;
     let currentCardsData = [];
 
     function shuffle(array) {
@@ -194,7 +201,6 @@
           coverElem.textContent = '?';
           cardElem.appendChild(coverElem);
 
-          // 드래그 터키 아이스크림 연출 이벤트 등록
           attachDragEvent(cardElem, coverElem, index);
         }
 
@@ -204,7 +210,6 @@
       document.getElementById('status').textContent = `남은 카드: ${remaining} / ${cards.length}장`;
     }
 
-    // 터키 아이스크림 스타일 슬라이드 뜯기 드래그 함수
     function attachDragEvent(cardElem, coverElem, index) {
       let startX = 0;
       let currentX = 0;
@@ -225,7 +230,6 @@
         const x = e.touches ? e.touches[0].clientX : e.clientX;
         const diffX = x - startX;
 
-        // 오른쪽으로 밀 때만 커버 이동 (최대 카드 폭까지)
         if (diffX > 0) {
           currentX = Math.min(diffX, cardElem.clientWidth);
           coverElem.style.transform = `translateX(${currentX}px)`;
@@ -237,8 +241,7 @@
         isDragging = false;
         coverElem.style.transition = 'transform 0.25s ease-out';
 
-        // 절반 이상 밀었으면 완전히 뜯김, 안 미달이면 다시 닫힘 (놀리기 연출)
-        if (currentX > cardElem.clientWidth * 0.45) {
+        if (currentX > cardElem.clientWidth * 0.4) {
           coverElem.style.transform = `translateX(100%)`;
           setTimeout(() => pickCard(index), 200);
         } else {
@@ -247,12 +250,10 @@
         currentX = 0;
       }
 
-      // 모바일 터치 이벤트
       cardElem.addEventListener('touchstart', onStart);
       cardElem.addEventListener('touchmove', onMove);
       cardElem.addEventListener('touchend', onEnd);
 
-      // PC 마우스 이벤트
       cardElem.addEventListener('mousedown', onStart);
       window.addEventListener('mousemove', onMove);
       window.addEventListener('mouseup', onEnd);
