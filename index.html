@@ -33,9 +33,19 @@
     .order-item { background: #1a1a1a; padding: 4px 10px; border-radius: 6px; display: flex; align-items: center; gap: 6px; border: 1px solid #444; font-size: 0.85rem; }
     .btn-move { background: #444; color: #fff; border: none; padding: 2px 6px; font-size: 0.75rem; border-radius: 4px; cursor: pointer; margin: 0; width: auto; }
 
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; margin-top: 15px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 12px; margin-top: 15px; }
     
-    .kuji-card { position: relative; aspect-ratio: 1 / 1.3; border-radius: 10px; overflow: hidden; background: #222; touch-action: none; cursor: pointer; border: 1px solid #333; perspective: 1000px; }
+    .kuji-card { 
+      position: relative; 
+      aspect-ratio: 1 / 1.3; 
+      border-radius: 10px; 
+      overflow: hidden; /* 영역 밖으로 이탈 및 간섭 방지 */
+      background: #222; 
+      touch-action: none; 
+      cursor: pointer; 
+      border: 1px solid #333; 
+      isolation: isolate; /* 터치 레이어 독립 */
+    }
     .card-content { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1; }
     .card-number { font-size: 2rem; font-weight: 900; color: #ffeb3b; letter-spacing: -0.5px; }
     .card-picker { font-size: 0.9rem; color: #4dabf7; font-weight: bold; margin-top: 4px; background: rgba(0,0,0,0.6); padding: 2px 8px; border-radius: 12px; max-width: 90%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -53,6 +63,7 @@
       box-shadow: 0 2px 8px rgba(0,0,0,0.6); 
       transform-origin: left center;
       touch-action: none;
+      will-change: transform;
     }
     .card-cover::after {
       content: '';
@@ -61,6 +72,7 @@
       background: linear-gradient(90deg, rgba(0,0,0,0.4) 0%, rgba(255,255,255,0.05) 50%, rgba(0,0,0,0.3) 100%);
       pointer-events: none;
     }
+    .kuji-card.dragging { z-index: 100; overflow: visible; }
     .kuji-card.picked .card-cover { display: none; }
     .kuji-card.picked { border: 1px solid #555; background: #181818; }
     .kuji-card.win { background: #e74c3c !important; border-color: #ff6b6b; }
@@ -313,7 +325,7 @@
 
         if (!syncTimer) {
           syncTimer = setTimeout(() => {
-            if (currentRoom) {
+            if (currentRoom && isDragging) {
               db.ref(`rooms/${currentRoom}/cards/${index}/slideX`).set(x);
             }
             syncTimer = null;
@@ -329,16 +341,23 @@
 
         if (!isSlowMode) return pickCard(index);
 
+        e.stopPropagation(); // 다른 카드로 터치 이벤트가 번지지 않게 차단
+
         isDragging = true;
         activeDragIndex = index;
+        cardElem.classList.add('dragging');
+
         const pageX = e.touches ? e.touches[0].pageX : e.pageX;
         startX = pageX - currentX;
         coverElem.style.transition = 'none';
 
-        window.addEventListener('touchmove', onMove, { passive: false });
-        window.addEventListener('touchend', onEnd);
-        window.addEventListener('mousemove', onMove);
-        window.addEventListener('mouseup', onEnd);
+        const moveHandler = (ev) => onMove(ev);
+        const endHandler = (ev) => onEnd(ev, moveHandler, endHandler);
+
+        window.addEventListener('touchmove', moveHandler, { passive: false });
+        window.addEventListener('touchend', endHandler);
+        window.addEventListener('mousemove', moveHandler);
+        window.addEventListener('mouseup', endHandler);
       }
 
       function onMove(e) {
@@ -346,26 +365,27 @@
         if (e.cancelable) e.preventDefault();
 
         const pageX = e.touches ? e.touches[0].pageX : e.pageX;
-        currentX = (pageX - startX) * 0.55;
+        currentX = (pageX - startX) * 0.6;
         updateSlideX(currentX);
       }
 
-      function onEnd() {
+      function onEnd(e, moveFn, endFn) {
         if (!isDragging) return;
         isDragging = false;
         activeDragIndex = -1;
+        cardElem.classList.remove('dragging');
 
-        window.removeEventListener('touchmove', onMove);
-        window.removeEventListener('touchend', onEnd);
-        window.removeEventListener('mousemove', onMove);
-        window.removeEventListener('mouseup', onEnd);
+        window.removeEventListener('touchmove', moveFn);
+        window.removeEventListener('touchend', endFn);
+        window.removeEventListener('mousemove', moveFn);
+        window.removeEventListener('mouseup', endFn);
 
-        coverElem.style.transition = 'transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+        coverElem.style.transition = 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
 
         if (Math.abs(currentX) > cardElem.clientWidth * 0.35) {
           const finalX = currentX > 0 ? 350 : -350;
           updateSlideX(finalX);
-          setTimeout(() => pickCard(index), 250);
+          setTimeout(() => pickCard(index), 200);
         } else { 
           updateSlideX(0);
         }
