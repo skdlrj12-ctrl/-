@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>🍢 MY KUJI v5.0 (규어빵 전용판)</title>
+  <title>🍢 MY KUJI (규어빵 전용판)</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; user-select: none; }
     body { background-color: #121212; color: #ffffff; display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 20px; }
@@ -39,14 +39,14 @@
       position: relative; 
       aspect-ratio: 1 / 1.3; 
       border-radius: 10px; 
-      overflow: hidden; 
+      overflow: hidden !important; /* 옆 카드 침범 완벽 방지 */
       background: #222; 
       touch-action: none; 
       cursor: pointer; 
       border: 1px solid #333; 
       isolation: isolate; 
     }
-    .card-content { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1; }
+    .card-content { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1; pointer-events: none; }
     .card-number { font-size: 2rem; font-weight: 900; color: #ffeb3b; letter-spacing: -0.5px; }
     .card-picker { font-size: 0.9rem; color: #4dabf7; font-weight: bold; margin-top: 4px; background: rgba(0,0,0,0.6); padding: 2px 8px; border-radius: 12px; max-width: 90%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
@@ -58,7 +58,7 @@
       background-position: center top; 
       background-color: #1a1a1a; 
       z-index: 10; 
-      transition: transform 0.12s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.12s ease; 
+      transition: transform 0.12s cubic-bezier(0.25, 1, 0.5, 1); 
       cursor: grab; 
       box-shadow: 0 2px 8px rgba(0,0,0,0.6); 
       transform-origin: left center;
@@ -72,8 +72,7 @@
       background: linear-gradient(90deg, rgba(0,0,0,0.4) 0%, rgba(255,255,255,0.05) 50%, rgba(0,0,0,0.3) 100%);
       pointer-events: none;
     }
-    .kuji-card.dragging { z-index: 100; overflow: visible; }
-    .kuji-card.picked .card-cover { display: none; }
+    .kuji-card.picked .card-cover { display: none !important; }
     .kuji-card.picked { border: 1px solid #555; background: #181818; }
     .kuji-card.win { background: #e74c3c !important; border-color: #ff6b6b; }
     .kuji-card.win .card-number { color: #fff !important; font-size: 2rem; font-weight: 900; }
@@ -86,7 +85,7 @@
 <body>
 
   <h1>🍢 MY KUJI (규어빵 전용판)</h1>
-  <p class="sub">실시간 제비뽑기 게임 v5.0</p>
+  <p class="sub">실시간 제비뽑기 게임</p>
 
   <div id="lobby" class="card-box">
     <div class="setting-group">
@@ -126,7 +125,6 @@
   </div>
 
   <script>
-    // Firebase 초기화
     const firebaseConfig = {
       apiKey: "AIzaSyCK9pczUoVYyMcckD136aW",
       authDomain: "my-kuji-4d235.firebaseapp.com",
@@ -139,8 +137,6 @@
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-
-    // 상태 변수
     let currentRoom = null;
     let winningNumbers = [];
     let isSlowMode = true;
@@ -164,9 +160,7 @@
       return array;
     }
 
-    function generateRoomCode() { 
-      return Math.random().toString(36).substring(2, 8).toUpperCase(); 
-    }
+    function generateRoomCode() { return Math.random().toString(36).substring(2, 8).toUpperCase(); }
 
     function toggleSlowMode() {
       isSlowMode = !isSlowMode;
@@ -187,7 +181,6 @@
       const wins = winInput.split(',').map(n => parseInt(n.trim())).filter(n => !isNaN(n));
       const code = generateRoomCode();
       const numbers = shuffle(Array.from({length: total}, (_, i) => i + 1));
-      
       const initialCards = numbers.map(num => ({ 
         value: num, 
         picked: false, 
@@ -281,39 +274,45 @@
       cards.forEach((card, index) => {
         if (!card.picked) remainingCount++;
         let cardElem = document.getElementById(`kuji-card-${index}`);
-        
         const isWin = card.picked && winningNumbers.includes(card.value);
-        const pickerText = card.pickedBy ? `<div class="card-picker">👤 ${card.pickedBy}</div>` : '';
 
         if (!cardElem) {
           cardElem = document.createElement('div');
           cardElem.id = `kuji-card-${index}`;
+          cardElem.className = 'kuji-card';
+          
+          const contentDiv = document.createElement('div');
+          contentDiv.className = 'card-content';
+          contentDiv.innerHTML = `
+            <div class="card-number" id="card-num-${index}"></div>
+            <div id="card-picker-${index}"></div>
+          `;
+          cardElem.appendChild(contentDiv);
+
+          const coverElem = document.createElement('div');
+          coverElem.className = 'card-cover';
+          coverElem.id = `card-cover-${index}`;
+          coverElem.style.backgroundImage = `url('${card.img || charImages[0]}')`;
+          cardElem.appendChild(coverElem);
+
+          attachDragEvent(cardElem, coverElem, index);
           grid.appendChild(cardElem);
         }
 
-        cardElem.className = 'kuji-card' + (card.picked ? ' picked' : '') + (isWin ? ' win' : '');
-        cardElem.innerHTML = `
-          <div class="card-content">
-            <div class="card-number">${isWin ? '🔥' + card.value : card.value}</div>
-            ${pickerText}
-          </div>
-        `;
+        // 요소 상태 개별 업데이트 (DOM 파괴 방지)
+        const numElem = document.getElementById(`card-num-${index}`);
+        const pickerElem = document.getElementById(`card-picker-${index}`);
+        const coverElem = document.getElementById(`card-cover-${index}`);
 
-        if (!card.picked) {
-          let coverElem = cardElem.querySelector('.card-cover');
-          if (!coverElem) {
-            coverElem = document.createElement('div');
-            coverElem.className = 'card-cover';
-            coverElem.style.backgroundImage = `url('${card.img || charImages[0]}')`;
-            cardElem.appendChild(coverElem);
-            attachDragEvent(cardElem, coverElem, index);
-          }
-          if (activeDragIndex !== index) {
-            const x = card.slideX || 0;
-            const rot = (x / 10).toFixed(1);
-            coverElem.style.transform = `translateX(${x}px) rotate(${rot}deg)`;
-            coverElem.style.boxShadow = `${-x / 5}px 4px 15px rgba(0,0,0,0.6)`;
-          }
+        if (numElem) numElem.textContent = isWin ? '🔥' + card.value : card.value;
+        if (pickerElem) pickerElem.innerHTML = card.pickedBy ? `<div class="card-picker">👤 ${card.pickedBy}</div>` : '';
+
+        cardElem.className = 'kuji-card' + (card.picked ? ' picked' : '') + (isWin ? ' win' : '');
+
+        if (!card.picked && activeDragIndex !== index && coverElem) {
+          const x = card.slideX || 0;
+          const rot = (x / 10).toFixed(1);
+          coverElem.style.transform = `translateX(${x}px) rotate(${rot}deg)`;
         }
       });
 
@@ -327,7 +326,6 @@
       function updateSlideX(x) {
         const rot = (x / 10).toFixed(1);
         coverElem.style.transform = `translateX(${x}px) rotate(${rot}deg)`;
-        coverElem.style.boxShadow = `${-x / 4}px 6px 20px rgba(0,0,0,0.7)`;
 
         if (!syncTimer) {
           syncTimer = setTimeout(() => {
@@ -335,7 +333,7 @@
               db.ref(`rooms/${currentRoom}/cards/${index}/slideX`).set(x);
             }
             syncTimer = null;
-          }, 50);
+          }, 60);
         }
       }
 
@@ -351,7 +349,6 @@
 
         isDragging = true;
         activeDragIndex = index;
-        cardElem.classList.add('dragging');
 
         const pageX = e.touches ? e.touches[0].pageX : e.pageX;
         startX = pageX - currentX;
@@ -379,19 +376,18 @@
         if (!isDragging) return;
         isDragging = false;
         activeDragIndex = -1;
-        cardElem.classList.remove('dragging');
 
         window.removeEventListener('touchmove', moveFn);
         window.removeEventListener('touchend', endFn);
         window.removeEventListener('mousemove', moveFn);
         window.removeEventListener('mouseup', endFn);
 
-        coverElem.style.transition = 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+        coverElem.style.transition = 'transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
 
-        if (Math.abs(currentX) > cardElem.clientWidth * 0.35) {
-          const finalX = currentX > 0 ? 350 : -350;
+        if (Math.abs(currentX) > cardElem.clientWidth * 0.3) {
+          const finalX = currentX > 0 ? 300 : -300;
           updateSlideX(finalX);
-          setTimeout(() => pickCard(index), 200);
+          setTimeout(() => pickCard(index), 180);
         } else { 
           updateSlideX(0);
         }
