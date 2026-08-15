@@ -28,6 +28,7 @@
     
     .players-order { margin-top: 10px; padding-top: 10px; border-top: 1px solid #444; font-size: 0.95rem; color: #ddd; word-break: break-all; }
     .host-tag { color: #f39c12; font-weight: bold; }
+    .turn-tag { color: #22c55e; font-weight: bold; font-size: 1.05rem; }
 
     .order-controls { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
     .order-item { background: #1a1a1a; padding: 4px 10px; border-radius: 6px; display: flex; align-items: center; gap: 6px; border: 1px solid #444; font-size: 0.85rem; }
@@ -60,7 +61,6 @@
     }
     .card-number { font-size: 2rem; font-weight: 900; color: #ffeb3b; letter-spacing: -0.5px; }
     
-    /* 닉네임 태그 너비 및 축소 레이아웃 수정을 적용한 부분 */
     .card-picker { 
       font-size: 0.8rem; 
       color: #4dabf7; 
@@ -136,7 +136,8 @@
       <button onclick="copyShareLink()" class="btn-share">📋 초대 링크 복사하기</button>
       
       <div class="players-order">
-        <div>👑 방장 (뜯기 권한자): <span id="hostName" class="host-tag">불러오는 중...</span></div>
+        <div>👑 방장 (뜯기 진행자): <span id="hostName" class="host-tag">불러오는 중...</span></div>
+        <div style="margin-top: 4px;">🎯 현재 차례 (카드 받을 사람): <span id="currentTurnInfo" class="turn-tag">-</span></div>
         <div style="margin-top: 6px; color: #aaa;">참가자 명단: <span id="playersList"></span></div>
         <div class="order-controls" id="orderControls"></div>
       </div>
@@ -287,9 +288,16 @@
       db.ref('rooms/' + currentRoom + '/players').set(playersList);
     }
 
+    function getCurrentTurnPlayer() {
+      if (!playersList || playersList.length === 0) return myName;
+      const pickedCount = currentCardsData.filter(c => c.picked).length;
+      return playersList[pickedCount % playersList.length];
+    }
+
     function renderPlayersOrder() {
       document.getElementById('hostName').textContent = hostName || "미지정";
       document.getElementById('playersList').textContent = playersList.join(' ➔ ');
+      document.getElementById('currentTurnInfo').textContent = getCurrentTurnPlayer();
 
       const controlsContainer = document.getElementById('orderControls');
       controlsContainer.innerHTML = '<span style="color:#aaa; font-size:0.85rem;">순서 변경: </span>';
@@ -450,10 +458,14 @@
         return;
       }
 
+      if (currentCardsData[index] && currentCardsData[index].picked) return;
+
+      const turnPlayer = getCurrentTurnPlayer();
+
       if (currentRoom) {
         db.ref('rooms/' + currentRoom).update({
           [`cards/${index}/picked`]: true,
-          [`cards/${index}/pickedBy`]: myName,
+          [`cards/${index}/pickedBy`]: turnPlayer,
           [`cards/${index}/slideX`]: 0
         });
       } 
