@@ -46,23 +46,34 @@
       border: 1px solid #333; 
       isolation: isolate; 
     }
-    .card-content { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1; pointer-events: none; padding: 4px; }
+    .card-content { 
+      position: absolute; 
+      inset: 0; 
+      display: flex; 
+      flex-direction: column; 
+      align-items: center; 
+      justify-content: center; 
+      z-index: 1; 
+      pointer-events: none; 
+      padding: 6px; 
+      width: 100%;
+    }
     .card-number { font-size: 2rem; font-weight: 900; color: #ffeb3b; letter-spacing: -0.5px; }
     
-    /* 닉네임 잘림 문제 해결 수정 영역 */
+    /* 닉네임 태그 너비 및 축소 레이아웃 수정을 적용한 부분 */
     .card-picker { 
-      font-size: 0.75rem; 
+      font-size: 0.8rem; 
       color: #4dabf7; 
       font-weight: bold; 
-      margin-top: 4px; 
-      background: rgba(0,0,0,0.75); 
+      margin-top: 6px; 
+      background: rgba(0,0,0,0.8); 
       padding: 3px 8px; 
       border-radius: 10px; 
-      max-width: 95%; 
+      max-width: 90%; 
       overflow: hidden; 
       text-overflow: ellipsis; 
       white-space: nowrap; 
-      display: inline-block;
+      text-align: center;
     }
 
     .card-cover { 
@@ -167,7 +178,6 @@
       'https://i.ibb.co/QjP9RC5F/toga.jpg'
     ];
 
-    // 페이지 로드시 URL의 ?room= 매개변수를 확인하여 자동 채우기
     window.addEventListener('DOMContentLoaded', () => {
       const urlParams = new URLSearchParams(window.location.search);
       const roomParam = urlParams.get('room');
@@ -314,7 +324,7 @@
           contentDiv.className = 'card-content';
           contentDiv.innerHTML = `
             <div class="card-number" id="card-num-${index}"></div>
-            <div id="card-picker-${index}"></div>
+            <div class="card-picker" id="card-picker-${index}"></div>
           `;
           cardElem.appendChild(contentDiv);
 
@@ -333,7 +343,15 @@
         const coverElem = document.getElementById(`card-cover-${index}`);
 
         if (numElem) numElem.textContent = isWin ? '🔥' + card.value : card.value;
-        if (pickerElem) pickerElem.innerHTML = card.pickedBy ? `<div class="card-picker">👤 ${card.pickedBy}</div>` : '';
+        
+        if (pickerElem) {
+          if (card.pickedBy) {
+            pickerElem.textContent = `👤 ${card.pickedBy}`;
+            pickerElem.style.display = 'block';
+          } else {
+            pickerElem.style.display = 'none';
+          }
+        }
 
         cardElem.className = 'kuji-card' + (card.picked ? ' picked' : '') + (isWin ? ' win' : '');
 
@@ -453,7 +471,7 @@
     function copyShareLink() { 
       const inviteUrl = `${window.location.origin}${window.location.pathname}?room=${currentRoom}`;
       navigator.clipboard.writeText(inviteUrl).then(() => {
-        alert('초대 링크가 복사되었습니다! 상대방이 이 링크로 접속하면 방 번호가 자동 입력됩니다.');
+        alert('초대 링크가 복사되었습니다!');
       }); 
     }
   </script>
