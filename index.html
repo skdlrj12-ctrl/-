@@ -53,6 +53,7 @@
       cursor: grab; 
       box-shadow: 0 2px 8px rgba(0,0,0,0.6); 
       transform-origin: left center;
+      touch-action: none;
     }
     .card-cover::after {
       content: '';
@@ -314,7 +315,7 @@
 
     function isMyTurn() {
       if (!playersList || playersList.length === 0) return true;
-      return getCurrentTurnPlayer() === myName;
+      return getCurrentTurnPlayer().trim() === myName.trim();
     }
 
     function attachDragEvent(cardElem, coverElem, index) {
@@ -343,16 +344,26 @@
         }
 
         if (!isSlowMode) return pickCard(index);
+
         isDragging = true;
         activeDragIndex = index;
-        startX = (e.touches ? e.touches[0].clientX : e.clientX) - currentX;
+        const pageX = e.touches ? e.touches[0].pageX : e.pageX;
+        startX = pageX - currentX;
         coverElem.style.transition = 'none';
+
+        // 터치 및 마우스 이동 이벤트 바인딩
+        window.addEventListener('touchmove', onMove, { passive: false });
+        window.addEventListener('touchend', onEnd);
+        window.addEventListener('mousemove', onMove);
+        window.addEventListener('mouseup', onEnd);
       }
 
       function onMove(e) {
         if (!isDragging) return;
-        const x = e.touches ? e.touches[0].clientX : e.clientX;
-        currentX = (x - startX) * 0.45; 
+        if (e.cancelable) e.preventDefault(); // 화면 스크롤 방지
+
+        const pageX = e.touches ? e.touches[0].pageX : e.pageX;
+        currentX = (pageX - startX) * 0.55; // 묵직함 조정
         updateSlideX(currentX);
       }
 
@@ -360,8 +371,15 @@
         if (!isDragging) return;
         isDragging = false;
         activeDragIndex = -1;
+
+        // 글로벌 이벤트 해제
+        window.removeEventListener('touchmove', onMove);
+        window.removeEventListener('touchend', onEnd);
+        window.removeEventListener('mousemove', onMove);
+        window.removeEventListener('mouseup', onEnd);
+
         coverElem.style.transition = 'transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
-        
+
         if (Math.abs(currentX) > cardElem.clientWidth * 0.35) {
           const finalX = currentX > 0 ? 350 : -350;
           updateSlideX(finalX);
@@ -372,12 +390,8 @@
         currentX = 0;
       }
 
-      cardElem.addEventListener('touchstart', onStart, {passive: true});
-      cardElem.addEventListener('touchmove', onMove, {passive: true});
-      cardElem.addEventListener('touchend', onEnd);
-      cardElem.addEventListener('mousedown', onStart);
-      window.addEventListener('mousemove', onMove);
-      window.addEventListener('mouseup', onEnd);
+      coverElem.addEventListener('touchstart', onStart, { passive: false });
+      coverElem.addEventListener('mousedown', onStart);
     }
 
     function pickCard(index) { 
