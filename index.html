@@ -9,9 +9,9 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; user-select: none; }
     
-    /* 배경 이미지 적용 및 고정 연출 */
+    /* 배경 고화질 처리 */
     body { 
-      background-image: url('https://i.ibb.co/d0qnQSCq/image.jpg'); 
+      background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('https://i.ibb.co/d0qnQSCq/image.jpg'); 
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
@@ -21,24 +21,27 @@
       flex-direction: column; 
       align-items: center; 
       min-height: 100vh; 
-      padding: 20px; 
+      padding: 15px; 
     }
     
-    h1 { margin-top: 10px; font-size: 2rem; text-align: center; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
-    p.sub { color: #ddd; font-size: 1rem; margin-bottom: 25px; text-shadow: 0 1px 3px rgba(0,0,0,0.8); }
+    h1 { margin-top: 5px; font-size: 1.8rem; text-align: center; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
+    p.sub { color: #ddd; font-size: 0.9rem; margin-bottom: 15px; text-shadow: 0 1px 3px rgba(0,0,0,0.8); }
     
-    /* 카드판 반투명 및 글래스모피즘 효과 적용 */
+    /* 전체 판 스타일 */
     .card-box { 
-      background-color: rgba(30, 30, 30, 0.75); 
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
+      background-color: rgba(20, 20, 20, 0.8); 
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       border: 1px solid rgba(255, 255, 255, 0.15);
       border-radius: 16px; 
-      padding: 24px; 
-      width: 95%; 
-      max-width: 1200px; 
+      padding: 20px; 
+      width: 98%; 
+      max-width: 1000px; 
       text-align: center; 
       box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.6); 
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
     }
     
     .setting-group { 
@@ -46,10 +49,8 @@
       background: rgba(42, 42, 42, 0.8); 
       padding: 18px; 
       border-radius: 12px; 
-      margin-bottom: 15px; 
       max-width: 600px; 
-      margin-left: auto; 
-      margin-right: auto; 
+      margin: 0 auto 15px auto; 
       border: 1px solid rgba(255, 255, 255, 0.1);
     }
     .setting-group label { font-size: 0.95rem; color: #ccc; display: block; margin-bottom: 6px; font-weight: bold; }
@@ -58,57 +59,49 @@
     .prize-item { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
     .prize-item input { margin-bottom: 0; }
 
-    button { width: 100%; padding: 14px; font-size: 1.1rem; font-weight: bold; border-radius: 8px; border: none; background: #ffffff; color: #000; cursor: pointer; margin-bottom: 8px; transition: all 0.2s; }
+    button { width: 100%; padding: 12px; font-size: 1rem; font-weight: bold; border-radius: 8px; border: none; background: #ffffff; color: #000; cursor: pointer; transition: all 0.2s; }
     button:active { opacity: 0.8; }
-    button.btn-share { background: #4dabf7; color: #fff; margin-top: 8px; max-width: 250px; text-align: center; }
+    button.btn-share { background: #4dabf7; color: #fff; width: auto; padding: 8px 16px; font-size: 0.85rem; }
     
-    .control-btns { display: flex; gap: 12px; margin-bottom: 15px; justify-content: center; }
-    .btn-sub { font-size: 1rem; padding: 12px 20px; border-radius: 8px; width: auto; min-width: 160px; }
+    /* 상단 당첨 상품 보드 (가로 정렬) */
+    .prize-board-top { 
+      background: rgba(35, 35, 35, 0.85); 
+      padding: 12px; 
+      border-radius: 12px; 
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      text-align: left;
+    }
+    .prize-board-top h3 { font-size: 1rem; color: #ffeb3b; margin-bottom: 8px; border-bottom: 1px solid #444; padding-bottom: 4px; }
+    .prize-list-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
+    .prize-card { display: flex; align-items: center; gap: 8px; background: rgba(20, 20, 20, 0.8); padding: 6px 8px; border-radius: 6px; border: 1px solid #444; }
+    .prize-card img { width: 35px; height: 35px; border-radius: 4px; object-fit: cover; }
+    .prize-info { font-size: 0.8rem; }
+    .prize-info .num { color: #f39c12; font-weight: bold; }
+
+    /* 크게 강조된 현재 차례 영역 */
+    .turn-banner { 
+      background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(59, 130, 246, 0.2)); 
+      border: 2px solid #22c55e; 
+      border-radius: 12px; 
+      padding: 12px; 
+      text-align: center;
+    }
+    .turn-banner .title { font-size: 0.9rem; color: #aaa; margin-bottom: 2px; }
+    .turn-banner .name { font-size: 1.8rem; font-weight: 900; color: #22c55e; text-shadow: 0 0 10px rgba(34, 197, 94, 0.5); }
+
+    .control-btns { display: flex; gap: 10px; justify-content: center; }
+    .btn-sub { font-size: 0.9rem; padding: 10px 16px; border-radius: 8px; width: auto; }
     .btn-slow { background: rgba(51, 51, 51, 0.8); color: #aaa; border: 1px solid #555; }
     .btn-slow.active { background: #f39c12; color: #fff; border-color: #f39c12; font-weight: bold; }
     .btn-random { background: #8e44ad; color: #fff; }
-    
-    .main-container { display: flex; gap: 20px; width: 100%; text-align: left; }
-    .game-area { flex: 1; }
-    
-    /* 상품 보드 반투명 연출 */
-    .prize-board { 
-      width: 280px; 
-      background: rgba(42, 42, 42, 0.75); 
-      backdrop-filter: blur(5px);
-      padding: 16px; 
-      border-radius: 12px; 
-      height: fit-content; 
-      border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-    .prize-board h3 { border-bottom: 1px solid #555; padding-bottom: 8px; margin-bottom: 12px; color: #ffeb3b; }
-    .prize-card { display: flex; align-items: center; gap: 10px; background: rgba(26, 26, 26, 0.8); padding: 8px; border-radius: 8px; margin-bottom: 8px; border: 1px solid #444; }
-    .prize-card img { width: 45px; height: 45px; border-radius: 6px; object-fit: cover; }
-    .prize-info { font-size: 0.85rem; }
-    .prize-info .num { color: #f39c12; font-weight: bold; }
 
-    /* 방 정보 영역 반투명 연출 */
-    .room-info { 
-      background: rgba(42, 42, 42, 0.75); 
-      backdrop-filter: blur(5px);
-      padding: 16px; 
-      border-radius: 10px; 
-      margin-bottom: 20px; 
-      text-align: left; 
-      border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-    .room-code { color: #4dabf7; font-size: 1.4rem; letter-spacing: 1px; font-weight: bold; }
-    .players-order { margin-top: 10px; padding-top: 10px; border-top: 1px solid #555; font-size: 0.95rem; color: #ddd; word-break: break-all; }
-    .host-tag { color: #f39c12; font-weight: bold; }
-    .turn-tag { color: #22c55e; font-weight: bold; font-size: 1.05rem; }
-
-    /* 가로 5열 고정 그리드 */
-    .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 15px; }
+    /* 가로로 길쭉한 카드 배치 (5열 고정) */
+    .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
     
     .kuji-card { 
       position: relative; 
-      aspect-ratio: 1 / 1.3; 
-      border-radius: 10px; 
+      aspect-ratio: 1.3 / 1; /* 가로가 길쭉한 비율 */
+      border-radius: 8px; 
       overflow: hidden !important; 
       background: rgba(34, 34, 34, 0.85); 
       touch-action: none; 
@@ -125,19 +118,19 @@
       justify-content: center; 
       z-index: 1; 
       pointer-events: none; 
-      padding: 4px; 
+      padding: 2px; 
       width: 100%;
     }
-    .card-number { font-size: 1.6rem; font-weight: 900; color: #ffeb3b; letter-spacing: -0.5px; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
+    .card-number { font-size: 1.4rem; font-weight: 900; color: #ffeb3b; letter-spacing: -0.5px; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
     
     .card-picker { 
-      font-size: 0.75rem; 
+      font-size: 0.7rem; 
       color: #4dabf7; 
       font-weight: bold; 
-      margin-top: 4px; 
+      margin-top: 2px; 
       background: rgba(0,0,0,0.8); 
-      padding: 2px 6px; 
-      border-radius: 8px; 
+      padding: 1px 5px; 
+      border-radius: 6px; 
       max-width: 90%; 
       overflow: hidden; 
       text-overflow: ellipsis; 
@@ -150,7 +143,7 @@
       inset: 0; 
       background-size: cover; 
       background-repeat: no-repeat;
-      background-position: center top; 
+      background-position: center center; 
       background-color: #1a1a1a; 
       z-index: 10; 
       transition: transform 0.12s cubic-bezier(0.25, 1, 0.5, 1); 
@@ -163,15 +156,30 @@
     .kuji-card.picked .card-cover { display: none !important; }
     .kuji-card.picked { border: 1px solid #555; background: rgba(24, 24, 24, 0.85); }
     .kuji-card.win { background: rgba(231, 76, 60, 0.9) !important; border-color: #ff6b6b; }
-    .kuji-card.win .card-number { color: #fff !important; font-size: 1.4rem; }
-    .win-name { font-size: 0.75rem; color: #fff; font-weight: bold; margin-top: 2px; }
+    .kuji-card.win .card-number { color: #fff !important; font-size: 1.2rem; }
+    .win-name { font-size: 0.7rem; color: #fff; font-weight: bold; }
+
+    /* 제일 하단 방 코드 정보 영역 */
+    .room-info-bottom { 
+      background: rgba(20, 20, 20, 0.6); 
+      padding: 10px 14px; 
+      border-radius: 8px; 
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      font-size: 0.85rem;
+      color: #aaa;
+    }
+    .room-code { color: #4dabf7; font-size: 1.1rem; font-weight: bold; letter-spacing: 1px; }
+
     .hidden { display: none; }
 
     @media (max-width: 768px) {
-      .main-container { flex-direction: column-reverse; }
-      .prize-board { width: 100%; }
-      .grid { grid-template-columns: repeat(5, 1fr); gap: 6px; }
-      .card-number { font-size: 1.2rem; }
+      .grid { grid-template-columns: repeat(5, 1fr); gap: 4px; }
+      .card-number { font-size: 1rem; }
+      .turn-banner .name { font-size: 1.4rem; }
+      .prize-list-grid { grid-template-columns: repeat(2, 1fr); }
     }
   </style>
 
@@ -183,6 +191,7 @@
   <h1>🍢 MY KUJI (규어빵 전용판)</h1>
   <p class="sub">실시간 제비뽑기 게임</p>
 
+  <!-- 로비 화면 -->
   <div id="lobby" class="card-box">
     <div class="setting-group">
       <label>1. 참가자 이름 목록 (쉼표 구분 순서대로)</label>
@@ -199,43 +208,45 @@
           <input type="text" placeholder="이미지 URL (선택)" class="p-img">
         </div>
       </div>
-      <button onclick="addPrizeInput()" style="background: rgba(255,255,255,0.2); color: #fff; font-size: 0.9rem; padding: 8px; border: 1px solid rgba(255,255,255,0.3);">+ 당첨 상품 추가</button>
+      <button onclick="addPrizeInput()" style="background: rgba(255,255,255,0.2); color: #fff; font-size: 0.85rem; padding: 6px;">+ 당첨 상품 추가</button>
     </div>
 
-    <div style="max-width: 500px; margin: 0 auto;">
-      <button onclick="createRoom()" style="background: #22c55e; color: #fff;">방 만들기</button>
-      <div style="color: #ddd; margin: 12px 0; text-shadow: 0 1px 2px rgba(0,0,0,0.8);">— 또는 —</div>
+    <div style="max-width: 400px; margin: 0 auto; width: 100%;">
+      <button onclick="createRoom()" style="background: #22c55e; color: #fff; margin-bottom: 8px;">방 만들기</button>
+      <div style="color: #ddd; margin: 8px 0; font-size: 0.85rem;">— 또는 —</div>
       <input type="text" id="roomInput" placeholder="방 코드 6자리 입력" maxlength="6" style="text-transform: uppercase;">
       <button onclick="joinRoom()" style="background: #3b82f6; color: #fff;">방 참가하기</button>
     </div>
   </div>
 
+  <!-- 게임 실행 화면 -->
   <div id="game" class="card-box hidden">
-    <div class="room-info">
-      <div>방 코드: <span id="currentRoomCode" class="room-code"></span></div>
-      <button onclick="copyShareLink()" class="btn-share">📋 초대 링크 복사하기</button>
-      
-      <div class="players-order">
-        <div>👑 방장 (진행자): <span id="hostName" class="host-tag">불러오는 중...</span></div>
-        <div style="margin-top: 4px;">🎯 현재 차례 (카드 받을 사람): <span id="currentTurnInfo" class="turn-tag">-</span></div>
-        <div style="margin-top: 6px; color: #aaa;">참가자 명단: <span id="playersList"></span></div>
-      </div>
+    <!-- 1. 상단 당첨 상품 목록 -->
+    <div class="prize-board-top">
+      <h3>🎁 당첨 상품 목록</h3>
+      <div id="prizeBoardList" class="prize-list-grid"></div>
     </div>
-    
+
+    <!-- 2. 크게 강조된 현재 차례 표시 -->
+    <div class="turn-banner">
+      <div class="title">🎯 현재 차례 (카드 뽑을 사람)</div>
+      <div id="currentTurnInfo" class="name">-</div>
+    </div>
+
+    <!-- 제어 버튼 및 잔여 카운트 -->
     <div class="control-btns">
       <button id="slowBtn" onclick="toggleSlowMode()" class="btn-sub btn-slow active">🍦 슬라이드 뜯기: ON</button>
       <button onclick="pickRandomCard()" class="btn-sub btn-random">🎲 랜덤 뽑기</button>
     </div>
-    <div id="status" style="font-size: 1.1rem; font-weight: bold; margin-bottom: 10px; text-shadow: 0 1px 3px rgba(0,0,0,0.8);">남은 카드: -장</div>
+    <div id="status" style="font-size: 0.9rem; color: #ccc;">남은 카드: -장</div>
 
-    <div class="main-container">
-      <div class="game-area">
-        <div class="grid" id="grid"></div>
-      </div>
-      <div class="prize-board">
-        <h3>🎁 당첨 상품 목록</h3>
-        <div id="prizeBoardList"></div>
-      </div>
+    <!-- 3. 가로형 카드판 (5열 배치) -->
+    <div class="grid" id="grid"></div>
+
+    <!-- 4. 제일 하단 방 코드 & 초대 링크 영역 -->
+    <div class="room-info-bottom">
+      <div>방 코드: <span id="currentRoomCode" class="room-code"></span> | 진행자: <span id="hostName" style="color:#fff;">-</span></div>
+      <button onclick="copyShareLink()" class="btn-share">📋 초대 링크 복사</button>
     </div>
   </div>
 
@@ -261,6 +272,7 @@
     let hostName = "";
     let activeDragIndex = -1;
 
+    // 주술회전 고죠 사토루 영역전개 당첨 사운드
     const winAudio = new Audio('https://raw.githubusercontent.com/skdlrj12-ctrl/-/main/gojo_ryoiki.mp3');
 
     function playRipSound() {
@@ -416,7 +428,6 @@
 
     function renderPlayersOrder() {
       document.getElementById('hostName').textContent = hostName || "미지정";
-      document.getElementById('playersList').textContent = playersList.join(' ➔ ');
       document.getElementById('currentTurnInfo').textContent = getCurrentTurnPlayer();
     }
 
@@ -430,7 +441,7 @@
         item.innerHTML = `
           <img src="${prize.img}" onerror="this.src='https://via.placeholder.com/150?text=Prize'">
           <div class="prize-info">
-            <div class="num">[${num}번 당첨]</div>
+            <div class="num">[${num}번]</div>
             <div>${prize.name}</div>
           </div>
         `;
