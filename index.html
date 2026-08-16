@@ -8,9 +8,8 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; user-select: none; }
     
-    /* 선명한 고화질 배경 및 은은한 오버레이 */
     body { 
-      background-image: linear-gradient(rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.35)), url('https://i.ibb.co/d0qnQSCq/image.jpg'); 
+      background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('https://i.ibb.co/d0qnQSCq/image.jpg'); 
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
@@ -26,9 +25,8 @@
     h1 { margin-top: 5px; font-size: 1.8rem; text-align: center; text-shadow: 0 2px 6px rgba(0,0,0,0.9); }
     p.sub { color: #eee; font-size: 0.9rem; margin-bottom: 15px; text-shadow: 0 1px 4px rgba(0,0,0,0.9); }
     
-    /* 판 단위 반투명(Glassmorphism) 연출 */
     .card-box { 
-      background-color: rgba(18, 18, 18, 0.72); 
+      background-color: rgba(18, 18, 18, 0.75); 
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
       border: 1px solid rgba(255, 255, 255, 0.2);
@@ -63,7 +61,6 @@
     button:active { opacity: 0.8; }
     button.btn-share { background: #4dabf7; color: #fff; width: auto; padding: 6px 14px; font-size: 0.85rem; }
     
-    /* 상단 당첨 상품 보드 */
     .prize-board-top { 
       background: rgba(30, 30, 30, 0.75); 
       padding: 12px; 
@@ -78,7 +75,6 @@
     .prize-info { font-size: 0.8rem; }
     .prize-info .num { color: #f39c12; font-weight: bold; }
 
-    /* 현황 및 순서 변경 영역 (방장 전용) */
     .manager-box {
       background: rgba(28, 28, 28, 0.8);
       border: 1px solid rgba(255, 255, 255, 0.2);
@@ -96,7 +92,6 @@
     .add-player-row input { margin-bottom: 0; padding: 6px 10px; font-size: 0.85rem; }
     .add-player-row button { width: auto; white-space: nowrap; padding: 6px 12px; font-size: 0.85rem; background: #3b82f6; color: #fff; }
 
-    /* 크게 강조된 현재 차례 영역 */
     .turn-banner { 
       background: linear-gradient(135deg, rgba(34, 197, 94, 0.25), rgba(59, 130, 246, 0.25)); 
       border: 2px solid #22c55e; 
@@ -114,19 +109,27 @@
     .btn-random { background: #8e44ad; color: #fff; }
 
     /* 가로형 카드 배치 (5열 고정) */
-    .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+    .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; position: relative; }
     
     .kuji-card { 
       position: relative; 
       aspect-ratio: 1.25 / 1; 
       border-radius: 8px; 
-      overflow: hidden !important; 
-      background: rgba(30, 30, 30, 0.85); 
+      overflow: hidden; 
+      background: rgba(30, 30, 30, 0.9); 
       touch-action: none; 
       cursor: pointer; 
       border: 1px solid rgba(255, 255, 255, 0.25); 
-      isolation: isolate; 
+      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), z-index 0.3s;
     }
+
+    /* 150% 중앙 확대 오픈 연출 */
+    .kuji-card.zooming {
+      z-index: 100 !important;
+      transform: scale(1.5) !important;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.9), 0 0 15px rgba(255,255,255,0.4);
+    }
+
     .card-content { 
       position: absolute; 
       inset: 0; 
@@ -140,29 +143,31 @@
       width: 100%;
     }
     .card-number { 
-      font-size: 1.4rem; 
+      font-size: 1.3rem; 
       font-weight: 900; 
       color: #ffeb3b; 
-      letter-spacing: -0.5px; 
       text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 2px 4px rgba(0,0,0,0.9); 
     }
     
+    /* 뜯은 사람 이름 표시 가시성 크게 개선 */
     .card-picker { 
-      font-size: 0.7rem; 
-      color: #64b5f6; 
+      font-size: 0.72rem; 
+      color: #ffffff; 
       font-weight: bold; 
-      margin-top: 2px; 
-      background: rgba(0,0,0,0.85); 
-      padding: 1px 6px; 
-      border-radius: 6px; 
-      max-width: 90%; 
+      margin-top: 3px; 
+      background: rgba(0, 0, 0, 0.85); 
+      padding: 2px 8px; 
+      border-radius: 10px; 
+      max-width: 95%; 
       overflow: hidden; 
       text-overflow: ellipsis; 
       white-space: nowrap; 
       text-align: center;
-      border: 1px solid rgba(255,255,255,0.2);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.8);
     }
 
+    /* 뜯어지는 덮개 커버 (초기 깜빡임 방지용 z-index 고정) */
     .card-cover { 
       position: absolute; 
       inset: 0; 
@@ -181,30 +186,27 @@
     .kuji-card.picked .card-cover { display: none !important; }
     .kuji-card.picked { border: 1px solid #555; background: rgba(20, 20, 20, 0.85); }
     
-    /* 당첨 카드 배경 스타일 (요청된 전용 배경 이미지 적용) */
+    /* 당첨 카드 스타일: 테두리만 붉고 선명하게 강조 */
     .kuji-card.win { 
-      background-image: url('https://i.ibb.co/wr4D4fR8/image.jpg') !important; 
-      background-size: cover !important;
-      background-position: center !important;
-      border: 2px solid #ff4d4d !important; 
-      box-shadow: 0 0 10px rgba(255, 77, 77, 0.8);
+      border: 2.5px solid #ff3333 !important; 
+      box-shadow: 0 0 12px rgba(255, 51, 51, 0.9), inset 0 0 8px rgba(255, 51, 51, 0.5);
     }
     .kuji-card.win .card-number { 
-      color: #ffffff !important; 
+      color: #ff4d4d !important; 
       font-size: 1.3rem; 
       text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 0 8px #ff0000;
     }
     .win-name { 
-      font-size: 0.72rem; 
+      font-size: 0.75rem; 
       color: #ffeb3b; 
       font-weight: bold; 
-      background: rgba(0,0,0,0.8);
-      padding: 1px 4px;
+      background: rgba(0, 0, 0, 0.85);
+      padding: 1px 5px;
       border-radius: 4px;
       margin-top: 1px;
+      border: 1px solid rgba(255, 235, 59, 0.4);
     }
 
-    /* 하단 방 코드 영역 */
     .room-info-bottom { 
       background: rgba(15, 15, 15, 0.7); 
       padding: 10px 14px; 
@@ -222,7 +224,7 @@
 
     @media (max-width: 768px) {
       .grid { grid-template-columns: repeat(5, 1fr); gap: 5px; }
-      .card-number { font-size: 1.1rem; }
+      .card-number { font-size: 1.0rem; }
       .turn-banner .name { font-size: 1.4rem; }
       .prize-list-grid { grid-template-columns: repeat(2, 1fr); }
     }
@@ -317,9 +319,22 @@
     let playersList = [];
     let hostName = "";
     let activeDragIndex = -1;
+    let audioUnlocked = false;
 
-    // 고죠 영역전개 당첨 음원만 단독 사용
+    // 음원 객체 생성
     const winAudio = new Audio('https://www.myinstants.com/media/sounds/gojo-domain-expansion-60533.mp3');
+
+    // 브라우저 차단(Autoplay Policy) 해제를 위한 첫 터치 이벤트 핸들러
+    function unlockAudio() {
+      if (audioUnlocked) return;
+      winAudio.play().then(() => {
+        winAudio.pause();
+        winAudio.currentTime = 0;
+        audioUnlocked = true;
+      }).catch(() => {});
+    }
+    window.addEventListener('click', unlockAudio, { once: true });
+    window.addEventListener('touchstart', unlockAudio, { once: true });
 
     const charImages = [
       'https://i.ibb.co/nMGG93YS/miku.jpg',
@@ -351,7 +366,6 @@
       container.appendChild(div);
     }
 
-    // 파일 로드 Base64 프로미스 변환
     function readFileAsDataURL(file) {
       return new Promise((resolve) => {
         if (!file) resolve('https://via.placeholder.com/150?text=Prize');
@@ -408,7 +422,7 @@
         img: charImages[Math.floor(Math.random() * charImages.length)] 
       }));
       
-      playersList = ["참가자1"]; // 기본 시작 참가자
+      playersList = ["참가자1"];
 
       db.ref('rooms/' + code).set({ 
         cards: initialCards, 
@@ -472,7 +486,6 @@
       const currentTurn = getCurrentTurnPlayer();
       document.getElementById('currentTurnInfo').textContent = currentTurn;
 
-      // 참가자 태그 리스트 관리 (방장 전용)
       const tagsContainer = document.getElementById('playerTagsList');
       tagsContainer.innerHTML = '';
       playersList.forEach((p, idx) => {
@@ -529,6 +542,7 @@
         const prize = prizesData[card.value];
         const isWin = card.picked && !!prize;
 
+        // 초기에 커버 생성 시 깜빡임 없이 깔끔하게 표시
         if (!cardElem) {
           cardElem = document.createElement('div');
           cardElem.id = `kuji-card-${index}`;
@@ -558,13 +572,13 @@
         const pickerElem = document.getElementById(`card-picker-${index}`);
         const coverElem = document.getElementById(`card-cover-${index}`);
 
-        if (numElem) numElem.textContent = isWin ? '🔥' + card.value : card.value;
+        if (numElem) numElem.textContent = isWin ? '🔥 ' + card.value : card.value;
         if (winNameElem) winNameElem.textContent = isWin ? prize.name : '';
         
         if (pickerElem) {
           if (card.pickedBy) {
             pickerElem.textContent = `👤 ${card.pickedBy}`;
-            pickerElem.style.display = 'block';
+            pickerElem.style.display = 'inline-block';
           } else {
             pickerElem.style.display = 'none';
           }
@@ -606,7 +620,9 @@
           return;
         }
 
-        if (!isSlowMode) return pickCard(index);
+        unlockAudio(); // 클릭 오디오 해제 시도
+
+        if (!isSlowMode) return animateAndPickCard(cardElem, index);
 
         e.stopPropagation();
 
@@ -650,7 +666,7 @@
         if (Math.abs(currentX) > cardElem.clientWidth * 0.3) {
           const finalX = currentX > 0 ? 300 : -300;
           updateSlideX(finalX);
-          setTimeout(() => pickCard(index), 180);
+          setTimeout(() => animateAndPickCard(cardElem, index), 180);
         } else { 
           updateSlideX(0);
         }
@@ -663,13 +679,31 @@
 
     function triggerWinEffects() {
       confetti({
-        particleCount: 120,
-        spread: 80,
+        particleCount: 140,
+        spread: 90,
         origin: { y: 0.6 }
       });
 
+      // 오디오 강제 재생 처리
       winAudio.currentTime = 0;
-      winAudio.play().catch(() => {});
+      const playPromise = winAudio.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(error => {
+          console.log("오디오 자동 재생이 차단되었습니다. 화면을 한번 더 클릭해주세요.");
+        });
+      }
+    }
+
+    // 150% 중앙 확대 연출 포함 뽑기 처리
+    function animateAndPickCard(cardElem, index) {
+      cardElem.classList.add('zooming');
+      
+      setTimeout(() => {
+        pickCard(index);
+        setTimeout(() => {
+          cardElem.classList.remove('zooming');
+        }, 500);
+      }, 200);
     }
 
     function pickCard(index) { 
@@ -702,8 +736,14 @@
         alert(`방장만 카드를 뜯을 수 있습니다!`);
         return;
       }
+      unlockAudio();
       const unpicked = currentCardsData.map((c, i) => c.picked ? null : i).filter(i => i !== null); 
-      if (unpicked.length > 0) pickCard(unpicked[Math.floor(Math.random() * unpicked.length)]); 
+      if (unpicked.length > 0) {
+        const targetIndex = unpicked[Math.floor(Math.random() * unpicked.length)];
+        const cardElem = document.getElementById(`kuji-card-${targetIndex}`);
+        if (cardElem) animateAndPickCard(cardElem, targetIndex);
+        else pickCard(targetIndex);
+      }
     }
     
     function copyShareLink() { 
