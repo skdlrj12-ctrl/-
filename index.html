@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>🍢 MY KUJI (규어빵 전용판)</title>
+  <!-- 폭죽 이펙트 라이브러리 -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; user-select: none; }
@@ -104,12 +105,21 @@
 
     .control-btns { display: flex; gap: 8px; justify-content: center; }
     .btn-sub { font-size: 0.85rem; padding: 8px 14px; border-radius: 8px; width: auto; }
-    .btn-slow { background: rgba(50, 50, 50, 0.8); color: #aaa; border: 1px solid #555; }
-    .btn-slow.active { background: #f39c12; color: #fff; border-color: #f39c12; font-weight: bold; }
+    .btn-shuffle { background: #e67e22; color: #fff; }
     .btn-random { background: #8e44ad; color: #fff; }
 
     /* 가로형 카드 배치 (5열 고정) */
     .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; position: relative; }
+    .grid.shuffling { animation: shakeGrid 0.2s infinite; }
+
+    @keyframes shakeGrid {
+      0% { transform: translate(1px, 1px) rotate(0deg); }
+      20% { transform: translate(-2px, 0px) rotate(-1deg); }
+      40% { transform: translate(2px, 1px) rotate(1deg); }
+      60% { transform: translate(-1px, -1px) rotate(0deg); }
+      80% { transform: translate(1px, 1px) rotate(1deg); }
+      100% { transform: translate(0px, -1px) rotate(0deg); }
+    }
     
     .kuji-card { 
       position: relative; 
@@ -120,14 +130,6 @@
       touch-action: none; 
       cursor: pointer; 
       border: 1px solid rgba(255, 255, 255, 0.25); 
-      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), z-index 0.3s;
-    }
-
-    /* 150% 중앙 확대 오픈 연출 */
-    .kuji-card.zooming {
-      z-index: 100 !important;
-      transform: scale(1.5) !important;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.9), 0 0 15px rgba(255,255,255,0.4);
     }
 
     .card-content { 
@@ -149,7 +151,6 @@
       text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 2px 4px rgba(0,0,0,0.9); 
     }
     
-    /* 뜯은 사람 이름 표시 가시성 크게 개선 */
     .card-picker { 
       font-size: 0.72rem; 
       color: #ffffff; 
@@ -167,7 +168,6 @@
       box-shadow: 0 2px 4px rgba(0,0,0,0.8);
     }
 
-    /* 뜯어지는 덮개 커버 (초기 깜빡임 방지용 z-index 고정) */
     .card-cover { 
       position: absolute; 
       inset: 0; 
@@ -186,13 +186,16 @@
     .kuji-card.picked .card-cover { display: none !important; }
     .kuji-card.picked { border: 1px solid #555; background: rgba(20, 20, 20, 0.85); }
     
-    /* 당첨 카드 스타일: 테두리만 붉고 선명하게 강조 */
+    /* 당첨 카드 전용 배경 이미지 적용 복원 */
     .kuji-card.win { 
+      background-image: url('https://i.ibb.co/wr4D4fR8/image.jpg') !important;
+      background-size: cover !important;
+      background-position: center !important;
       border: 2.5px solid #ff3333 !important; 
-      box-shadow: 0 0 12px rgba(255, 51, 51, 0.9), inset 0 0 8px rgba(255, 51, 51, 0.5);
+      box-shadow: 0 0 12px rgba(255, 51, 51, 0.9);
     }
     .kuji-card.win .card-number { 
-      color: #ff4d4d !important; 
+      color: #ffffff !important; 
       font-size: 1.3rem; 
       text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 0 8px #ff0000;
     }
@@ -205,6 +208,50 @@
       border-radius: 4px;
       margin-top: 1px;
       border: 1px solid rgba(255, 235, 59, 0.4);
+    }
+
+    /* 중앙 팝업 모달 & 배경 블러 연출 */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-card-container {
+      width: 260px;
+      height: 200px;
+      position: relative;
+      margin-bottom: 20px;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.9), 0 0 20px rgba(255,255,255,0.3);
+      border: 2px solid rgba(255,255,255,0.3);
+      background: #222;
+    }
+
+    .modal-card-container .card-cover {
+      display: block !important;
+    }
+
+    .modal-btns {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      width: 260px;
+    }
+
+    .modal-btns button {
+      padding: 14px;
+      font-size: 1rem;
+      border-radius: 10px;
     }
 
     .room-info-bottom { 
@@ -220,7 +267,7 @@
     }
     .room-code { color: #4dabf7; font-size: 1.1rem; font-weight: bold; letter-spacing: 1px; }
 
-    .hidden { display: none; }
+    .hidden { display: none !important; }
 
     @media (max-width: 768px) {
       .grid { grid-template-columns: repeat(5, 1fr); gap: 5px; }
@@ -238,6 +285,7 @@
   <h1>🍢 MY KUJI (규어빵 전용판)</h1>
   <p class="sub">실시간 제비뽑기 게임</p>
 
+  <!-- 로비 화면 -->
   <div id="lobby" class="card-box">
     <div class="setting-group">
       <label>1. 카드 총 수량 (최대 50장)</label>
@@ -264,6 +312,7 @@
     </div>
   </div>
 
+  <!-- 게임 실행 화면 -->
   <div id="game" class="card-box hidden">
     <div class="prize-board-top">
       <h3>🎁 당첨 상품 목록</h3>
@@ -285,8 +334,8 @@
     </div>
 
     <div class="control-btns">
-      <button id="slowBtn" onclick="toggleSlowMode()" class="btn-sub btn-slow active">🍦 슬라이드 뜯기: ON</button>
-      <button onclick="pickRandomCard()" class="btn-sub btn-random">🎲 랜덤 뽑기</button>
+      <button onclick="shuffleAndPick()" class="btn-sub btn-shuffle">🔀 무작위 셔플 후 뽑기</button>
+      <button onclick="pickRandomDirect()" class="btn-sub btn-random">🎲 즉시 랜덤 뽑기</button>
     </div>
     <div id="status" style="font-size: 0.9rem; color: #ccc;">남은 카드: -장</div>
 
@@ -295,6 +344,15 @@
     <div class="room-info-bottom">
       <div>방 코드: <span id="currentRoomCode" class="room-code"></span> | 진행자: <span id="hostName" style="color:#fff;">-</span></div>
       <button onclick="copyShareLink()" class="btn-share">📋 초대 링크 복사</button>
+    </div>
+  </div>
+
+  <!-- 카드 중앙 확대 및 뜯기 모달 -->
+  <div id="cardModal" class="modal-overlay hidden">
+    <div id="modalCardBox" class="modal-card-container"></div>
+    <div class="modal-btns">
+      <button onclick="quickOpenModalCard()" style="background: #22c55e; color: #fff;">⚡ 바로 확 오픈하기</button>
+      <button onclick="closeModal()" style="background: #555; color: #fff;">닫기</button>
     </div>
   </div>
 
@@ -313,28 +371,44 @@
     const db = firebase.database();
     let currentRoom = null;
     let prizesData = {};
-    let isSlowMode = true;
     let currentCardsData = [];
     let myName = "방장";
     let playersList = [];
     let hostName = "";
-    let activeDragIndex = -1;
-    let audioUnlocked = false;
+    let activeModalIndex = -1;
 
-    // 음원 객체 생성
-    const winAudio = new Audio('https://www.myinstants.com/media/sounds/gojo-domain-expansion-60533.mp3');
+    // Web Audio API를 활용한 무결점 당첨 사운드 재생 엔진
+    let audioCtx = null;
+    let audioBuffer = null;
 
-    // 브라우저 차단(Autoplay Policy) 해제를 위한 첫 터치 이벤트 핸들러
-    function unlockAudio() {
-      if (audioUnlocked) return;
-      winAudio.play().then(() => {
-        winAudio.pause();
-        winAudio.currentTime = 0;
-        audioUnlocked = true;
-      }).catch(() => {});
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        fetch('https://www.myinstants.com/media/sounds/gojo-domain-expansion-60533.mp3')
+          .then(res => res.arrayBuffer())
+          .then(data => audioCtx.decodeAudioData(data))
+          .then(buffer => { audioBuffer = buffer; })
+          .catch(err => console.log('사운드 로드 차단:', err));
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
     }
-    window.addEventListener('click', unlockAudio, { once: true });
-    window.addEventListener('touchstart', unlockAudio, { once: true });
+
+    window.addEventListener('click', initAudio, { once: true });
+    window.addEventListener('touchstart', initAudio, { once: true });
+
+    function playWinSound() {
+      if (audioCtx && audioBuffer) {
+        const source = audioCtx.createBufferSource();
+        source.buffer = audioBuffer;
+        source.connect(audioCtx.destination);
+        source.start(0);
+      } else {
+        const fallbackAudio = new Audio('https://www.myinstants.com/media/sounds/gojo-domain-expansion-60533.mp3');
+        fallbackAudio.play().catch(() => {});
+      }
+    }
 
     const charImages = [
       'https://i.ibb.co/nMGG93YS/miku.jpg',
@@ -385,13 +459,6 @@
     }
 
     function generateRoomCode() { return Math.random().toString(36).substring(2, 8).toUpperCase(); }
-
-    function toggleSlowMode() {
-      isSlowMode = !isSlowMode;
-      const btn = document.getElementById('slowBtn');
-      btn.textContent = isSlowMode ? "🍦 슬라이드 뜯기: ON" : "🍦 터치 뜯기: Direct";
-      isSlowMode ? btn.classList.add('active') : btn.classList.remove('active');
-    }
 
     async function createRoom() {
       myName = "방장";
@@ -542,11 +609,11 @@
         const prize = prizesData[card.value];
         const isWin = card.picked && !!prize;
 
-        // 초기에 커버 생성 시 깜빡임 없이 깔끔하게 표시
         if (!cardElem) {
           cardElem = document.createElement('div');
           cardElem.id = `kuji-card-${index}`;
           cardElem.className = 'kuji-card';
+          cardElem.onclick = () => openCardModal(index);
           
           const contentDiv = document.createElement('div');
           contentDiv.className = 'card-content';
@@ -563,14 +630,12 @@
           coverElem.style.backgroundImage = `url('${card.img || charImages[0]}')`;
           cardElem.appendChild(coverElem);
 
-          attachDragEvent(cardElem, coverElem, index);
           grid.appendChild(cardElem);
         }
 
         const numElem = document.getElementById(`card-num-${index}`);
         const winNameElem = document.getElementById(`win-name-${index}`);
         const pickerElem = document.getElementById(`card-picker-${index}`);
-        const coverElem = document.getElementById(`card-cover-${index}`);
 
         if (numElem) numElem.textContent = isWin ? '🔥 ' + card.value : card.value;
         if (winNameElem) winNameElem.textContent = isWin ? prize.name : '';
@@ -585,50 +650,56 @@
         }
 
         cardElem.className = 'kuji-card' + (card.picked ? ' picked' : '') + (isWin ? ' win' : '');
-
-        if (!card.picked && activeDragIndex !== index && coverElem) {
-          const x = card.slideX || 0;
-          const rot = (x / 10).toFixed(1);
-          coverElem.style.transform = `translateX(${x}px) rotate(${rot}deg)`;
-        }
       });
 
       document.getElementById('status').textContent = `남은 카드: ${remainingCount}장`;
     }
 
-    function attachDragEvent(cardElem, coverElem, index) {
+    // 중앙 확대 모달 열기
+    function openCardModal(index) {
+      if (!isHost()) return alert('방장만 카드를 선택하여 오픈할 수 있습니다!');
+      const card = currentCardsData[index];
+      if (!card || card.picked) return;
+
+      initAudio();
+      activeModalIndex = index;
+
+      const container = document.getElementById('modalCardBox');
+      container.innerHTML = '';
+
+      const modalCard = document.createElement('div');
+      modalCard.className = 'kuji-card';
+      modalCard.style.width = '100%';
+      modalCard.style.height = '100%';
+
+      const content = document.createElement('div');
+      content.className = 'card-content';
+      content.innerHTML = `<div class="card-number">${card.value}</div>`;
+      modalCard.appendChild(content);
+
+      const cover = document.createElement('div');
+      cover.className = 'card-cover';
+      cover.style.backgroundImage = `url('${card.img || charImages[0]}')`;
+      modalCard.appendChild(cover);
+
+      container.appendChild(modalCard);
+
+      // 모달 내 드래그 뜯기 기능 연결
+      attachModalDrag(modalCard, cover, index);
+
+      document.getElementById('cardModal').classList.remove('hidden');
+    }
+
+    function closeModal() {
+      document.getElementById('cardModal').classList.add('hidden');
+      activeModalIndex = -1;
+    }
+
+    function attachModalDrag(cardElem, coverElem, index) {
       let startX = 0, currentX = 0, isDragging = false;
-      let syncTimer = null;
-
-      function updateSlideX(x) {
-        const rot = (x / 10).toFixed(1);
-        coverElem.style.transform = `translateX(${x}px) rotate(${rot}deg)`;
-
-        if (!syncTimer) {
-          syncTimer = setTimeout(() => {
-            if (currentRoom && isDragging) {
-              db.ref(`rooms/${currentRoom}/cards/${index}/slideX`).set(x);
-            }
-            syncTimer = null;
-          }, 60);
-        }
-      }
 
       function onStart(e) {
-        if (!isHost()) {
-          alert(`방장만 카드를 뜯을 수 있습니다!`);
-          return;
-        }
-
-        unlockAudio(); // 클릭 오디오 해제 시도
-
-        if (!isSlowMode) return animateAndPickCard(cardElem, index);
-
-        e.stopPropagation();
-
         isDragging = true;
-        activeDragIndex = index;
-
         const pageX = e.touches ? e.touches[0].pageX : e.pageX;
         startX = pageX - currentX;
         coverElem.style.transition = 'none';
@@ -645,30 +716,32 @@
       function onMove(e) {
         if (!isDragging) return;
         if (e.cancelable) e.preventDefault();
-
         const pageX = e.touches ? e.touches[0].pageX : e.pageX;
-        currentX = (pageX - startX) * 0.6;
-        updateSlideX(currentX);
+        currentX = (pageX - startX) * 0.7;
+        const rot = (currentX / 10).toFixed(1);
+        coverElem.style.transform = `translateX(${currentX}px) rotate(${rot}deg)`;
       }
 
       function onEnd(e, moveFn, endFn) {
         if (!isDragging) return;
         isDragging = false;
-        activeDragIndex = -1;
 
         window.removeEventListener('touchmove', moveFn);
         window.removeEventListener('touchend', endFn);
         window.removeEventListener('mousemove', moveFn);
         window.removeEventListener('mouseup', endFn);
 
-        coverElem.style.transition = 'transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+        coverElem.style.transition = 'transform 0.25s ease';
 
-        if (Math.abs(currentX) > cardElem.clientWidth * 0.3) {
-          const finalX = currentX > 0 ? 300 : -300;
-          updateSlideX(finalX);
-          setTimeout(() => animateAndPickCard(cardElem, index), 180);
-        } else { 
-          updateSlideX(0);
+        if (Math.abs(currentX) > 80) {
+          const finalX = currentX > 0 ? 350 : -350;
+          coverElem.style.transform = `translateX(${finalX}px)`;
+          setTimeout(() => {
+            pickCard(index);
+            closeModal();
+          }, 150);
+        } else {
+          coverElem.style.transform = `translateX(0px)`;
         }
         currentX = 0;
       }
@@ -677,50 +750,26 @@
       coverElem.addEventListener('mousedown', onStart);
     }
 
-    function triggerWinEffects() {
-      confetti({
-        particleCount: 140,
-        spread: 90,
-        origin: { y: 0.6 }
-      });
-
-      // 오디오 강제 재생 처리
-      winAudio.currentTime = 0;
-      const playPromise = winAudio.play();
-      if (playPromise !== undefined) {
-        playPromise.catch(error => {
-          console.log("오디오 자동 재생이 차단되었습니다. 화면을 한번 더 클릭해주세요.");
-        });
+    function quickOpenModalCard() {
+      if (activeModalIndex !== -1) {
+        pickCard(activeModalIndex);
+        closeModal();
       }
     }
 
-    // 150% 중앙 확대 연출 포함 뽑기 처리
-    function animateAndPickCard(cardElem, index) {
-      cardElem.classList.add('zooming');
-      
-      setTimeout(() => {
-        pickCard(index);
-        setTimeout(() => {
-          cardElem.classList.remove('zooming');
-        }, 500);
-      }, 200);
+    function triggerWinEffects() {
+      confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 } });
+      playWinSound();
     }
 
     function pickCard(index) { 
-      if (!isHost()) {
-        alert(`방장만 카드를 뜯을 수 있습니다!`);
-        return;
-      }
-
       const card = currentCardsData[index];
       if (!card || card.picked) return;
 
       const turnPlayer = getCurrentTurnPlayer();
       const isWin = !!prizesData[card.value];
 
-      if (isWin) {
-        triggerWinEffects();
-      }
+      if (isWin) triggerWinEffects();
 
       if (currentRoom) {
         db.ref('rooms/' + currentRoom).update({
@@ -730,27 +779,36 @@
         });
       } 
     }
-    
-    function pickRandomCard() { 
-      if (!isHost()) {
-        alert(`방장만 카드를 뜯을 수 있습니다!`);
-        return;
-      }
-      unlockAudio();
-      const unpicked = currentCardsData.map((c, i) => c.picked ? null : i).filter(i => i !== null); 
-      if (unpicked.length > 0) {
+
+    function shuffleAndPick() {
+      if (!isHost()) return alert('방장만 뽑을 수 있습니다!');
+      const unpicked = currentCardsData.map((c, i) => c.picked ? null : i).filter(i => i !== null);
+      if (unpicked.length === 0) return;
+
+      initAudio();
+      const grid = document.getElementById('grid');
+      grid.classList.add('shuffling');
+
+      setTimeout(() => {
+        grid.classList.remove('shuffling');
         const targetIndex = unpicked[Math.floor(Math.random() * unpicked.length)];
-        const cardElem = document.getElementById(`kuji-card-${targetIndex}`);
-        if (cardElem) animateAndPickCard(cardElem, targetIndex);
-        else pickCard(targetIndex);
-      }
+        openCardModal(targetIndex);
+      }, 700);
+    }
+
+    function pickRandomDirect() {
+      if (!isHost()) return alert('방장만 뽑을 수 있습니다!');
+      const unpicked = currentCardsData.map((c, i) => c.picked ? null : i).filter(i => i !== null);
+      if (unpicked.length === 0) return;
+
+      initAudio();
+      const targetIndex = unpicked[Math.floor(Math.random() * unpicked.length)];
+      openCardModal(targetIndex);
     }
     
     function copyShareLink() { 
       const inviteUrl = `${window.location.origin}${window.location.pathname}?room=${currentRoom}`;
-      navigator.clipboard.writeText(inviteUrl).then(() => {
-        alert('초대 링크가 복사되었습니다!');
-      }); 
+      navigator.clipboard.writeText(inviteUrl).then(() => alert('초대 링크가 복사되었습니다!')); 
     }
   </script>
 </body>
