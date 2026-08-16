@@ -50,7 +50,6 @@
     .player-tags-container { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
     .player-tag { background: rgba(0,0,0,0.5); padding: 4px 10px; border-radius: 15px; font-size: 0.85rem; display: flex; align-items: center; gap: 6px; border: 1px solid #555; }
     .player-tag.active { border-color: #22c55e; background: rgba(34, 197, 94, 0.25); color: #22c55e; font-weight: bold; }
-    .btn-small { padding: 2px 6px; font-size: 0.75rem; border-radius: 4px; background: #e74c3c; color: #fff; width: auto; }
 
     .turn-banner { background: linear-gradient(135deg, rgba(34, 197, 94, 0.3), rgba(59, 130, 246, 0.3)); border: 2px solid #22c55e; border-radius: 12px; padding: 10px; text-align: center; }
     .turn-banner .title { font-size: 0.85rem; color: #bbb; margin-bottom: 2px; }
@@ -64,22 +63,29 @@
     .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; position: relative; }
 
     .kuji-card { position: relative; aspect-ratio: 1.25 / 1; border-radius: 8px; overflow: hidden; background: rgba(10, 10, 10, 0.6); touch-action: none; cursor: pointer; border: 1px solid rgba(255, 255, 255, 0.25); }
-    .card-content { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1; pointer-events: none; padding: 2px; width: 100%; opacity: 0; transition: opacity 0.1s ease; }
+    .card-content { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1; pointer-events: none; padding: 4px; width: 100%; opacity: 0; transition: opacity 0.1s ease; }
     .kuji-card.picked .card-content { opacity: 1; }
 
     .card-number { font-size: 1.3rem; font-weight: 900; color: #ffeb3b; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000; }
-    .card-picker { font-size: 0.72rem; color: #ffffff; font-weight: bold; margin-top: 3px; background: rgba(0, 0, 0, 0.85); padding: 2px 8px; border-radius: 10px; max-width: 95%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; border: 1px solid rgba(255, 255, 255, 0.4); }
+    .card-picker { font-size: 0.8rem; color: #ffffff; font-weight: bold; background: rgba(0, 0, 0, 0.85); padding: 3px 8px; border-radius: 10px; max-width: 95%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; border: 1px solid rgba(255, 255, 255, 0.4); }
 
-    /* 슬라이드 가능한 카드 커버 */
+    /* 슬라이드 뜯기 커버 */
     .card-cover { 
       position: absolute; inset: 0; background-size: cover; background-position: center; background-color: #222; 
-      z-index: 10; transition: transform 0.15s ease-out; cursor: grab; transform-origin: left center; touch-action: none;
+      z-index: 10; transition: transform 0.1s ease-out; cursor: grab; transform-origin: left center; touch-action: none;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.6);
     }
     .kuji-card.picked .card-cover { display: none !important; }
-    .kuji-card.win { background-image: url('https://i.ibb.co/wr4D4fR8/image.jpg') !important; background-size: cover !important; border: 2.5px solid #ff3333 !important; }
-    .win-tag { font-size: 0.95rem; color: #ff3333; font-weight: 900; background: rgba(0, 0, 0, 0.9); padding: 3px 8px; border-radius: 6px; margin-bottom: 3px; border: 1px solid #ff3333; }
 
-    /* 동기화 모달 */
+    /* 당첨 카드: 테두리 유지, 배경 이미지 유지, 당첨 마크 없이 이름만 표기 */
+    .kuji-card.win { 
+      background-image: url('https://i.ibb.co/wr4D4fR8/image.jpg') !important; 
+      background-size: cover !important; 
+      background-position: center !important;
+      border: 2.5px solid #ff3333 !important; 
+      box-shadow: 0 0 12px rgba(255, 51, 51, 0.8);
+    }
+
     .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(16px); z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
     .pop-card { background: #181818; border: 3px solid #ffeb3b; border-radius: 16px; padding: 24px; width: 280px; text-align: center; box-shadow: 0 0 35px rgba(255, 235, 59, 0.5); }
     .pop-card.is-win { border-color: #ff3333; box-shadow: 0 0 45px rgba(255, 51, 51, 0.8); }
@@ -107,7 +113,6 @@
   <h1>🍢 MY KUJI (규어빵 전용판)</h1>
   <p class="sub">실시간 제비뽑기 게임</p>
 
-  <!-- 로비 화면 -->
   <div id="lobby" class="card-box">
     <div class="setting-group">
       <label>👤 내 닉네임 설정</label>
@@ -131,7 +136,6 @@
     </div>
   </div>
 
-  <!-- 게임 화면 -->
   <div id="game" class="card-box hidden">
     <div class="prize-board-top">
       <h3>🎁 당첨 상품 목록</h3>
@@ -162,7 +166,6 @@
     </div>
   </div>
 
-  <!-- 동기화 모달 -->
   <div id="resultModal" class="modal-overlay hidden">
     <div id="popCardBox" class="pop-card">
       <div class="pop-title">카드 오픈 결과</div>
@@ -192,34 +195,26 @@
     let hostName = "";
     let lastHandledTime = 0;
 
-    // 사운드 보완 (Web Audio Synthesis 대안 적용)
-    let audioCtx = null;
+    // 🔊 사용자 지정 당첨 효과음 URL (원하시는 사운드 주소로 교체 가능)
+    const WIN_SOUND_URL = 'https://www.myinstants.com/media/sounds/gojo-domain-expansion-60533.mp3';
+    let winAudio = new Audio(WIN_SOUND_URL);
+
     function initAudio() {
-      if (!audioCtx) {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      }
-      if (audioCtx.state === 'suspended') {
-        audioCtx.resume();
-      }
+      winAudio.play().then(() => {
+        winAudio.pause();
+        winAudio.currentTime = 0;
+      }).catch(() => {});
     }
-    window.addEventListener('click', initAudio, { once: true });
-    window.addEventListener('touchstart', initAudio, { once: true });
 
     function playWinSound() {
-      initAudio();
-      if (!audioCtx) return;
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
-      osc.frequency.exponentialRampToValueAtTime(1046.50, audioCtx.currentTime + 0.3); // C6
-      gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.start();
-      osc.stop(audioCtx.currentTime + 0.5);
+      try {
+        winAudio.currentTime = 0;
+        winAudio.play();
+      } catch(e) { console.log("Sound play error", e); }
     }
+
+    window.addEventListener('click', initAudio, { once: true });
+    window.addEventListener('touchstart', initAudio, { once: true });
 
     const charImages = [
       'https://i.ibb.co/nMGG93YS/miku.jpg',
@@ -228,7 +223,6 @@
     ];
 
     window.addEventListener('DOMContentLoaded', () => {
-      // 이전 닉네임 자동 불러오기
       const savedName = localStorage.getItem('kuji_nickname');
       if (savedName) document.getElementById('nicknameInput').value = savedName;
 
@@ -348,7 +342,6 @@
         
         if (isHost()) document.getElementById('hostControls').classList.remove('hidden');
 
-        // 카드 오픈 결과 실시간 전원 동일 연출
         if (data.lastPicked && data.lastPicked.time > lastHandledTime) {
           lastHandledTime = data.lastPicked.time;
           showPopModal(data.lastPicked.val, data.lastPicked.isWin, data.lastPicked.prizeName);
@@ -422,7 +415,6 @@
           const contentDiv = document.createElement('div');
           contentDiv.className = 'card-content';
           contentDiv.innerHTML = `
-            <div id="card-win-tag-${index}" class="win-tag" style="display:none;">🔥 당첨</div>
             <div class="card-number" id="card-num-${index}"></div>
             <div class="card-picker" id="card-picker-${index}"></div>
           `;
@@ -433,16 +425,35 @@
           coverElem.id = `card-cover-${index}`;
           coverElem.style.backgroundImage = `url('${card.img || charImages[0]}')`;
           
-          // 카드 슬라이드 터치/드래그 애니메이션 복원
+          // 기존 슬라이드 뜯기 드래그 로직 복원
           let startX = 0, isDragging = false;
-          const onStart = (x) => { if(!currentCardsData[index].picked) { startX = x; isDragging = true; } };
+          const onStart = (x) => { 
+            if(!currentCardsData[index].picked) { 
+              startX = x; 
+              isDragging = true; 
+              coverElem.style.transition = 'none';
+            } 
+          };
           const onMove = (x) => {
             if(!isDragging) return;
             let diff = x - startX;
-            if(Math.abs(diff) < 150) coverElem.style.transform = `translateX(${diff}px)`;
-            if(Math.abs(diff) > 80) { isDragging = false; pickCard(index); }
+            if (diff > 0) {
+              coverElem.style.transform = `translateX(${diff}px) rotate(${diff * 0.15}deg)`;
+            }
+            if(diff > 70) { 
+              isDragging = false; 
+              coverElem.style.transition = 'transform 0.2s ease';
+              coverElem.style.transform = 'translateX(100%) rotate(30deg)';
+              pickCard(index); 
+            }
           };
-          const onEnd = () => { if(isDragging) { coverElem.style.transform = 'translateX(0)'; isDragging = false; } };
+          const onEnd = () => { 
+            if(isDragging) { 
+              coverElem.style.transition = 'transform 0.2s ease';
+              coverElem.style.transform = 'translateX(0) rotate(0deg)'; 
+              isDragging = false; 
+            } 
+          };
 
           coverElem.addEventListener('touchstart', (e) => onStart(e.touches[0].clientX));
           coverElem.addEventListener('touchmove', (e) => onMove(e.touches[0].clientX));
@@ -456,20 +467,18 @@
         }
 
         const numElem = document.getElementById(`card-num-${index}`);
-        const winTagElem = document.getElementById(`card-win-tag-${index}`);
         const pickerElem = document.getElementById(`card-picker-${index}`);
 
         if (isWin) {
+          // 당첨 카드는 숫자를 지움
           numElem.textContent = '';
-          winTagElem.style.display = 'block';
         } else {
           numElem.textContent = card.value;
-          winTagElem.style.display = 'none';
         }
         
         if (pickerElem) {
           if (card.pickedBy) {
-            pickerElem.textContent = `👤 ${card.pickedBy}`;
+            pickerElem.textContent = card.pickedBy;
             pickerElem.style.display = 'inline-block';
           } else {
             pickerElem.style.display = 'none';
@@ -513,7 +522,6 @@
       const prize = prizesData[card.value];
       const isWin = !!prize;
 
-      // Firebase에 뽑기 상태 공유 -> 모든 사용자 전원에 동일 화면 팝업 출현
       db.ref('rooms/' + currentRoom).update({
         [`cards/${index}/picked`]: true,
         [`cards/${index}/pickedBy`]: turnPlayer,
