@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>🍢 MY KUJI (규어빵 전용판)</title>
-  <!-- 폭죽 이펙트 라이브러리 -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; user-select: none; }
@@ -126,7 +125,7 @@
       aspect-ratio: 1.25 / 1; 
       border-radius: 8px; 
       overflow: hidden; 
-      background: rgba(30, 30, 30, 0.9); 
+      background: #111; 
       touch-action: none; 
       cursor: pointer; 
       border: 1px solid rgba(255, 255, 255, 0.25); 
@@ -143,7 +142,14 @@
       pointer-events: none; 
       padding: 2px; 
       width: 100%;
+      opacity: 0; /* 커버가 열리기 전 깜빡임 방지 */
+      transition: opacity 0.1s ease;
     }
+
+    .kuji-card.picked .card-content {
+      opacity: 1;
+    }
+
     .card-number { 
       font-size: 1.3rem; 
       font-weight: 900; 
@@ -168,13 +174,14 @@
       box-shadow: 0 2px 4px rgba(0,0,0,0.8);
     }
 
+    /* 카드 커버: 깜빡임 방지를 위해 높은 z-index 부여 */
     .card-cover { 
       position: absolute; 
       inset: 0; 
       background-size: cover; 
       background-repeat: no-repeat;
       background-position: center center; 
-      background-color: #1a1a1a; 
+      background-color: #222; 
       z-index: 10; 
       transition: transform 0.12s cubic-bezier(0.25, 1, 0.5, 1); 
       cursor: grab; 
@@ -186,7 +193,6 @@
     .kuji-card.picked .card-cover { display: none !important; }
     .kuji-card.picked { border: 1px solid #555; background: rgba(20, 20, 20, 0.85); }
     
-    /* 당첨 카드 전용 배경 이미지 적용 복원 */
     .kuji-card.win { 
       background-image: url('https://i.ibb.co/wr4D4fR8/image.jpg') !important;
       background-size: cover !important;
@@ -210,11 +216,11 @@
       border: 1px solid rgba(255, 235, 59, 0.4);
     }
 
-    /* 중앙 팝업 모달 & 배경 블러 연출 */
+    /* 모달 레이아웃 */
     .modal-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(0, 0, 0, 0.75);
+      background: rgba(0, 0, 0, 0.8);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
       z-index: 1000;
@@ -234,11 +240,11 @@
       overflow: hidden;
       box-shadow: 0 12px 40px rgba(0,0,0,0.9), 0 0 20px rgba(255,255,255,0.3);
       border: 2px solid rgba(255,255,255,0.3);
-      background: #222;
+      background: #111;
     }
 
-    .modal-card-container .card-cover {
-      display: block !important;
+    .modal-card-container .card-content {
+      opacity: 1 !important;
     }
 
     .modal-btns {
@@ -285,13 +291,12 @@
   <h1>🍢 MY KUJI (규어빵 전용판)</h1>
   <p class="sub">실시간 제비뽑기 게임</p>
 
-  <!-- 로비 화면 -->
   <div id="lobby" class="card-box">
     <div class="setting-group">
       <label>1. 카드 총 수량 (최대 50장)</label>
       <input type="number" id="totalCardsInput" value="30" min="5" max="50">
       
-      <label>2. 당첨 번호 및 상품 설정 (파일 직접 첨부)</label>
+      <label>2. 당첨 번호 및 상품 설정 (파일 첨부 가능)</label>
       <div id="prizeInputs">
         <div class="prize-item">
           <div class="prize-item-row">
@@ -305,14 +310,13 @@
     </div>
 
     <div style="max-width: 400px; margin: 0 auto; width: 100%;">
-      <button onclick="createRoom()" style="background: #22c55e; color: #fff; margin-bottom: 8px;">방 만들기</button>
+      <button id="btnCreateRoom" onclick="createRoom()" style="background: #22c55e; color: #fff; margin-bottom: 8px;">방 만들기</button>
       <div style="color: #ddd; margin: 8px 0; font-size: 0.85rem;">— 또는 —</div>
       <input type="text" id="roomInput" placeholder="방 코드 6자리 입력" maxlength="6" style="text-transform: uppercase;">
       <button onclick="joinRoom()" style="background: #3b82f6; color: #fff;">방 참가하기</button>
     </div>
   </div>
 
-  <!-- 게임 실행 화면 -->
   <div id="game" class="card-box hidden">
     <div class="prize-board-top">
       <h3>🎁 당첨 상품 목록</h3>
@@ -347,7 +351,6 @@
     </div>
   </div>
 
-  <!-- 카드 중앙 확대 및 뜯기 모달 -->
   <div id="cardModal" class="modal-overlay hidden">
     <div id="modalCardBox" class="modal-card-container"></div>
     <div class="modal-btns">
@@ -377,7 +380,6 @@
     let hostName = "";
     let activeModalIndex = -1;
 
-    // Web Audio API를 활용한 무결점 당첨 사운드 재생 엔진
     let audioCtx = null;
     let audioBuffer = null;
 
@@ -388,7 +390,7 @@
           .then(res => res.arrayBuffer())
           .then(data => audioCtx.decodeAudioData(data))
           .then(buffer => { audioBuffer = buffer; })
-          .catch(err => console.log('사운드 로드 차단:', err));
+          .catch(err => console.log(err));
       }
       if (audioCtx.state === 'suspended') {
         audioCtx.resume();
@@ -404,9 +406,6 @@
         source.buffer = audioBuffer;
         source.connect(audioCtx.destination);
         source.start(0);
-      } else {
-        const fallbackAudio = new Audio('https://www.myinstants.com/media/sounds/gojo-domain-expansion-60533.mp3');
-        fallbackAudio.play().catch(() => {});
       }
     }
 
@@ -440,11 +439,32 @@
       container.appendChild(div);
     }
 
-    function readFileAsDataURL(file) {
+    // 파일 업로드 실패 및 멈춤 방지를 위한 이미지 자동 압축 리사이징 함수
+    function compressAndReadFile(file) {
       return new Promise((resolve) => {
         if (!file) resolve('https://via.placeholder.com/150?text=Prize');
         const reader = new FileReader();
-        reader.onload = (e) => resolve(e.target.result);
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            let width = img.width;
+            let height = img.height;
+            const max_size = 300; // 해상도 리사이징 (DB 전송 오류 방지)
+
+            if (width > height) {
+              if (width > max_size) { height *= max_size / width; width = max_size; }
+            } else {
+              if (height > max_size) { width *= max_size / height; height = max_size; }
+            }
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            resolve(canvas.toDataURL('image/jpeg', 0.7));
+          };
+          img.src = e.target.result;
+        };
         reader.onerror = () => resolve('https://via.placeholder.com/150?text=Prize');
         reader.readAsDataURL(file);
       });
@@ -461,6 +481,10 @@
     function generateRoomCode() { return Math.random().toString(36).substring(2, 8).toUpperCase(); }
 
     async function createRoom() {
+      const btn = document.getElementById('btnCreateRoom');
+      btn.disabled = true;
+      btn.textContent = '방 생성 중...';
+
       myName = "방장";
       let total = parseInt(document.getElementById('totalCardsInput').value) || 30;
       
@@ -474,7 +498,7 @@
         const file = fileInput.files[0];
 
         if (!isNaN(num) && name) {
-          const imgUrl = await readFileAsDataURL(file);
+          const imgUrl = await compressAndReadFile(file);
           prizesData[num] = { name: name, img: imgUrl };
         }
       }
@@ -497,7 +521,13 @@
         host: myName,
         players: playersList,
         createdAt: Date.now() 
-      }).then(() => enterRoom(code));
+      }).then(() => {
+        enterRoom(code);
+      }).catch(err => {
+        alert('방 생성에 실패했습니다: ' + err.message);
+        btn.disabled = false;
+        btn.textContent = '방 만들기';
+      });
     }
 
     function joinRoom() {
@@ -655,7 +685,6 @@
       document.getElementById('status').textContent = `남은 카드: ${remainingCount}장`;
     }
 
-    // 중앙 확대 모달 열기
     function openCardModal(index) {
       if (!isHost()) return alert('방장만 카드를 선택하여 오픈할 수 있습니다!');
       const card = currentCardsData[index];
@@ -684,7 +713,6 @@
 
       container.appendChild(modalCard);
 
-      // 모달 내 드래그 뜯기 기능 연결
       attachModalDrag(modalCard, cover, index);
 
       document.getElementById('cardModal').classList.remove('hidden');
