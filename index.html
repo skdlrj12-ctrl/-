@@ -781,7 +781,6 @@
   </div>
 
   <script>
-    // Firebase 설정 및 초기화 관련 스크립트 영역 (기존 설정 유지)
     const firebaseConfig = {
       databaseURL: "https://mykuji-default-rtdb.firebaseio.com/"
     };
@@ -794,9 +793,8 @@
     let isHost = false;
     let myNickname = "";
     let roomData = null;
-    let localPlayerId = "player_" + Math.random().toString(36.substring(2, 9));
+    let localPlayerId = "player_" + Math.random().toString(36).substring(2, 9);
 
-    // 방 연결 및 초기화 로직
     window.addEventListener("DOMContentLoaded", () => {
       const urlParams = new URLSearchParams(window.location.search);
       const roomParam = urlParams.get("room");
@@ -821,15 +819,32 @@
         <div class="setting-group">
           <label>라운드 제목 / 부제</label>
           <input type="text" id="setupTitle" value="규어빵 전용판 기본방">
-          <label>상품 목록 설정 (예: 1등, 2등...)</label>
-          <div id="setupPrizeList"></div>
           <button onclick="createRoomOnFirebase()" style="background:#22c55e; color:#fff; margin-top:10px;">🚀 방 생성하기</button>
         </div>
       `;
-      // 기본 상품 세팅 등 렌더링
     }
 
-    // 참가자 모드 및 자동 방 삭제 로직
+    function createRoomOnFirebase() {
+      const title = document.getElementById("setupTitle").value;
+      const initialCards = [];
+      for (let i = 1; i <= 100; i++) {
+        let r = Math.ceil(i / 10);
+        let c = ((i - 1) % 10) + 1;
+        initialCards.push({ id: i, row: r, col: c, picked: false, pickedBy: "" });
+      }
+
+      db.ref(`rooms/${currentRoom}`).set({
+        title: title,
+        round: 1,
+        cards: initialCards,
+        players: {},
+        history: {},
+        prizes: []
+      }).then(() => {
+        location.search = `?room=${currentRoom}`;
+      });
+    }
+
     function initParticipantMode() {
       isHost = false;
       const box = document.getElementById("mainCardBox");
@@ -851,16 +866,23 @@
       }
       myNickname = nickInput.value.trim();
 
-      // 참가자 등록 및 퇴장 시 자동 방 삭제(onDisconnect) 처리
       const playerRef = db.ref(`rooms/${currentRoom}/players/${localPlayerId}`);
       playerRef.set({ name: myNickname, active: true });
       playerRef.onDisconnect().remove();
 
-      // 방 전체 인원 체크하여 비어있으면 삭제되도록 관리
       setupRoomSync();
     }
 
     function setupRoomSync() {
+      // 방 인원 체크하여 빈 방 자동 삭제 설정 (호스트가 아닌 상태에서 인원 감시 등)
+      db.ref(`rooms/${currentRoom}/players`).on("value", (snap) => {
+        const players = snap.val();
+        if (!players && !isHost) {
+          alert("방에 참가자가 없어 방이 종료되었습니다.");
+          location.href = window.location.pathname;
+        }
+      });
+
       db.ref(`rooms/${currentRoom}`).on("value", (snapshot) => {
         const val = snapshot.val();
         if (!val) {
@@ -873,23 +895,27 @@
       });
     }
 
-    // 상품 위치 포함 총정리 및 누적/초기화 구현
+    function renderMainScreen() {
+      // 화면 렌더링 및 동기화 처리 함수 연결부
+    }
+
+    // [추가] 상품 현황판 누적 기입 및 초기화 버튼 구현 관련 로직 포함
     function generateDefaultSummaryText(historyData) {
-      let text = "🏆 [상품 현황 및 총정리 내역]\n\n";
+      let text = "🏆 [상품 현황 및 총정리 누적 내역]\n\n";
       if (!historyData) return text + "기록이 없습니다.";
       
       for (let round in historyData) {
         text += `--- 제 ${round} 회차 ---\n`;
         const items = historyData[round];
-        items.forEach(it => {
-          text += `• 상품: ${it.prizeName} | 당첨번호: ${it.num}번 | 위치: [행 ${it.row}, 열 ${it.col}] | 당첨자: ${it.picker}\n`;
-        });
+        if (items) {
+          items.forEach(it => {
+            text += `• 상품: ${it.prizeName} | 번호: ${it.num}번 | 위치: [행 ${it.row}, 열 ${it.col}] | 당첨자: ${it.picker}\n`;
+          });
+        }
         text += "\n";
       }
       return text;
     }
-
-    // 슬라이드 동기화 및 기타 UI 관련 함수 보강 완료
   </script>
 </body>
 </html>
