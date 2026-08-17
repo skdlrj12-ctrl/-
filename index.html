@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>🍢 MY KUJI (규어빵 전용판) v6</title>
+  <title>🍢 MY KUJI (규어빵 전용판) v7</title>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; user-select: none; }
@@ -94,21 +94,8 @@
       color: #22c55e; 
       font-weight: bold; 
     }
-    .player-btns-group {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-    }
-    .player-btn { 
-      background: rgba(255, 255, 255, 0.25); 
-      border: none; 
-      color: #fff; 
-      padding: 2px 6px; 
-      border-radius: 4px; 
-      font-size: 0.75rem; 
-      cursor: pointer; 
-      width: auto;
-    }
+    .player-btns-group { display: inline-flex; align-items: center; gap: 4px; }
+    .player-btn { background: rgba(255, 255, 255, 0.25); border: none; color: #fff; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; width: auto; }
 
     .turn-banner { background: linear-gradient(135deg, rgba(34, 197, 94, 0.3), rgba(59, 130, 246, 0.3)); border: 2px solid #22c55e; border-radius: 12px; padding: 10px; text-align: center; }
     .turn-banner .title { font-size: 0.85rem; color: #bbb; margin-bottom: 2px; }
@@ -124,7 +111,7 @@
     .card-content { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1; pointer-events: none; padding: 4px; width: 100%; opacity: 0; }
     .kuji-card.picked .card-content { opacity: 1; }
 
-    .card-number { font-size: 1.3rem; font-weight: 900; color: #ffeb3b; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000; }
+    .card-number { font-size: 1.3rem; font-weight: 900; color: #ffeb3b; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000; transition: transform 0.3s ease; }
     
     .card-picker { 
       position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%);
@@ -154,11 +141,27 @@
       box-shadow: 0 0 12px rgba(255, 51, 51, 0.8);
     }
 
+    /* 개봉 시 번호 팝업 강조 연출 레이어 */
+    .num-reveal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+      z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none; transition: opacity 0.25s ease;
+    }
+    .num-reveal-overlay.show { opacity: 1; pointer-events: auto; }
+    .num-reveal-box {
+      font-size: 6rem; font-weight: 900; color: #ffeb3b;
+      text-shadow: 0 0 30px rgba(255, 235, 59, 0.8), 0 0 10px #000;
+      transform: scale(0.3); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .num-reveal-overlay.show .num-reveal-box { transform: scale(1.2); }
+    .num-reveal-sub { font-size: 1.4rem; color: #22c55e; font-weight: bold; margin-top: 10px; }
+
+    /* 카드 뜯기 모달 */
     .card-modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(12px); z-index: 1500; display: flex; flex-direction: column; align-items: center; justify-content: center; }
     .pop-card-wrapper { position: relative; width: 280px; height: 220px; border-radius: 16px; overflow: hidden; background: #151515; border: 2px solid rgba(255,255,255,0.3); box-shadow: 0 10px 40px rgba(0,0,0,0.8); touch-action: none; }
     
     .pop-card-content { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; z-index: 1; }
-    .pop-card-num { font-size: 3rem; font-weight: 900; color: #ffeb3b; }
+    .pop-card-num { font-size: 3.5rem; font-weight: 900; color: #ffeb3b; }
     .pop-card-user { position: absolute; bottom: 12px; font-size: 1rem; font-weight: bold; color: #fff; background: rgba(0,0,0,0.8); padding: 4px 12px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.3); }
 
     .pop-card-cover { 
@@ -189,7 +192,7 @@
   <div class="header-bar">
     <div class="title-wrapper">
       <h1>🍢 MY KUJI (규어빵 전용판)</h1>
-      <span class="version-tag">v6</span>
+      <span class="version-tag">v7</span>
     </div>
     <button id="soundToggleBtn" class="sound-btn" onclick="toggleSound()">
       <span id="soundIcon">🔊</span> <span id="soundText">사운드 ON</span>
@@ -253,8 +256,14 @@
     </div>
   </div>
 
+  <!-- 번호확인 강조 팝업 오버레이 -->
+  <div id="numRevealOverlay" class="num-reveal-overlay">
+    <div id="revealNumText" class="num-reveal-box">7</div>
+    <div id="revealSubText" class="num-reveal-sub">지정인 : 게스트</div>
+  </div>
+
   <div id="cardZoomModal" class="card-modal-overlay hidden">
-    <div style="color: #bbb; font-size: 0.9rem; margin-bottom: 15px;">👉 드래그하거나 아래 버튼으로 카드를 오픈하세요!</div>
+    <div style="color: #bbb; font-size: 0.9rem; margin-bottom: 15px;">👉 슬라이드 드래그하거나 확 뜯기 버튼을 누르세요!</div>
     <div class="pop-card-wrapper">
       <div class="pop-card-content">
         <div id="zoomCardNum" class="pop-card-num">?</div>
@@ -264,7 +273,7 @@
     </div>
 
     <div class="modal-btn-group">
-      <button onclick="forceRipOpen()" style="background: #e74c3c; color: #fff;">💥 확 뜯기</button>
+      <button onclick="forceRipOpen('right')" style="background: #e74c3c; color: #fff;">💥 확 뜯기</button>
       <button onclick="reselectRandomCard()" style="background: #f39c12; color: #fff;">🔄 다시 선택</button>
     </div>
     <button onclick="closeZoomModal()" style="margin-top: 10px; width: 280px; background: rgba(255,255,255,0.2); color: #fff; padding: 8px;">닫기</button>
@@ -291,46 +300,29 @@
     let hostName = "";
     let selectedIndex = null;
 
-    // 전달받으신 음원 링크 적용
+    // 업로드해주신 영역전개 음원 100% 전용 고정
     const WIN_SOUND_URL = 'https://pdftolink.io/file/r2_dXNlcnMvZ3Vlc3QvM2JiNTIzY2MtZWVmYi00YmY4LWFkNjMtOWZkOGQ0Mjc4NGRjLm1wMw';
     let winAudio = new Audio(WIN_SOUND_URL);
     let isMuted = false;
 
-    // 브라우저 내장 Web Audio API 효과음 (외부 URL 차단 시 즉시 백업 출력)
-    function playSynthFanfare() {
-      if (isMuted) return;
-      try {
-        const AudioCtx = window.AudioContext || window.webkitAudioContext;
-        if (!AudioCtx) return;
-        const ctx = new AudioCtx();
-        const notes = [523.25, 659.25, 783.99, 1046.50];
-        
-        notes.forEach((freq, i) => {
-          const osc = ctx.createOscillator();
-          const gain = ctx.createGain();
-          osc.type = 'triangle';
-          osc.frequency.value = freq;
-          
-          let startTime = ctx.currentTime + (i * 0.1);
-          osc.connect(gain);
-          gain.connect(ctx.destination);
-          
-          gain.gain.setValueAtTime(0.3, startTime);
-          gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.4);
-          
-          osc.start(startTime);
-          osc.stop(startTime + 0.4);
-        });
-      } catch(e) { console.log(e); }
+    // 브라우저 재생 차단 방지를 위한 초기 터치 해제 이벤트
+    function unlockAudio() {
+      if (winAudio) {
+        winAudio.play().then(() => {
+          winAudio.pause();
+          winAudio.currentTime = 0;
+        }).catch(() => {});
+      }
+      window.removeEventListener('click', unlockAudio);
+      window.removeEventListener('touchstart', unlockAudio);
     }
+    window.addEventListener('click', unlockAudio);
+    window.addEventListener('touchstart', unlockAudio);
 
     function playWinSound() {
       if (isMuted) return;
       winAudio.currentTime = 0;
-      winAudio.play().catch(err => {
-        console.log("외부 음원 재생 차단 감지 -> 내장 효과음으로 재생합니다.");
-        playSynthFanfare();
-      });
+      winAudio.play().catch(e => console.log("음원 재생 제한: ", e));
     }
 
     function toggleSound() {
@@ -344,7 +336,7 @@
         document.getElementById('soundIcon').textContent = '🔊';
         document.getElementById('soundText').textContent = '사운드 ON';
         btn.classList.add('active');
-        playSynthFanfare();
+        playWinSound();
       }
     }
 
@@ -639,25 +631,27 @@
       selectedIndex = null;
     }
 
+    // 뜯는 방향으로 날려버리는 로직 포함된 드래그 제어
     function setupZoomDrag() {
       const coverElem = document.getElementById('zoomCardCover');
-      let startX = 0, isDragging = false;
+      let startX = 0, currentDiff = 0, isDragging = false;
 
       const onStart = (x) => {
         if (selectedIndex === null) return;
         startX = x;
+        currentDiff = 0;
         isDragging = true;
         coverElem.style.transition = 'none';
       };
 
       const onMove = (x) => {
         if (!isDragging) return;
-        let diff = x - startX;
-        coverElem.style.transform = `translateX(${diff}px) rotate(${diff * 0.08}deg)`;
+        currentDiff = x - startX;
+        coverElem.style.transform = `translateX(${currentDiff}px) rotate(${currentDiff * 0.1}deg)`;
 
-        if (Math.abs(diff) > 200) {
+        if (Math.abs(currentDiff) > 140) {
           isDragging = false;
-          forceRipOpen();
+          forceRipOpen(currentDiff > 0 ? 'right' : 'left');
         }
       };
 
@@ -677,16 +671,21 @@
       window.addEventListener('mouseup', onEnd);
     }
 
-    function forceRipOpen() {
+    // 슬라이드한 방향(좌/우)으로 겉 카드가 사뿐히 날아가는 애니메이션
+    function forceRipOpen(direction = 'right') {
       if (selectedIndex === null) return;
       const coverElem = document.getElementById('zoomCardCover');
-      coverElem.style.transition = 'transform 0.25s ease-out';
-      coverElem.style.transform = 'translateX(150%) rotate(35deg)';
+      coverElem.style.transition = 'transform 0.3s ease-out';
+      
+      const targetX = direction === 'right' ? '200%' : '-200%';
+      const targetRotate = direction === 'right' ? '45deg' : '-45deg';
+      coverElem.style.transform = `translateX(${targetX}) rotate(${targetRotate})`;
       
       setTimeout(() => {
-        pickCard(selectedIndex);
+        const chosenIndex = selectedIndex;
         closeZoomModal();
-      }, 200);
+        pickCard(chosenIndex);
+      }, 220);
     }
 
     function reselectRandomCard() {
@@ -698,6 +697,21 @@
       openCardZoomModal(newIndex);
     }
 
+    // 번호가 중앙에 크고 뚜렷하게 강조된 후 제자리로 오는 연출 함수
+    function showNumberRevealAnimation(val, player, isWin) {
+      const overlay = document.getElementById('numRevealOverlay');
+      const numText = document.getElementById('revealNumText');
+      const subText = document.getElementById('revealSubText');
+
+      numText.textContent = val + "번";
+      subText.textContent = isWin ? `🎉 [당첨!] ${player}` : `👤 ${player}`;
+      overlay.classList.add('show');
+
+      setTimeout(() => {
+        overlay.classList.remove('show');
+      }, 1200);
+    }
+
     function pickCard(index) { 
       if (!isHost()) return alert('방장만 카드를 뽑을 수 있습니다.');
       const card = currentCardsData[index];
@@ -706,11 +720,16 @@
       const turnPlayer = getCurrentTurnPlayer();
       const isWin = !!prizesData[card.value];
 
+      // 1. 번호 크고 뚜렷하게 확인되는 팝업 연출 실행
+      showNumberRevealAnimation(card.value, turnPlayer, isWin);
+
+      // 2. 당첨 여부 시 효과음 및 꽃가루 연출
       if (isWin) {
         playWinSound();
         confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 } });
       }
 
+      // 3. 서버에 결과 전송
       db.ref('rooms/' + currentRoom).update({
         [`cards/${index}/picked`]: true,
         [`cards/${index}/pickedBy`]: turnPlayer
