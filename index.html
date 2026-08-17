@@ -3,10 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>🍢 MY KUJI (규어빵 전용판) v23 - 최종 완성판</title>
+  <title>🍢 MY KUJI (규어빵 전용판) v24 - 최종 완성판</title>
 
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
   <script src="https://www.youtube.com/iframe_api"></script>
@@ -234,15 +235,16 @@
       font-size: 0.95rem;
     }
 
+    /* 상품 입력 폼 스타일 (번호, 수령자, 발송자, 이름, 사진첨부 순서) */
     .prize-item {
       display: flex;
       flex-direction: column;
       gap: 6px;
       background: rgba(0, 0, 0, 0.4);
-      padding: 10px;
+      padding: 12px;
       border-radius: 8px;
-      margin-bottom: 10px;
-      border: 1px solid rgba(255,255,255,0.1);
+      margin-bottom: 12px;
+      border: 1px solid rgba(255,255,255,0.15);
     }
 
     .prize-item-row {
@@ -964,7 +966,7 @@
   <div class="header-bar">
     <div class="title-wrapper">
       <h1 onclick="handleTitleCheatClick()">🍢 MY KUJI (규어빵 전용판)</h1>
-      <span class="version-tag">v23</span>
+      <span class="version-tag">v24</span>
     </div>
     <div class="top-action-btns">
       <button onclick="openGrandTotalHistoryView()" style="background:#8e44ad; color:#fff; width:auto; font-size:0.85rem; padding:6px 14px; border-radius:12px;">📋 총 상품 현황판 보기</button>
@@ -1008,7 +1010,7 @@
       <input type="number" id="totalCardsInput" value="150" min="5" max="150">
       <label>2. 이전 방 현황 이어가기 (선택)</label>
       <input type="text" id="prevRoomInput" placeholder="이전 방 코드 6자리 (누적 현황 유지)" maxlength="6" style="text-transform:uppercase;">
-      <label>3. 당첨 번호, 수령자, 상품 및 발송자 설정</label>
+      <label>3. 당첨 번호, 수령자, 발송자, 상품 및 사진 설정</label>
       <div id="prizeInputs"></div>
       <button onclick="addPrizeInput('prizeInputs')" style="background:rgba(255,255,255,0.15); color:#fff; font-size:0.85rem; padding:6px; border:1px solid rgba(255,255,255,0.2);">+ 당첨 상품 추가</button>
     </div>
@@ -1045,6 +1047,7 @@
       <div id="playerTagsList" class="player-tags-container"></div>
     </div>
 
+    <!-- 대기 관전자 승인 섹션 (방장용) -->
     <div id="waitingApprovalBox" class="manager-box hidden" style="border-color:#3b82f6;">
       <h4 style="color:#3b82f6;">⏳ 참가 승인 대기중인 인원 (관전자)</h4>
       <div id="waitingTagsList" class="player-tags-container"></div>
@@ -1087,7 +1090,7 @@
 
   <div id="historyTabView" class="history-tab-view hidden">
     <div class="header-bar" style="width:100%;">
-      <h1 id="historyHeaderTitle">📋 실시간 누적 당첨 현황판 (월별 리셋/데이터 보존)</h1>
+      <h1 id="historyHeaderTitle">📋 실시간 누적 당첨 현황판</h1>
       <span id="historyRoomCode" class="version-tag" style="background:#3b82f6;">총 상품 현황 (모든 게임 기준)</span>
     </div>
 
@@ -1112,6 +1115,7 @@
     </div>
   </div>
 
+  <!-- 상품 목록 중간 편집 모달 -->
   <div id="editPrizeModal" class="card-modal-overlay hidden">
     <div class="reset-modal-box">
       <h3 style="color:#ffeb3b; margin-bottom:12px; font-size:1.1rem;">⚙️ 중간 상품 목록 추가 / 삭제 / 변경</h3>
@@ -1130,7 +1134,7 @@
       <h3 style="color:#ffeb3b; margin-bottom:12px; font-size:1.1rem;">🔄 다음 회차 시작 (판 리셋 & 상품 교체)</h3>
       <label style="font-size:0.85rem; color:#ccc;">카드 총 수량</label>
       <input type="number" id="resetTotalCardsInput" value="150" min="5" max="150">
-      <label style="font-size:0.85rem; color:#ccc; margin-top:6px; display:block;">상품 / 수령자 / 발송자 / 번호 설정</label>
+      <label style="font-size:0.85rem; color:#ccc; margin-top:6px; display:block;">상품 설정 (번호, 수령자, 발송자, 이름, 사진)</label>
       <div id="resetPrizeInputs" style="margin-top:6px;"></div>
       <button onclick="addPrizeInput('resetPrizeInputs')" style="background:rgba(255,255,255,0.15); color:#fff; font-size:0.8rem; padding:6px; margin-bottom:15px; border:1px solid rgba(255,255,255,0.2);">+ 상품 추가</button>
       <div style="display:flex; gap:8px;">
@@ -1553,6 +1557,7 @@ function saveNickname() {
   localStorage.setItem("kuji_nickname", myName);
 }
 
+/* 수정된 순서: 번호, 수령자, 발송자, 상품 이름, 상품 사진 첨부 */
 function addPrizeInput(containerId, initialNum = "", initialOwner = "", initialName = "", initialImg = "", initialSender = "") {
   const container = document.getElementById(containerId);
   if (!container) return;
@@ -1560,11 +1565,12 @@ function addPrizeInput(containerId, initialNum = "", initialOwner = "", initialN
   div.className = "prize-item";
   div.innerHTML = `
     <div class="prize-item-row">
-      <input type="number" placeholder="번호 (1~150)" class="p-num" value="${escapeHtml(initialNum)}" style="width:75px;">
-      <input type="text" placeholder="수령자" class="p-owner" value="${escapeHtml(initialOwner)}" style="width:100px;">
-      <input type="text" placeholder="상품 이름" class="p-name" value="${escapeHtml(initialName)}" style="flex-grow:1;">
-      <input type="text" placeholder="상품 발송자" class="p-sender" value="${escapeHtml(initialSender)}" style="width:100px;">
+      <input type="number" placeholder="번호 (1~150)" class="p-num" value="${escapeHtml(initialNum)}" style="width:85px;">
+      <input type="text" placeholder="수령자" class="p-owner" value="${escapeHtml(initialOwner)}" style="flex-grow:1;">
+      <input type="text" placeholder="상품 발송자" class="p-sender" value="${escapeHtml(initialSender)}" style="flex-grow:1;">
     </div>
+    <input type="text" placeholder="상품 이름" class="p-name" value="${escapeHtml(initialName)}">
+    <div style="font-size:0.8rem; color:#ccc; margin-top:2px;">상품 사진 첨부:</div>
     <input type="file" accept="image/*" class="p-file">
   `;
   div.dataset.existingImg = initialImg || "";
@@ -1699,7 +1705,6 @@ function enterRoom(code) {
   if (roomRef) roomRef.off();
   roomRef = db.ref("rooms/" + code);
 
-  // 방에 인원이 0명이 되거나 모두 떠날 때 자동 삭제 설정 (onDisconnect 처리)
   setupAutoRoomCleanup(code);
 
   roomRef.on("value", snapshot => {
@@ -2025,7 +2030,6 @@ function setupZoomDrag() {
     const transformStr = `translateX(${currentDiff}px) rotate(${currentDiff * 0.1}deg)`;
     coverElem.style.transform = transformStr;
     
-    // 참가자들에게 실시간 슬라이드 움직임 동기화
     if (currentRoom) {
       db.ref("rooms/" + currentRoom).update({
         activeZoomIndex: selectedIndex,
@@ -2114,7 +2118,8 @@ function pickCard(index) {
     const now = new Date();
     const monthDayStr = `${now.getMonth() + 1}.${now.getDate()}`;
     const timeStr = now.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
-    const roundHist = historyByRound[`round_${currentRound}`] || [];
+    const roundKey = `round_${currentRound}`;
+    const roundHist = historyByRound[roundKey] || [];
     roundHist.push({
       id: Date.now().toString(),
       num: card.value,
@@ -2126,7 +2131,7 @@ function pickCard(index) {
       status: "pending",
       note: ""
     });
-    db.ref(`rooms/${currentRoom}/history/round_${currentRound}`).set(roundHist);
+    db.ref(`rooms/${currentRoom}/history/${roundKey}`).set(roundHist);
   } else {
     playLoseSound();
   }
@@ -2277,7 +2282,7 @@ function openHistoryViewOnly(code) {
     const customSummary = data.customGrandSummary || null;
     renderFullHistoryView(historyData);
     renderUserSummaryView(historyData);
-    renderGrandSummary(historyData, customSummary, `rooms/${code}/customGrandSummary`);
+    renderGrandSummary(historyData, customSummary, `rooms/${code}/customGrandSummary`, false);
   });
 }
 
@@ -2286,7 +2291,7 @@ function openGrandTotalHistoryView() {
   document.getElementById("game").classList.add("hidden");
   const historyView = document.getElementById("historyTabView");
   historyView.classList.remove("hidden");
-  document.getElementById("historyHeaderTitle").textContent = "📋 총 상품 현황판 (모든 게임 기준)";
+  document.getElementById("historyHeaderTitle").textContent = "📋 총 상품 현황판 (모든 게임 및 모든 회차 누적)";
   document.getElementById("historyRoomCode").textContent = "ALL GAMES AGGREGATE";
   
   db.ref("rooms/").on("value", snapshot => {
@@ -2298,8 +2303,10 @@ function openGrandTotalHistoryView() {
       const rData = roomsVal[rCode];
       const rHist = rData.history || {};
       Object.keys(rHist).forEach(roundKey => {
-        if (!aggregatedHistory[roundKey]) aggregatedHistory[roundKey] = [];
-        aggregatedHistory[roundKey] = aggregatedHistory[roundKey].concat(rHist[roundKey]);
+        // 방 코드별 회차를 고유하게 분리하여 누적
+        const uniqueKey = `${rCode}_${roundKey}`;
+        if (!aggregatedHistory[uniqueKey]) aggregatedHistory[uniqueKey] = [];
+        aggregatedHistory[uniqueKey] = aggregatedHistory[uniqueKey].concat(rHist[roundKey]);
       });
     });
 
@@ -2320,7 +2327,7 @@ function renderFullHistoryView(historyData) {
   }
   roundKeys.forEach(rKey => {
     const items = historyData[rKey] || [];
-    const roundNum = rKey.replace("round_", "");
+    const roundTitleText = rKey.includes("_round_") ? rKey.replace("_", " [방: ") + "회차]" : `🔄 ${rKey.replace("round_", "")}회차`;
     const group = document.createElement("div");
     group.className = "round-group";
     let itemsHtml = "";
@@ -2342,7 +2349,7 @@ function renderFullHistoryView(historyData) {
     });
     group.innerHTML = `
       <div class="round-title">
-        <span>🔄 ${roundNum}회차 당첨 기록</span>
+        <span>${roundTitleText} 당첨 기록</span>
         <span style="font-size:0.9rem; color:#aaa;">총 ${items.length}건</span>
       </div>
       ${itemsHtml}
@@ -2412,7 +2419,7 @@ function generateDefaultSummaryText(historyData) {
       receiveMap[receiver].push(`[${dateStr}] 받아야할물건: ${prizeName} (보낸사람: ${sender}, 종류: 피규어)`);
     });
   });
-  let textOut = "=== [월.일 별 총 현황판 / 모든 게임 통합] ===\n\n[보낼 물건 목록]\n";
+  let textOut = "=== [월.일 별 총 현황판 / 모든 게임 및 모든 회차 누적] ===\n\n[보낼 물건 목록]\n";
   for (let s in sendMap) {
     textOut += `- ${s}:\n  ` + sendMap[s].join("\n  ") + "\n";
   }
@@ -2430,13 +2437,16 @@ function renderGrandSummary(historyData, customSummary = null, dbPath = null, is
 
   document.getElementById("grandTotalCountBadge").textContent = `총 당첨: ${totalPrizesCount}건`;
   const displayText = (customSummary !== null && customSummary !== undefined) ? customSummary : generateDefaultSummaryText(historyData);
+  
   let btnHtml = `
+    <button onclick="clearAllGrandHistory()" style="background:#e74c3c; color:#fff;">🗑️ 전체 기록 초기화 (전체 삭제)</button>
     <button onclick="copyGrandSummaryText()" style="background:#22c55e; color:#fff;">📋 텍스트 복사하기</button>
   `;
   if (!isGlobal && dbPath) {
     btnHtml = `
       <button onclick="saveGrandSummaryText('${dbPath}')" style="background:#3b82f6; color:#fff;">💾 수정사항 저장</button>
       <button onclick="resetGrandSummaryText('${dbPath}')" style="background:#e67e22; color:#fff;">🔄 자동 계산으로 복원</button>
+      <button onclick="clearAllGrandHistory()" style="background:#e74c3c; color:#fff;">🗑️ 전체 기록 초기화 (전체 삭제)</button>
       <button onclick="copyGrandSummaryText()" style="background:#22c55e; color:#fff;">📋 텍스트 복사하기</button>
     `;
   }
@@ -2463,6 +2473,32 @@ function resetGrandSummaryText(dbPath) {
     db.ref(dbPath).remove().then(() => {
       alert("원본 내용으로 복원되었습니다.");
     });
+  }
+}
+
+function clearAllGrandHistory() {
+  if (confirm("⚠️ 정말 모든 방과 회차의 당첨/정산 기록을 완전히 삭제(초기화)하시겠습니까?\n이 작업은 되돌릴 수 없습니다.")) {
+    const urlParams = new URLSearchParams(window.location.search);
+    const roomParam = urlParams.get("room");
+    if (roomParam) {
+      db.ref(`rooms/${roomParam}/history`).remove().then(() => {
+        db.ref(`rooms/${roomParam}/customGrandSummary`).remove();
+        alert("해당 방의 모든 기록이 초기화되었습니다.");
+      });
+    } else {
+      // 전체 보기인 경우 모든 방의 history를 제거
+      db.ref("rooms/").once("value", snapshot => {
+        if (!snapshot.exists()) return;
+        const updates = {};
+        snapshot.forEach(child => {
+          updates[`${child.key}/history`] = null;
+          updates[`${child.key}/customGrandSummary`] = null;
+        });
+        db.ref("rooms/").update(updates).then(() => {
+          alert("모든 방의 전체 회차 당첨 기록이 초기화되었습니다!");
+        });
+      });
+    }
   }
 }
 
