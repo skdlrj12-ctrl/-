@@ -3,15 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>🍢 MY KUJI (규어빵 전용판) v12</title>
+  <title>🍢 MY KUJI (규어빵 전용판) v13</title>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; user-select: none; }
     
     body { 
-      background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://i.ibb.co/d0qnQSCq/image.jpg'); 
+      background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('https://i.ibb.co/d0qnQSCq/image.jpg'); 
       background-size: cover; background-position: center; background-repeat: no-repeat; background-attachment: fixed;
       color: #ffffff; display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 15px; 
+      transition: background 0.3s ease;
+    }
+
+    body.clear-bg {
+      background-image: linear-gradient(rgba(0, 0, 0, 0.15), rgba(0, 0, 0, 0.15)), url('https://i.ibb.co/d0qnQSCq/image.jpg') !important;
     }
     
     .header-bar { display: flex; justify-content: space-between; align-items: center; width: 98%; max-width: 1000px; margin-top: 5px; margin-bottom: 10px; }
@@ -19,6 +24,7 @@
     h1 { font-size: 1.5rem; text-align: center; text-shadow: 0 2px 6px rgba(0,0,0,0.9); }
     .version-tag { background: #e67e22; color: #fff; font-size: 0.8rem; font-weight: bold; padding: 2px 8px; border-radius: 12px; }
     
+    .top-action-btns { display: flex; gap: 6px; }
     .sound-btn { 
       background: rgba(0, 0, 0, 0.6); color: #ffeb3b; border: 1.5px solid #ffeb3b; 
       padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold; cursor: pointer;
@@ -29,12 +35,16 @@
     p.sub { color: #eee; font-size: 0.9rem; margin-bottom: 15px; text-shadow: 0 1px 4px rgba(0,0,0,0.9); }
     
     .card-box { 
-      background-color: rgba(20, 20, 20, 0.45); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 20px; padding: 18px; width: 98%; max-width: 1000px; 
+      background-color: rgba(15, 15, 15, 0.55); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
+      border: 1px solid rgba(255, 255, 255, 0.22); border-radius: 20px; padding: 18px; width: 98%; max-width: 1000px; 
       text-align: center; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.6); display: flex; flex-direction: column; gap: 14px;
     }
+
+    body.clear-bg .card-box {
+      background-color: rgba(10, 10, 10, 0.75); backdrop-filter: none; -webkit-backdrop-filter: none;
+    }
     
-    .setting-group { text-align: left; background: rgba(0, 0, 0, 0.4); padding: 16px; border-radius: 12px; max-width: 600px; margin: 0 auto 10px auto; border: 1px solid rgba(255, 255, 255, 0.15); }
+    .setting-group { text-align: left; background: rgba(0, 0, 0, 0.5); padding: 16px; border-radius: 12px; max-width: 600px; margin: 0 auto 10px auto; border: 1px solid rgba(255, 255, 255, 0.15); }
     .setting-group label { font-size: 0.95rem; color: #ddd; display: block; margin-bottom: 6px; font-weight: bold; }
     input[type="number"], input[type="text"], input[type="file"] { width: 100%; padding: 9px; margin-bottom: 10px; border-radius: 8px; border: 1px solid #555; background: rgba(0, 0, 0, 0.6); color: #fff; font-size: 0.95rem; }
     
@@ -46,54 +56,39 @@
     button:active { opacity: 0.8; }
     button.btn-share { background: #4dabf7; color: #fff; width: auto; padding: 6px 14px; font-size: 0.85rem; }
     
+    /* 탭 헤더 스타일 */
+    .prize-tab-header { display: flex; gap: 6px; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 8px; margin-bottom: 10px; }
+    .tab-btn { background: rgba(0,0,0,0.4); color: #aaa; padding: 8px 14px; border-radius: 8px; font-size: 0.9rem; cursor: pointer; border: 1px solid transparent; width: auto; }
+    .tab-btn.active { background: #ffeb3b; color: #000; font-weight: bold; border-color: #ffeb3b; }
+
     .prize-board-top { background: rgba(0, 0, 0, 0.5); padding: 14px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.2); text-align: left; }
-    .prize-board-top h3 { font-size: 1.1rem; color: #ffeb3b; margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 6px; }
     .prize-list-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
     
     .prize-card { display: flex; align-items: center; gap: 14px; background: rgba(0, 0, 0, 0.7); padding: 12px 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.3); }
-    .prize-card img { width: 100px; height: 100px; border-radius: 8px; object-fit: cover; border: 1px solid rgba(255,255,255,0.4); flex-shrink: 0; }
-    .prize-info { font-size: 1rem; }
-    .prize-info .num { color: #f39c12; font-weight: bold; font-size: 1.15rem; }
-    .prize-info .winner { color: #22c55e; font-weight: bold; font-size: 0.95rem; margin-top: 6px; }
+    .prize-card img { width: 90px; height: 90px; border-radius: 8px; object-fit: cover; border: 1px solid rgba(255,255,255,0.4); flex-shrink: 0; }
+    .prize-info { font-size: 0.95rem; }
+    .prize-info .num { color: #f39c12; font-weight: bold; font-size: 1.1rem; }
+    .prize-info .winner { color: #22c55e; font-weight: bold; font-size: 0.9rem; margin-top: 4px; }
+
+    /* 누적 기록 목록 스타일 */
+    .history-list { display: flex; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto; }
+    .history-item { display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.6); padding: 10px 14px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); font-size: 0.9rem; }
+    .history-item .time { color: #888; font-size: 0.75rem; }
+    .history-item .winner-tag { color: #22c55e; font-weight: bold; }
 
     .manager-box { 
-      background: rgba(0, 0, 0, 0.5); 
-      border: 1px solid rgba(255, 255, 255, 0.2); 
-      border-radius: 12px; 
-      padding: 10px 14px; 
-      text-align: left; 
-      display: flex; 
-      flex-direction: column; 
-      gap: 8px; 
-      width: 100%;
+      background: rgba(0, 0, 0, 0.5); border: 1px solid rgba(255, 255, 255, 0.2); 
+      border-radius: 12px; padding: 10px 14px; text-align: left; display: flex; 
+      flex-direction: column; gap: 8px; width: 100%;
     }
     .manager-box h4 { color: #ffeb3b; font-size: 0.9rem; margin: 0; }
-    .player-tags-container { 
-      display: flex; 
-      flex-direction: row; 
-      flex-wrap: wrap; 
-      gap: 8px; 
-      align-items: center; 
-      width: 100%;
-    }
+    .player-tags-container { display: flex; flex-direction: row; flex-wrap: wrap; gap: 8px; align-items: center; width: 100%; }
     .player-tag { 
-      background: rgba(0, 0, 0, 0.75); 
-      padding: 6px 12px; 
-      border-radius: 20px; 
-      font-size: 0.85rem; 
-      display: inline-flex !important; 
-      flex-direction: row !important;
-      align-items: center !important; 
-      gap: 8px !important; 
-      border: 1px solid rgba(255, 255, 255, 0.3); 
-      white-space: nowrap !important;
+      background: rgba(0, 0, 0, 0.75); padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; 
+      display: inline-flex !important; flex-direction: row !important; align-items: center !important; 
+      gap: 8px !important; border: 1px solid rgba(255, 255, 255, 0.3); white-space: nowrap !important;
     }
-    .player-tag.active { 
-      border-color: #22c55e; 
-      background: rgba(34, 197, 94, 0.35); 
-      color: #22c55e; 
-      font-weight: bold; 
-    }
+    .player-tag.active { border-color: #22c55e; background: rgba(34, 197, 94, 0.35); color: #22c55e; font-weight: bold; }
     .player-btns-group { display: inline-flex; align-items: center; gap: 4px; }
     .player-btn { background: rgba(255, 255, 255, 0.25); border: none; color: #fff; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; width: auto; }
 
@@ -178,7 +173,6 @@
     .sound-uploader-box label { font-size: 0.85rem; color: #ffeb3b; font-weight: bold; display: block; margin-bottom: 4px; }
     .sound-uploader-box input[type="file"] { margin-bottom: 8px; font-size: 0.8rem; }
 
-    /* Sound Library Styles */
     .sound-list-container {
       max-height: 120px; overflow-y: auto; background: rgba(0,0,0,0.5);
       border-radius: 6px; padding: 6px; margin-top: 6px; border: 1px solid rgba(255,255,255,0.1);
@@ -196,11 +190,18 @@
     .room-code { color: #4dabf7; font-size: 1.1rem; font-weight: bold; }
     .hidden { display: none !important; }
 
+    /* 리셋 모달 스타일 */
+    .reset-modal-box {
+      background: #1e1e1e; border: 1px solid rgba(255,255,255,0.3); border-radius: 16px;
+      padding: 20px; width: 92%; max-width: 500px; max-height: 85vh; overflow-y: auto;
+      text-align: left; box-shadow: 0 10px 30px rgba(0,0,0,0.9);
+    }
+
     @media (max-width: 768px) {
       .grid { grid-template-columns: repeat(5, 1fr); gap: 5px; }
       .card-number { font-size: 1.0rem; }
       .prize-list-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
-      .prize-card img { width: 75px; height: 75px; }
+      .prize-card img { width: 70px; height: 70px; }
     }
   </style>
 
@@ -212,11 +213,16 @@
   <div class="header-bar">
     <div class="title-wrapper">
       <h1>🍢 MY KUJI (규어빵 전용판)</h1>
-      <span class="version-tag">v12</span>
+      <span class="version-tag">v13</span>
     </div>
-    <button id="soundToggleBtn" class="sound-btn" onclick="toggleSound()">
-      <span id="soundIcon">🔊</span> <span id="soundText">사운드 ON</span>
-    </button>
+    <div class="top-action-btns">
+      <button class="sound-btn" onclick="toggleBgClear()">
+        <span id="bgIcon">👁️</span> <span id="bgText">배경 선명하게</span>
+      </button>
+      <button id="soundToggleBtn" class="sound-btn" onclick="toggleSound()">
+        <span id="soundIcon">🔊</span> <span id="soundText">사운드 ON</span>
+      </button>
+    </div>
   </div>
   <p class="sub">실시간 제비뽑기 게임</p>
 
@@ -241,7 +247,7 @@
       
       <label>2. 당첨 번호 및 상품 설정</label>
       <div id="prizeInputs"></div>
-      <button onclick="addPrizeInput()" style="background: rgba(255,255,255,0.15); color: #fff; font-size: 0.85rem; padding: 6px; border: 1px solid rgba(255,255,255,0.2);">+ 당첨 상품 추가</button>
+      <button onclick="addPrizeInput('prizeInputs')" style="background: rgba(255,255,255,0.15); color: #fff; font-size: 0.85rem; padding: 6px; border: 1px solid rgba(255,255,255,0.2);">+ 당첨 상품 추가</button>
     </div>
 
     <div style="max-width: 400px; margin: 0 auto; width: 100%;">
@@ -253,9 +259,28 @@
   </div>
 
   <div id="game" class="card-box hidden">
+    <!-- 최상단 방장 제어 영역 (판 리셋 버튼 맨 위로 이동) -->
+    <div id="hostControls" class="control-btns hidden" style="background: rgba(0,0,0,0.4); padding: 10px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.15);">
+      <button onclick="openResetModal()" class="btn-sub btn-reset" style="font-size: 0.95rem; padding: 10px 18px;">🔄 판 리셋 & 상품 수정 (새 게임)</button>
+      <div style="display:flex; align-items:center; gap:6px; margin-left: 10px;">
+        <label style="font-size:0.85rem; color:#ccc;">셔플 횟수:</label>
+        <input type="number" id="shuffleCountInput" value="5" min="1" max="50" style="width:55px; margin-bottom:0; padding:5px; text-align:center;">
+      </div>
+      <button onclick="shuffleAndOpenRandom()" class="btn-sub btn-shuffle">🔀 셔플 후 선택</button>
+    </div>
+
+    <!-- 상품 현황 및 누적 당첨 기록 (탭 형태) -->
     <div class="prize-board-top">
-      <h3>🎁 당첨 상품 목록</h3>
-      <div id="prizeBoardList" class="prize-list-grid"></div>
+      <div class="prize-tab-header">
+        <button id="tabBtnCurrent" class="tab-btn active" onclick="switchPrizeTab('current')">🎁 현재 당첨 현황</button>
+        <button id="tabBtnHistory" class="tab-btn" onclick="switchPrizeTab('history')">📋 누적 당첨 기록</button>
+      </div>
+
+      <!-- Tab 1: 현재 상품 목록 -->
+      <div id="tabContentCurrent" class="prize-list-grid"></div>
+
+      <!-- Tab 2: 역대 당첨 기록 -->
+      <div id="tabContentHistory" class="history-list hidden"></div>
     </div>
 
     <div class="turn-banner">
@@ -268,15 +293,7 @@
       <div id="playerTagsList" class="player-tags-container"></div>
     </div>
 
-    <div id="hostControls" class="control-btns hidden">
-      <div style="display:flex; align-items:center; gap:6px;">
-        <label style="font-size:0.85rem; color:#ccc;">셔플 횟수:</label>
-        <input type="number" id="shuffleCountInput" value="5" min="1" max="50" style="width:60px; margin-bottom:0; padding:6px; text-align:center;">
-      </div>
-      <button onclick="shuffleAndOpenRandom()" class="btn-sub btn-shuffle">🔀 셔플 후 선택하기</button>
-      <button onclick="resetGame()" class="btn-sub btn-reset">🔄 판 리셋 (새 게임)</button>
-    </div>
-    <div id="status" style="font-size: 0.9rem; color: #ccc;">남은 카드: -장</div>
+    <div id="status" style="font-size: 0.95rem; color: #ffeb3b; font-weight: bold;">남은 카드: -장</div>
 
     <div class="grid" id="grid"></div>
 
@@ -291,6 +308,25 @@
     <div class="room-info-bottom">
       <div>방 코드: <span id="currentRoomCode" class="room-code"></span> | 방장: <span id="hostName" style="color:#fff;">-</span></div>
       <button onclick="copyShareLink()" class="btn-share">📋 초대 링크 복사</button>
+    </div>
+  </div>
+
+  <!-- 판 리셋 & 상품 설정 수정 모달 -->
+  <div id="resetModal" class="card-modal-overlay hidden">
+    <div class="reset-modal-box">
+      <h3 style="color:#ffeb3b; margin-bottom: 12px; font-size: 1.2rem;">🔄 판 리셋 & 상품 수정</h3>
+      
+      <label style="font-size: 0.85rem; color: #ccc;">카드 총 수량</label>
+      <input type="number" id="resetTotalCardsInput" value="30" min="5" max="50">
+
+      <label style="font-size: 0.85rem; color: #ccc; margin-top: 6px; display: block;">당첨 번호 및 상품 교체</label>
+      <div id="resetPrizeInputs" style="margin-top: 6px;"></div>
+      <button onclick="addPrizeInput('resetPrizeInputs')" style="background: rgba(255,255,255,0.15); color: #fff; font-size: 0.8rem; padding: 6px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.2);">+ 상품 추가</button>
+
+      <div style="display: flex; gap: 8px;">
+        <button onclick="executeResetWithPrizes()" style="background: #e74c3c; color: #fff;">새 게임 시작 (리셋)</button>
+        <button onclick="closeResetModal()" style="background: rgba(255,255,255,0.2); color: #fff;">취소</button>
+      </div>
     </div>
   </div>
 
@@ -332,14 +368,17 @@
     let currentRoom = null;
     let prizesData = {};
     let currentCardsData = [];
+    let winHistoryData = [];
     let myName = "";
     let playersList = [];
     let hostName = "";
     let selectedIndex = null;
+    let activeTab = 'current';
 
     let winAudio = null;
     let activeSoundId = null;
     let isMuted = false;
+    let isClearBg = false;
     let audioCtx = null;
 
     // --- IndexedDB 오디오 저장 및 제어 ---
@@ -465,6 +504,17 @@
       }
     }
 
+    function toggleBgClear() {
+      isClearBg = !isClearBg;
+      if (isClearBg) {
+        document.body.classList.add('clear-bg');
+        document.getElementById('bgText').textContent = '배경 흐리게';
+      } else {
+        document.body.classList.remove('clear-bg');
+        document.getElementById('bgText').textContent = '배경 선명하게';
+      }
+    }
+
     function getAudioContext() {
       if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
       if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -525,7 +575,7 @@
       isMuted = !isMuted;
       const btn = document.getElementById('soundToggleBtn');
       if (isMuted) {
-        document.getElementById('soundIcon').textContent = '🔇';
+        document.getElementById('soundIcon').textContent = '`🔇`';
         document.getElementById('soundText').textContent = '사운드 OFF';
         btn.classList.remove('active');
       } else {
@@ -553,7 +603,7 @@
       const roomParam = urlParams.get('room');
       if (roomParam) document.getElementById('roomInput').value = roomParam.toUpperCase();
 
-      addPrizeInput(); addPrizeInput();
+      addPrizeInput('prizeInputs'); addPrizeInput('prizeInputs');
       setupZoomDrag();
     });
 
@@ -563,23 +613,26 @@
       localStorage.setItem('kuji_nickname', myName);
     }
 
-    function addPrizeInput() {
-      const container = document.getElementById('prizeInputs');
+    function addPrizeInput(containerId, initialNum = '', initialName = '', initialImg = '') {
+      const container = document.getElementById(containerId);
+      if (!container) return;
       const div = document.createElement('div');
       div.className = 'prize-item';
       div.innerHTML = `
         <div class="prize-item-row">
-          <input type="number" placeholder="번호" class="p-num" style="width: 70px;">
-          <input type="text" placeholder="상품 이름" class="p-name">
+          <input type="number" placeholder="번호" class="p-num" value="${initialNum}" style="width: 70px;">
+          <input type="text" placeholder="상품 이름" class="p-name" value="${initialName}">
         </div>
         <input type="file" accept="image/*" class="p-file">
+        ${initialImg ? `<div style="font-size:0.75rem; color:#aaa;">기존 이미지 등록됨 (선택 변경 가능)</div>` : ''}
       `;
+      div.dataset.existingImg = initialImg || '';
       container.appendChild(div);
     }
 
-    function compressAndReadFile(file) {
+    function compressAndReadFile(file, defaultVal = 'https://via.placeholder.com/150?text=Prize') {
       return new Promise((resolve) => {
-        if (!file) resolve('https://via.placeholder.com/150?text=Prize');
+        if (!file) resolve(defaultVal);
         const reader = new FileReader();
         reader.onload = (e) => {
           const img = new Image();
@@ -607,20 +660,30 @@
       return arr;
     }
 
+    async function parsePrizeInputsFromContainer(containerId) {
+      const parsedPrizes = {};
+      const prizeItems = document.querySelectorAll(`#${containerId} .prize-item`);
+      for (let item of prizeItems) {
+        const num = parseInt(item.querySelector('.p-num').value);
+        const name = item.querySelector('.p-name').value.trim();
+        const file = item.querySelector('.p-file').files[0];
+        const existingImg = item.dataset.existingImg || 'https://via.placeholder.com/150?text=Prize';
+        
+        if (!isNaN(num) && name) {
+          const imgSrc = file ? await compressAndReadFile(file) : existingImg;
+          parsedPrizes[num] = { name: name, img: imgSrc };
+        }
+      }
+      return parsedPrizes;
+    }
+
     async function createRoom() {
       saveNickname();
       const btn = document.getElementById('btnCreateRoom');
       btn.disabled = true; btn.textContent = '방 생성 중...';
 
       let total = parseInt(document.getElementById('totalCardsInput').value) || 30;
-      prizesData = {};
-      const prizeItems = document.querySelectorAll('.prize-item');
-      for (let item of prizeItems) {
-        const num = parseInt(item.querySelector('.p-num').value);
-        const name = item.querySelector('.p-name').value.trim();
-        const file = item.querySelector('.p-file').files[0];
-        if (!isNaN(num) && name) prizesData[num] = { name: name, img: await compressAndReadFile(file) };
-      }
+      prizesData = await parsePrizeInputsFromContainer('prizeInputs');
 
       const code = Math.random().toString(36).substring(2, 8).toUpperCase();
       const numbers = shuffle(Array.from({length: total}, (_, i) => i + 1));
@@ -631,7 +694,7 @@
       playersList = [myName];
 
       db.ref('rooms/' + code).set({ 
-        cards: initialCards, prizes: prizesData, host: myName, players: playersList, createdAt: Date.now() 
+        cards: initialCards, prizes: prizesData, host: myName, players: playersList, history: [], createdAt: Date.now() 
       }).then(() => enterRoom(code));
     }
 
@@ -663,12 +726,14 @@
         prizesData = data.prizes || {};
         currentCardsData = data.cards || [];
         playersList = data.players || [];
+        winHistoryData = data.history || [];
         hostName = data.host || "방장";
         
         if (isHost()) document.getElementById('hostControls').classList.remove('hidden');
 
         renderPlayersOrder();
         renderPrizeBoard();
+        renderHistoryBoard();
         renderGrid(currentCardsData);
       });
     }
@@ -732,8 +797,24 @@
       }
     }
 
+    function switchPrizeTab(tab) {
+      activeTab = tab;
+      const btnCurrent = document.getElementById('tabBtnCurrent');
+      const btnHistory = document.getElementById('tabBtnHistory');
+      const tabCurrent = document.getElementById('tabContentCurrent');
+      const tabHistory = document.getElementById('tabContentHistory');
+
+      if (tab === 'current') {
+        btnCurrent.classList.add('active'); btnHistory.classList.remove('active');
+        tabCurrent.classList.remove('hidden'); tabHistory.classList.add('hidden');
+      } else {
+        btnHistory.classList.add('active'); btnCurrent.classList.remove('active');
+        tabHistory.classList.remove('hidden'); tabCurrent.classList.add('hidden');
+      }
+    }
+
     function renderPrizeBoard() {
-      const board = document.getElementById('prizeBoardList');
+      const board = document.getElementById('tabContentCurrent');
       board.innerHTML = '';
 
       Object.keys(prizesData).forEach(num => {
@@ -751,6 +832,31 @@
           </div>
         `;
         board.appendChild(item);
+      });
+    }
+
+    function renderHistoryBoard() {
+      const container = document.getElementById('tabContentHistory');
+      container.innerHTML = '';
+
+      if (!winHistoryData || winHistoryData.length === 0) {
+        container.innerHTML = `<div style="font-size:0.85rem; color:#888; text-align:center; padding: 20px;">아직 당첨 기록이 없습니다.</div>`;
+        return;
+      }
+
+      // 최신 당첨이 위로 오도록 역순
+      const sortedHistory = [...winHistoryData].reverse();
+      sortedHistory.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'history-item';
+        div.innerHTML = `
+          <div>
+            <span class="winner-tag">🎉 ${item.winner}</span> 님 당첨!
+            <div style="color: #ffeb3b; font-size: 0.85rem; margin-top:2px;">[${item.num}번] ${item.prizeName}</div>
+          </div>
+          <div class="time">${item.time || ''}</div>
+        `;
+        container.appendChild(div);
       });
     }
 
@@ -914,13 +1020,24 @@
       if (!card || card.picked) return;
 
       const turnPlayer = getCurrentTurnPlayer();
-      const isWin = !!prizesData[card.value];
+      const prize = prizesData[card.value];
+      const isWin = !!prize;
 
       showNumberRevealAnimation(card.value, turnPlayer, isWin);
 
       if (isWin) {
         playWinSound();
         confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 } });
+
+        // 실시간 히스토리 저장
+        const nowStr = new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+        const newHistory = [...winHistoryData, {
+          winner: turnPlayer,
+          num: card.value,
+          prizeName: prize.name,
+          time: nowStr
+        }];
+        db.ref('rooms/' + currentRoom + '/history').set(newHistory);
       } else {
         playLoseSound();
       }
@@ -969,21 +1086,51 @@
       }, 700);
     }
 
-    function resetGame() {
-      if (!isHost()) return alert('방장만 게임을 초기화할 수 있습니다.');
-      if (!confirm('상품 및 참가자 정보를 유지한 채 카드를 새로 섞고 게임을 리셋하시겠습니까?')) return;
+    /* 판 리셋 & 상품 설정 수정 모달 관련 함수 */
+    function openResetModal() {
+      if (!isHost()) return alert('방장만 초기화할 수 있습니다.');
 
-      let total = currentCardsData.length || 30;
+      const modal = document.getElementById('resetModal');
+      const resetPrizeContainer = document.getElementById('resetPrizeInputs');
+      document.getElementById('resetTotalCardsInput').value = currentCardsData.length || 30;
+
+      resetPrizeContainer.innerHTML = '';
+      Object.keys(prizesData).forEach(num => {
+        addPrizeInput('resetPrizeInputs', num, prizesData[num].name, prizesData[num].img);
+      });
+
+      if (Object.keys(prizesData).length === 0) {
+        addPrizeInput('resetPrizeInputs');
+      }
+
+      modal.classList.remove('hidden');
+    }
+
+    function closeResetModal() {
+      document.getElementById('resetModal').classList.add('hidden');
+    }
+
+    async function executeResetWithPrizes() {
+      if (!confirm('설정한 내용으로 판을 완전히 리셋하시겠습니까?')) return;
+
+      let total = parseInt(document.getElementById('resetTotalCardsInput').value) || 30;
+      const updatedPrizes = await parsePrizeInputsFromContainer('resetPrizeInputs');
+
       const numbers = shuffle(Array.from({length: total}, (_, i) => i + 1));
       const resetCards = numbers.map((num, idx) => ({
         value: num,
         picked: false,
         pickedBy: "",
-        img: currentCardsData[idx]?.img || charImages[Math.floor(Math.random() * charImages.length)]
+        img: charImages[Math.floor(Math.random() * charImages.length)]
       }));
 
-      db.ref('rooms/' + currentRoom + '/cards').set(resetCards).then(() => {
-        alert('카드가 새로 섞였습니다! 새 게임을 시작합니다.');
+      // Firebase 데이터 완전 재설정 (카드 + 새로 바뀐 상품 정보)
+      db.ref('rooms/' + currentRoom).update({
+        cards: resetCards,
+        prizes: updatedPrizes
+      }).then(() => {
+        closeResetModal();
+        alert('판 및 상품 정보가 교체되어 게임이 다시 시작되었습니다!');
       });
     }
     
