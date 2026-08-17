@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>🍢 MY KUJI (규어빵 전용판) v20 - 좌표계 적용</title>
+  <title>🍢 MY KUJI (규어빵 전용판) v21 - 좌표계 적용</title>
 
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
@@ -451,9 +451,7 @@
       color: #fff;
     }
 
-    /* ==============================
-       좌표계 가드 스타일 (상단 1~10, 좌측 1~15)
-       ============================== */
+    /* 좌표계 가드 스타일 */
     .coordinate-board-wrapper {
       display: flex;
       flex-direction: column;
@@ -498,7 +496,6 @@
       font-size: 0.95rem;
     }
 
-    /* 기존 .grid 오버라이드 또는 대체 */
     .grid {
       display: grid;
       grid-template-columns: repeat(10, 1fr);
@@ -970,9 +967,10 @@
   <div class="header-bar">
     <div class="title-wrapper">
       <h1 onclick="handleTitleCheatClick()">🍢 MY KUJI (규어빵 전용판)</h1>
-      <span class="version-tag">v20</span>
+      <span class="version-tag">v21</span>
     </div>
     <div class="top-action-btns">
+      <button onclick="openHistoryNewTabFromLobby()" style="background:#8e44ad; color:#fff; width:auto; font-size:0.85rem; padding:6px 14px; border-radius:12px;">📋 상품 현황판 보기</button>
       <div class="audio-url-wrapper">
         <input type="text" id="externalAudioUrl" placeholder="YouTube / MP3 링크">
         <button onclick="playExternalAudio()">🎵 재생</button>
@@ -1022,7 +1020,7 @@
       <button id="btnCreateRoom" onclick="createRoom()" style="background:#22c55e; color:#fff; margin-bottom:8px;">방 만들기</button>
       <div style="color:#ddd; margin:8px 0; font-size:0.85rem;">— 또는 —</div>
       <input type="text" id="roomInput" placeholder="방 코드 6자리 입력" maxlength="6" style="text-transform:uppercase;">
-      <button onclick="joinRoom()" style="background:#3b82f6; color:#fff;">방 참가하기</button>
+      <button onclick="joinRoom()" style="background:#3b82f6; color:#fff;">방 참가하기 (관전자 모드)</button>
     </div>
   </div>
 
@@ -1047,6 +1045,12 @@
       <div id="playerTagsList" class="player-tags-container"></div>
     </div>
 
+    <!-- 대기 관전자 승인 섹션 (방장용) -->
+    <div id="waitingApprovalBox" class="manager-box hidden" style="border-color:#3b82f6;">
+      <h4 style="color:#3b82f6;">⏳ 참가 승인 대기중인 인원 (관전자)</h4>
+      <div id="waitingTagsList" class="player-tags-container"></div>
+    </div>
+
     <div id="status" style="font-size:0.95rem; color:#ffeb3b; font-weight:bold;">남은 카드: -</div>
 
     <div id="hostControls" class="control-btns hidden" style="background:rgba(0,0,0,0.4); padding:10px; border-radius:12px; border:1px solid rgba(255,255,255,0.15);">
@@ -1058,16 +1062,13 @@
       <button onclick="openResetModal()" class="btn-sub btn-reset">🔄 다음 회차 시작 (판 리셋 & 상품 교체)</button>
     </div>
 
-    <!-- 가드 상단(1~10), 좌측(1~15) 좌표계 레이아웃 컨테이너 -->
     <div class="coordinate-board-wrapper">
       <div class="coordinate-top-header">
         <div></div>
         <div>1</div><div>2</div><div>3</div><div>4</div><div>5</div>
         <div>6</div><div>7</div><div>8</div><div>9</div><div>10</div>
       </div>
-      <div id="coordinateRowsContainer" class="coordinate-row-container">
-        <!-- 스크립트로 1~15행 동적 생성 -->
-      </div>
+      <div id="coordinateRowsContainer" class="coordinate-row-container"></div>
     </div>
 
     <div class="sound-uploader-box">
@@ -1087,13 +1088,13 @@
 
   <div id="historyTabView" class="history-tab-view hidden">
     <div class="header-bar" style="width:100%;">
-      <h1>📋 실시간 누적 당첨 현황판</h1>
+      <h1>📋 실시간 누적 당첨 현황판 (월별 리셋/데이터 보존)</h1>
       <span id="historyRoomCode" class="version-tag" style="background:#3b82f6;"></span>
     </div>
 
     <div class="user-summary-card">
-      <h3 style="color:#ffeb3b; font-size:1.1rem; margin-bottom:6px;">📦 참가자별 정산 세부 목록</h3>
-      <p style="font-size:0.88rem; color:#aaa;">누가 어떤 상품을 누구에게 보내야 하는지 상세 내역입니다.</p>
+      <h3 style="color:#ffeb3b; font-size:1.1rem; margin-bottom:6px;">📦 참가자별 정산 세부 목록 (월·일 별)</h3>
+      <p style="font-size:0.88rem; color:#aaa;">보내야 할 물건 및 받아야 할 물건 목록입니다.</p>
       <div id="summaryGrid" class="summary-grid"></div>
     </div>
 
@@ -1101,10 +1102,10 @@
 
     <div class="grand-summary-card">
       <div class="grand-summary-title">
-        <span>🏆 전체회차 총정리 (직접 수정 가능)</span>
+        <span>🏆 전체회차 총정리 총괄 (직접 수정 가능)</span>
         <span id="grandTotalCountBadge" style="font-size:0.9rem; color:#22c55e; background:rgba(34,197,94,0.15); padding:4px 10px; border-radius:12px; border:1px solid #22c55e;">총 당첨: 0건</span>
       </div>
-      <p style="font-size:0.85rem; color:#aaa; margin-bottom:10px;">아래 텍스트를 자유롭게 편집 후 저장하세요. 실시간으로 방에 반영됩니다.</p>
+      <p style="font-size:0.85rem; color:#aaa; margin-bottom:10px;">'받아야할 물건 / 보내야할 물건' 양식에 맞춰 월·일 별로 자유롭게 편집 후 저장하세요.</p>
       <div id="grandSummaryContent"></div>
     </div>
   </div>
@@ -1166,6 +1167,7 @@ let currentCardsData = [];
 let historyByRound = {};
 let myName = "";
 let playersList = [];
+let waitingList = [];
 let hostName = "";
 let selectedIndex = null;
 let winAudio = null;
@@ -1628,12 +1630,14 @@ async function createRoom() {
   }));
 
   playersList = [myName];
+  waitingList = [];
   db.ref("rooms/" + code).set({
     round: inheritedRound,
     cards: initialCards,
     prizes: prizesData,
     host: myName,
     players: playersList,
+    waiting: waitingList,
     history: inheritedHistory,
     createdAt: Date.now()
   }).then(() => enterRoom(code));
@@ -1647,8 +1651,18 @@ function joinRoom() {
     if (snapshot.exists()) {
       const data = snapshot.val();
       let currentPlayers = data.players || [];
-      if (!currentPlayers.includes(myName)) currentPlayers.push(myName);
-      db.ref("rooms/" + code + "/players").set(currentPlayers);
+      let currentWaiting = data.waiting || [];
+      
+      // 방장이면 바로 입장, 아니면 기본 관전자(대기) 모드로 등록
+      if (myName === data.host) {
+        if (!currentPlayers.includes(myName)) currentPlayers.push(myName);
+        db.ref("rooms/" + code + "/players").set(currentPlayers);
+      } else {
+        if (!currentPlayers.includes(myName) && !currentWaiting.includes(myName)) {
+          currentWaiting.push(myName);
+          db.ref("rooms/" + code + "/waiting").set(currentWaiting);
+        }
+      }
       enterRoom(code);
     } else { alert("방이 존재하지 않습니다."); }
   });
@@ -1678,13 +1692,18 @@ function enterRoom(code) {
     prizesData = data.prizes || {};
     currentCardsData = data.cards || [];
     playersList = data.players || [];
+    waitingList = data.waiting || [];
     historyByRound = data.history || {};
     hostName = data.host || "방장";
 
     document.getElementById("roundDisplay").textContent = `현재 회차: ${currentRound}회차`;
-    if (isHost()) document.getElementById("hostControls").classList.remove("hidden");
+    if (isHost()) {
+      document.getElementById("hostControls").classList.remove("hidden");
+      document.getElementById("waitingApprovalBox").classList.remove("hidden");
+    }
 
     renderPlayersOrder();
+    renderWaitingList();
     renderPrizeBoard();
     renderGrid(currentCardsData);
   });
@@ -1719,12 +1738,52 @@ function renderPlayersOrder() {
           <button class="player-btn" onclick="movePlayer(${idx}, -1)">◀</button>
           <button class="player-btn" onclick="movePlayer(${idx}, 1)">▶</button>
           <button class="player-btn" onclick="editPlayerName(${idx})">✏️</button>
+          <button class="player-btn" style="background:#e74c3c;" onclick="removePlayer(${idx})">❌</button>
         </div>
       `;
     }
     tag.innerHTML = html;
     tagsContainer.appendChild(tag);
   });
+}
+
+function renderWaitingList() {
+  const container = document.getElementById("waitingTagsList");
+  if (!container) return;
+  container.innerHTML = "";
+  if (!waitingList || waitingList.length === 0) {
+    container.innerHTML = `<span style="font-size:0.8rem; color:#888;">승인 대기 중인 인원이 없습니다.</span>`;
+    return;
+  }
+  waitingList.forEach((wName, idx) => {
+    const tag = document.createElement("div");
+    tag.className = "player-tag";
+    tag.innerHTML = `
+      <span>${escapeHtml(wName)}</span>
+      <div class="player-btns-group">
+        ${isHost() ? `<button class="player-btn" style="background:#22c55e;" onclick="approvePlayer(${idx})">승인</button>` : ""}
+        <button class="player-btn" style="background:#e74c3c;" onclick="rejectPlayer(${idx})">거절</button>
+      </div>
+    `;
+    container.appendChild(tag);
+  });
+}
+
+function approvePlayer(idx) {
+  if (!isHost()) return;
+  const target = waitingList[idx];
+  waitingList.splice(idx, 1);
+  if (!playersList.includes(target)) playersList.push(target);
+  db.ref("rooms/" + currentRoom).update({
+    players: playersList,
+    waiting: waitingList
+  });
+}
+
+function rejectPlayer(idx) {
+  if (!isHost()) return;
+  waitingList.splice(idx, 1);
+  db.ref("rooms/" + currentRoom + "/waiting").set(waitingList);
 }
 
 function movePlayer(index, direction) {
@@ -1741,6 +1800,13 @@ function editPlayerName(index) {
   let newName = prompt("변경할 참가자 닉네임을 입력하세요:", current);
   if (newName && newName.trim() !== "") {
     playersList[index] = newName.trim();
+    db.ref("rooms/" + currentRoom + "/players").set(playersList);
+  }
+}
+
+function removePlayer(index) {
+  if (confirm(`'${playersList[index]}' 참가자를 목록에서 삭제하시겠습니까?`)) {
+    playersList.splice(index, 1);
     db.ref("rooms/" + currentRoom + "/players").set(playersList);
   }
 }
@@ -1768,7 +1834,6 @@ function renderPrizeBoard() {
   });
 }
 
-// 1~15행, 1~10열 가드 좌표 레이아웃 렌더링
 function renderGrid(cards) {
   const container = document.getElementById("coordinateRowsContainer");
   if (!container) return;
@@ -1782,19 +1847,16 @@ function renderGrid(cards) {
     const rowDiv = document.createElement("div");
     rowDiv.className = "coordinate-grid-row";
 
-    // 좌측 행 번호 (1 ~ 15)
     const labelDiv = document.createElement("div");
     labelDiv.className = "row-label";
     labelDiv.textContent = (r + 1);
     rowDiv.appendChild(labelDiv);
 
-    // 해당 행의 카드 10개 배치 (총 150장)
     for (let c = 0; c < colsPerRow; c++) {
       const index = r * colsPerRow + c;
       const card = cards[index];
 
       if (!card) {
-        // 카드가 부족할 경우 빈 공간 처리
         const emptySlot = document.createElement("div");
         rowDiv.appendChild(emptySlot);
         continue;
@@ -1931,7 +1993,9 @@ function pickCard(index) {
   if (isWin) {
     playWinSound();
     if (typeof confetti === "function") confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 } });
-    const nowStr = new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
+    const now = new Date();
+    const monthDayStr = `${now.getMonth() + 1}.${now.getDate()}`;
+    const timeStr = now.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
     const roundHist = historyByRound[`round_${currentRound}`] || [];
     roundHist.push({
       id: Date.now().toString(),
@@ -1939,7 +2003,8 @@ function pickCard(index) {
       from: owner,
       to: turnPlayer,
       prizeName: prize.name,
-      time: nowStr,
+      dateStr: monthDayStr,
+      time: timeStr,
       status: "pending",
       note: ""
     });
@@ -2022,7 +2087,15 @@ async function executeResetWithPrizes() {
 }
 
 function openHistoryNewTab() {
+  if (!currentRoom) { alert("현재 활성화된 방이 없습니다."); return; }
   const url = `${window.location.origin}${window.location.pathname}?room=${currentRoom}&view=history`;
+  window.open(url, "_blank");
+}
+
+function openHistoryNewTabFromLobby() {
+  const code = document.getElementById("roomInput").value.trim().toUpperCase() || document.getElementById("prevRoomInput").value.trim().toUpperCase();
+  if (!code) { alert("조회할 방 코드 6자리를 입력해주세요."); return; }
+  const url = `${window.location.origin}${window.location.pathname}?room=${code}&view=history`;
   window.open(url, "_blank");
 }
 
@@ -2083,7 +2156,7 @@ function renderFullHistoryView(historyData) {
           <div>
             <span style="color:#ffeb3b; font-weight:bold;">[${it.num}번]</span> 
             ${escapeHtml(it.prizeName)} 
-            <span style="color:#aaa; font-size:0.8rem; margin-left:6px;">(${it.time})</span>
+            <span style="color:#aaa; font-size:0.8rem; margin-left:6px;">(${it.dateStr || ""} ${it.time})</span>
           </div>
           <div>
             <span class="flow-tag flow-from">${escapeHtml(it.from)}</span>
@@ -2114,10 +2187,13 @@ function renderUserSummaryView(historyData) {
     items.forEach(item => {
       const fromUser = item.from || "방장";
       const toUser = item.to || "게스트";
+      const dateTag = item.dateStr ? `(${item.dateStr})` : "";
       if (!usersMap[fromUser]) usersMap[fromUser] = { receive: [], send: [] };
       if (!usersMap[toUser]) usersMap[toUser] = { receive: [], send: [] };
-      usersMap[fromUser].send.push(item);
-      usersMap[toUser].receive.push(item);
+
+      // 보내야 할 물건, 받아야 할 물건 이름 및 종류 형식
+      usersMap[fromUser].send.push(`• <b>${escapeHtml(toUser)}</b>에게 ➔ [${escapeHtml(item.prizeName)}] 종류: 피규어/굿즈 ${dateTag}`);
+      usersMap[toUser].receive.push(`• <b>${escapeHtml(fromUser)}</b>에게서 ➔ [${escapeHtml(item.prizeName)}] 종류: 피규어/굿즈 ${dateTag}`);
     });
   });
 
@@ -2130,15 +2206,15 @@ function renderUserSummaryView(historyData) {
   userNames.forEach(uName => {
     const box = document.createElement("div");
     box.className = "summary-box";
-    const recList = usersMap[uName].receive.map(it => `• <b>${escapeHtml(it.from)}</b> ➔ [${escapeHtml(it.prizeName)}]`).join("<br>") || `<span style="color:#777;">없음</span>`;
-    const sendList = usersMap[uName].send.map(it => `• ➔ <b>${escapeHtml(it.to)}</b> [${escapeHtml(it.prizeName)}]`).join("<br>") || `<span style="color:#777;">없음</span>`;
+    const recList = usersMap[uName].receive.join("<br>") || `<span style="color:#777;">없음</span>`;
+    const sendList = usersMap[uName].send.join("<br>") || `<span style="color:#777;">없음</span>`;
 
     box.innerHTML = `
       <h5>👤 ${escapeHtml(uName)}</h5>
       <div class="item-list-sm">
-        <div style="color:#22c55e; font-weight:bold; margin-top:4px;">📥 받을 물건 (${usersMap[uName].receive.length}개):</div>
+        <div style="color:#22c55e; font-weight:bold; margin-top:4px;">📥 받아야 할 물건 (${usersMap[uName].receive.length}개):</div>
         ${recList}
-        <div style="color:#f39c12; font-weight:bold; margin-top:8px;">📤 보낼 물건 (${usersMap[uName].send.length}개):</div>
+        <div style="color:#f39c12; font-weight:bold; margin-top:8px;">📤 보내야 할 물건 (${usersMap[uName].send.length}개):</div>
         ${sendList}
       </div>
     `;
@@ -2147,24 +2223,32 @@ function renderUserSummaryView(historyData) {
 }
 
 function generateDefaultSummaryText(historyData) {
-  const ulsanShipments = {}, generalShipments = {};
+  const sendMap = {}, receiveMap = {};
   Object.keys(historyData).forEach(rKey => {
     const items = historyData[rKey] || [];
     items.forEach(item => {
       const sender = item.from || "방장";
-      const prizeName = item.prizeName || item.itemName || "상품";
-      const note = item.note || "";
-      const isUlsan = sender.includes("울산") || note.includes("울산");
-      const targetMap = isUlsan ? ulsanShipments : generalShipments;
-      if (!targetMap[sender]) targetMap[sender] = [];
-      targetMap[sender].push(prizeName);
+      const receiver = item.to || "참가자";
+      const prizeName = item.prizeName || "상품";
+      const dateStr = item.dateStr || "날짜미상";
+
+      if (!sendMap[sender]) sendMap[sender] = [];
+      sendMap[sender].push(`[${dateStr}] 보낼물건: ${prizeName} (대상: ${receiver}, 종류: 피규어)`);
+
+      if (!receiveMap[receiver]) receiveMap[receiver] = [];
+      receiveMap[receiver].push(`[${dateStr}] 받아야할물건: ${prizeName} (보낸사람: ${sender}, 종류: 피규어)`);
     });
   });
-  const ulsanKeys = Object.keys(ulsanShipments);
-  const ulsanText = ulsanKeys.length === 0 ? "없음" : ulsanKeys.map(name => `${name} - ${ulsanShipments[name].join(", ")}`).join("\n");
-  const generalKeys = Object.keys(generalShipments);
-  const generalText = generalKeys.length === 0 ? "없음" : generalKeys.map(name => `${name} - ${generalShipments[name].join(", ")}`).join("\n");
-  return `울산 보낼물건\n${ulsanText}\n\n보낼물건\n${generalText}\n`;
+
+  let textOut = "=== [월.일 별 총 현황판 / 한달주기 보존] ===\n\n[보낼 물건 목록]\n";
+  for (let s in sendMap) {
+    textOut += `- ${s}:\n  ` + sendMap[s].join("\n  ") + "\n";
+  }
+  textOut += "\n[받아야 할 물건 목록]\n";
+  for (let r in receiveMap) {
+    textOut += `- ${r}:\n  ` + receiveMap[r].join("\n  ") + "\n";
+  }
+  return textOut;
 }
 
 function renderGrandSummary(historyData, customSummary = null) {
