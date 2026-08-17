@@ -3,13 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>🍢 MY KUJI (규어빵 전용판) v18</title>
+  <title>🍢 MY KUJI (규어빵 전용판) v19</title>
 
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="https://www.youtube.com/iframe_api"></script>
 
   <style>
     * {
@@ -21,14 +22,14 @@
     }
 
     body {
-  background-image:
-    linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)),
-    url('./background.jpg');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-attachment: fixed;
-  color: #ffffff;
+      background-image:
+        linear-gradient(rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.18)),
+        url('https://i.ibb.co/d0qnQSCq/image.jpg');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      color: #ffffff;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -112,6 +113,40 @@
       border-radius: 12px;
     }
 
+    /* 상단 음악 컨트롤 */
+    .audio-controls {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 5px;
+      border-radius: 18px;
+      background: rgba(0, 0, 0, 0.55);
+      border: 1px solid rgba(59,130,246,0.8);
+      backdrop-filter: blur(8px);
+    }
+
+    .audio-controls button {
+      width: auto;
+      min-width: 30px;
+      padding: 4px 7px;
+      font-size: 0.78rem;
+      line-height: 1;
+      background: rgba(255,255,255,0.12);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 10px;
+    }
+
+    .audio-controls button:hover {
+      background: rgba(255,255,255,0.22);
+    }
+
+    #volumeControl {
+      width: 72px;
+      accent-color: #3b82f6;
+      cursor: pointer;
+    }
+
     /* YouTube 플레이어 */
     #youtubePlayerBox {
       display: none;
@@ -166,7 +201,7 @@
     }
 
     .card-box {
-      background-color: rgba(15, 15, 15, 0.55);
+      background-color: rgba(15, 15, 15, 0.34);
       backdrop-filter: blur(5px);
       -webkit-backdrop-filter: blur(5px);
       border: 1px solid rgba(255, 255, 255, 0.22);
@@ -183,7 +218,7 @@
 
     .setting-group {
       text-align: left;
-      background: rgba(0, 0, 0, 0.5);
+      background: rgba(0, 0, 0, 0.34);
       padding: 16px;
       border-radius: 12px;
       max-width: 600px;
@@ -208,7 +243,7 @@
       margin-bottom: 10px;
       border-radius: 8px;
       border: 1px solid #555;
-      background: rgba(0, 0, 0, 0.6);
+      background: rgba(0, 0, 0, 0.42);
       color: #fff;
       font-size: 0.95rem;
     }
@@ -259,7 +294,7 @@
     }
 
     .prize-board-top {
-      background: rgba(0, 0, 0, 0.5);
+      background: rgba(0, 0, 0, 0.34);
       padding: 14px;
       border-radius: 12px;
       border: 1px solid rgba(255, 255, 255, 0.2);
@@ -320,7 +355,7 @@
     }
 
     .manager-box {
-      background: rgba(0, 0, 0, 0.5);
+      background: rgba(0, 0, 0, 0.34);
       border: 1px solid rgba(255, 255, 255, 0.2);
       border-radius: 12px;
       padding: 10px 14px;
@@ -772,7 +807,7 @@
     }
 
     .round-group {
-      background: rgba(0, 0, 0, 0.6);
+      background: rgba(0, 0, 0, 0.42);
       border: 1px solid rgba(255, 255, 255, 0.2);
       border-radius: 12px;
       padding: 15px;
@@ -943,6 +978,14 @@
         width: auto;
       }
 
+      .audio-controls {
+        width: auto;
+      }
+
+      #volumeControl {
+        width: 62px;
+      }
+
       .grid {
         grid-template-columns: repeat(5, 1fr);
         gap: 5px;
@@ -983,7 +1026,7 @@
       <h1>🍢 MY KUJI (규어빵 전용판)</h1>
 
       <span class="version-tag">
-        v18
+        v19
       </span>
 
     </div>
@@ -1003,6 +1046,13 @@
           🎵 재생
         </button>
 
+      </div>
+
+      <div class="audio-controls" aria-label="음악 컨트롤">
+        <button type="button" onclick="toggleMusicPlayback()" id="musicPlayPauseBtn" title="재생/일시정지">▶️</button>
+        <button type="button" onclick="stopMusicPlayback()" title="정지">⏹️</button>
+        <button type="button" onclick="toggleMuteMusic()" id="musicMuteBtn" title="음소거">🔊</button>
+        <input id="volumeControl" type="range" min="0" max="100" value="70" oninput="setMusicVolume(this.value)" title="음량">
       </div>
 
       <!-- 일반 MP3/WAV 플레이어 -->
@@ -1971,10 +2021,18 @@ function playYouTubeVideo(videoId) {
     "?autoplay=1" +
     "&playsinline=1" +
     "&rel=0" +
-    "&modestbranding=1";
+    "&modestbranding=1" +
+    "&enablejsapi=1" +
+    "&origin=" + encodeURIComponent(window.location.origin);
 
 
   box.classList.add("show");
+
+  const playBtn = document.getElementById("musicPlayPauseBtn");
+  if (playBtn) {
+    playBtn.dataset.playing = "true";
+    playBtn.textContent = "⏸️";
+  }
 
 }
 
@@ -1997,6 +2055,7 @@ function closeYouTubePlayer() {
   box.classList.remove("show");
 
   youtubeCurrentId = null;
+  resetMusicControls();
 
 }
 
@@ -2025,19 +2084,11 @@ function playExternalAudio() {
   }
 
 
-  /*
-    먼저 YouTube인지 확인
-  */
-
   const youtubeId =
     getYouTubeVideoId(url);
 
 
   if (youtubeId) {
-
-    /*
-      일반 audio가 재생 중이면 정지
-    */
 
     const audioPlayer =
       document.getElementById(
@@ -2045,27 +2096,16 @@ function playExternalAudio() {
       );
 
     if (audioPlayer) {
-
       audioPlayer.pause();
-
       audioPlayer.removeAttribute("src");
-
       audioPlayer.load();
-
     }
 
-
     playYouTubeVideo(youtubeId);
-
     return;
 
   }
 
-
-  /*
-    YouTube가 아니면
-    MP3 / WAV 등 직접 오디오 URL로 처리
-  */
 
   closeYouTubePlayer();
 
@@ -2077,11 +2117,18 @@ function playExternalAudio() {
 
 
   player.pause();
-
   player.src = url;
-
   player.load();
+  player.volume =
+    Number(
+      document.getElementById("volumeControl")?.value || 70
+    ) / 100;
 
+  player.onplay = updateMusicButton;
+  player.onpause = updateMusicButton;
+  player.onended = updateMusicButton;
+
+  resetMusicControls();
 
   player.play().catch((error) => {
 
@@ -2103,6 +2150,145 @@ function playExternalAudio() {
 
 }
 
+
+/* =========================================================
+   상단 음악 컨트롤
+   - MP3/WAV: HTMLAudioElement 제어
+   - YouTube: iframe postMessage 제어
+   ========================================================= */
+
+function getAudioPlayer() {
+  return document.getElementById("externalAudioPlayer");
+}
+
+function sendYouTubeCommand(func, args = []) {
+  const frame = document.getElementById("youtubePlayerFrame");
+  if (!frame || !frame.contentWindow || !youtubeCurrentId) return false;
+
+  frame.contentWindow.postMessage(
+    JSON.stringify({
+      event: "command",
+      func: func,
+      args: args
+    }),
+    "*"
+  );
+  return true;
+}
+
+function toggleMusicPlayback() {
+  const audio = getAudioPlayer();
+
+  if (youtubeCurrentId) {
+    const btn = document.getElementById("musicPlayPauseBtn");
+    const isPlaying = btn && btn.dataset.playing === "true";
+
+    if (isPlaying) {
+      sendYouTubeCommand("pauseVideo");
+      if (btn) {
+        btn.dataset.playing = "false";
+        btn.textContent = "▶️";
+      }
+    } else {
+      sendYouTubeCommand("playVideo");
+      if (btn) {
+        btn.dataset.playing = "true";
+        btn.textContent = "⏸️";
+      }
+    }
+    return;
+  }
+
+  if (!audio || !audio.src) {
+    alert("먼저 YouTube 또는 MP3/WAV 링크를 재생해주세요.");
+    return;
+  }
+
+  if (audio.paused) {
+    audio.play().catch(() => {});
+  } else {
+    audio.pause();
+  }
+  updateMusicButton();
+}
+
+function stopMusicPlayback() {
+  const audio = getAudioPlayer();
+  if (audio) {
+    audio.pause();
+    audio.currentTime = 0;
+  }
+
+  if (youtubeCurrentId) {
+    sendYouTubeCommand("stopVideo");
+  }
+
+  const btn = document.getElementById("musicPlayPauseBtn");
+  if (btn) {
+    btn.dataset.playing = "false";
+    btn.textContent = "▶️";
+  }
+}
+
+function toggleMuteMusic() {
+  const audio = getAudioPlayer();
+  const btn = document.getElementById("musicMuteBtn");
+
+  if (youtubeCurrentId) {
+    const muted = btn && btn.dataset.muted === "true";
+    sendYouTubeCommand(muted ? "unMute" : "mute");
+    if (btn) {
+      btn.dataset.muted = muted ? "false" : "true";
+      btn.textContent = muted ? "🔊" : "🔇";
+    }
+    return;
+  }
+
+  if (!audio) return;
+  audio.muted = !audio.muted;
+  if (btn) btn.textContent = audio.muted ? "🔇" : "🔊";
+}
+
+function setMusicVolume(value) {
+  const volume = Math.max(0, Math.min(100, Number(value))) / 100;
+  const audio = getAudioPlayer();
+
+  if (audio) audio.volume = volume;
+
+  if (youtubeCurrentId) {
+    sendYouTubeCommand("setVolume", [volume * 100]);
+    if (volume > 0) {
+      sendYouTubeCommand("unMute");
+      const btn = document.getElementById("musicMuteBtn");
+      if (btn) {
+        btn.dataset.muted = "false";
+        btn.textContent = "🔊";
+      }
+    }
+  }
+}
+
+function updateMusicButton() {
+  const audio = getAudioPlayer();
+  const btn = document.getElementById("musicPlayPauseBtn");
+  if (!audio || !btn) return;
+
+  btn.dataset.playing = audio.paused ? "false" : "true";
+  btn.textContent = audio.paused ? "▶️" : "⏸️";
+}
+
+function resetMusicControls() {
+  const playBtn = document.getElementById("musicPlayPauseBtn");
+  const muteBtn = document.getElementById("musicMuteBtn");
+  if (playBtn) {
+    playBtn.dataset.playing = "false";
+    playBtn.textContent = "▶️";
+  }
+  if (muteBtn) {
+    muteBtn.dataset.muted = "false";
+    muteBtn.textContent = "🔊";
+  }
+}
 
 /* =========================================================
    IndexedDB
