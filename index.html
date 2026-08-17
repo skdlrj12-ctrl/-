@@ -58,6 +58,7 @@
       font-size: 1.5rem;
       text-align: center;
       text-shadow: 0 2px 6px rgba(0,0,0,0.9);
+      cursor: pointer; /* 치트키 입력용 감지 */
     }
 
     .version-tag {
@@ -1009,7 +1010,8 @@
 
   <div class="header-bar">
     <div class="title-wrapper">
-      <h1>🍢 MY KUJI (규어빵 전용판)</h1>
+      <!-- 맨 위 '어묵' 글자 영역 5번 클릭 시 치트 활성화/비활성화 -->
+      <h1 onclick="handleTitleCheatClick()">🍢 MY KUJI (규어빵 전용판)</h1>
       <span class="version-tag">v20</span>
     </div>
     <div class="top-action-btns">
@@ -1089,13 +1091,13 @@
 
     <div id="status" style="font-size:0.95rem; color:#ffeb3b; font-weight:bold;">남은 카드: -</div>
 
+    <!-- 호스트 컨트롤 영역 (치트모드 버튼 코드 제거됨) -->
     <div id="hostControls" class="control-btns hidden" style="background:rgba(0,0,0,0.4); padding:10px; border-radius:12px; border:1px solid rgba(255,255,255,0.15);">
       <div style="display:flex; align-items:center; gap:6px;">
         <label style="font-size:0.85rem; color:#ccc;">셔플 횟수:</label>
         <input type="number" id="shuffleCountInput" value="5" min="1" max="50" style="width:55px; margin-bottom:0; padding:5px; text-align:center;">
       </div>
       <button onclick="shuffleAndOpenRandom()" class="btn-sub btn-shuffle">🔀 셔플 후 카드 개봉</button>
-      <button onclick="toggleCheatMode()" class="btn-sub" id="cheatModeBtn" style="background:#8b5cf6; color:#fff;">✨ 치트모드: OFF</button>
       <button onclick="openResetModal()" class="btn-sub btn-reset">🔄 다음 회차 시작 (판 리셋 & 상품 교체)</button>
     </div>
 
@@ -1204,19 +1206,24 @@ let activeSoundId = null;
 let audioCtx = null;
 let youtubeCurrentId = null;
 let isCheatMode = false;
+let titleClickCount = 0;
+let titleClickTimer = null;
 
-function toggleCheatMode() {
-  if (!isHost()) {
-    alert("방장만 치트모드를 사용할 수 있습니다.");
-    return;
+// 맨 위 어묵 제목 5번 클릭 시 비밀 치트모드 켜기/끄기
+function handleTitleCheatClick() {
+  titleClickCount++;
+  clearTimeout(titleClickTimer);
+  
+  titleClickTimer = setTimeout(() => {
+    titleClickCount = 0;
+  }, 1000);
+
+  if (titleClickCount >= 5) {
+    titleClickCount = 0;
+    isCheatMode = !isCheatMode;
+    alert(isCheatMode ? "✨ [치트모드 활성화됨] 당첨 위치가 표시됩니다." : "🔒 [치트모드 비활성화됨]");
+    renderGrid(currentCardsData);
   }
-  isCheatMode = !isCheatMode;
-  const btn = document.getElementById("cheatModeBtn");
-  if (btn) {
-    btn.textContent = isCheatMode ? "✨ 치트모드: ON" : "✨ 치트모드: OFF";
-    btn.style.background = isCheatMode ? "#22c55e" : "#8b5cf6";
-  }
-  renderGrid(currentCardsData);
 }
 
 function getYouTubeVideoId(url) {
@@ -1564,7 +1571,7 @@ function playLoseSound() {
 function playWinSound() {
   if (!winAudio) return;
   winAudio.currentTime = 0;
-  winAudio.play().catch(e => console.log("음원 제한:", e));
+  winAudio.play().catch(e => console.log("음원 재생 제한:", e));
 }
 
 const charImages = [
@@ -1907,8 +1914,8 @@ function renderGrid(cards) {
 
     const coverElem = document.getElementById(`card-cover-${index}`);
     if (coverElem) {
-      // [수정됨] 방장이면서, 본인 화면에서 치트모드가 켜져있을 때만 당첨 정보 표시
-      if (isHost() && isCheatMode && !card.picked) {
+      // 치트모드가 켜진 사용자에게만 당첨 위치 표시 (방장이든 참가자든 상관없이 켠 사람만 보임)
+      if (isCheatMode && !card.picked) {
         if (prize) {
           coverElem.style.border = "2px solid #ff3333";
           coverElem.title = `당첨: ${prize.name} (${card.value}번)`;
@@ -2360,7 +2367,7 @@ function resetGrandSummaryText() {
   }
 }
 
-function copyGrandSummaryText() {
+function copyGrandSummaryTest() {
   const textarea = document.getElementById("grandSummaryTextArea");
   if (!textarea) return;
   const textToCopy = textarea.value;
