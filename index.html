@@ -2,1341 +2,283 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>🍢 MY KUJI (규어빵 전용판) v17</title>
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>총정리 현황판</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; user-select: none; }
-    
-    body { 
-      background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('https://i.ibb.co/d0qnQSCq/image.jpg'); 
-      background-size: cover; background-position: center; background-repeat: no-repeat; background-attachment: fixed;
-      color: #ffffff; display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 15px; 
-      transition: background 0.3s ease;
+    :root {
+      --bg-color: #f8fafc;
+      --card-bg: #ffffff;
+      --text-color: #1e293b;
+      --primary-color: #2563eb;
+      --accent-color: #10b981;
+      --danger-color: #ef4444;
+      --border-color: #e2e8f0;
     }
 
-    body.clear-bg {
-      background-image: linear-gradient(rgba(0, 0, 0, 0.15), rgba(0, 0, 0, 0.15)), url('https://i.ibb.co/d0qnQSCq/image.jpg') !important;
-    }
-    
-    .header-bar { display: flex; justify-content: space-between; align-items: center; width: 98%; max-width: 1000px; margin-top: 5px; margin-bottom: 10px; }
-    .title-wrapper { display: flex; align-items: center; gap: 8px; }
-    h1 { font-size: 1.5rem; text-align: center; text-shadow: 0 2px 6px rgba(0,0,0,0.9); }
-    .version-tag { background: #e67e22; color: #fff; font-size: 0.8rem; font-weight: bold; padding: 2px 8px; border-radius: 12px; }
-    
-    .top-action-btns { display: flex; gap: 6px; }
-    .sound-btn { 
-      background: rgba(0, 0, 0, 0.6); color: #ffeb3b; border: 1.5px solid #ffeb3b; 
-      padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold; cursor: pointer;
-      display: flex; align-items: center; gap: 6px; backdrop-filter: blur(8px); width: auto;
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      margin: 0;
+      padding: 24px 16px;
     }
 
-    p.sub { color: #eee; font-size: 0.9rem; margin-bottom: 15px; text-shadow: 0 1px 4px rgba(0,0,0,0.9); }
-    
-    .card-box { 
-      background-color: rgba(15, 15, 15, 0.55); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
-      border: 1px solid rgba(255, 255, 255, 0.22); border-radius: 20px; padding: 18px; width: 98%; max-width: 1000px; 
-      text-align: center; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.6); display: flex; flex-direction: column; gap: 14px;
+    .dashboard-container {
+      max-width: 1000px;
+      margin: 0 auto;
+      background: var(--card-bg);
+      padding: 24px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      border: 1px solid var(--border-color);
     }
 
-    body.clear-bg .card-box {
-      background-color: rgba(10, 10, 10, 0.75); backdrop-filter: none; -webkit-backdrop-filter: none;
-    }
-    
-    .setting-group { text-align: left; background: rgba(0, 0, 0, 0.5); padding: 16px; border-radius: 12px; max-width: 600px; margin: 0 auto 10px auto; border: 1px solid rgba(255, 255, 255, 0.15); }
-    .setting-group label { font-size: 0.95rem; color: #ddd; display: block; margin-bottom: 6px; font-weight: bold; }
-    input[type="number"], input[type="text"], input[type="file"] { width: 100%; padding: 9px; margin-bottom: 10px; border-radius: 8px; border: 1px solid #555; background: rgba(0, 0, 0, 0.6); color: #fff; font-size: 0.95rem; }
-    
-    .prize-item { display: flex; flex-direction: column; gap: 6px; background: rgba(0, 0, 0, 0.4); padding: 10px; border-radius: 8px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.1); }
-    .prize-item-row { display: flex; gap: 6px; align-items: center; }
-    .prize-item input { margin-bottom: 0; }
-
-    button { width: 100%; padding: 12px; font-size: 1rem; font-weight: bold; border-radius: 8px; border: none; background: #ffffff; color: #000; cursor: pointer; }
-    button:active { opacity: 0.8; }
-    button.btn-share { background: #4dabf7; color: #fff; width: auto; padding: 6px 14px; font-size: 0.85rem; }
-
-    .prize-board-top { background: rgba(0, 0, 0, 0.5); padding: 14px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.2); text-align: left; }
-    .prize-list-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
-    
-    .prize-card { display: flex; align-items: center; gap: 12px; background: rgba(0, 0, 0, 0.7); padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.3); }
-    .prize-card img { width: 85px; height: 85px; border-radius: 8px; object-fit: cover; border: 1px solid rgba(255,255,255,0.4); flex-shrink: 0; }
-    .prize-info { font-size: 0.9rem; flex-grow: 1; }
-    .prize-info .num { color: #ffeb3b; font-weight: bold; font-size: 1rem; }
-    .prize-info .owner { color: #aaa; font-size: 0.8rem; margin-top: 2px; }
-    .prize-info .winner { color: #22c55e; font-weight: bold; font-size: 0.85rem; margin-top: 4px; background: rgba(34,197,94,0.15); padding: 3px 6px; border-radius: 4px; display: inline-block; }
-
-    .manager-box { 
-      background: rgba(0, 0, 0, 0.5); border: 1px solid rgba(255, 255, 255, 0.2); 
-      border-radius: 12px; padding: 10px 14px; text-align: left; display: flex; 
-      flex-direction: column; gap: 8px; width: 100%;
-    }
-    .manager-box h4 { color: #ffeb3b; font-size: 0.9rem; margin: 0; }
-    .player-tags-container { display: flex; flex-direction: row; flex-wrap: wrap; gap: 8px; align-items: center; width: 100%; }
-    .player-tag { 
-      background: rgba(0, 0, 0, 0.75); padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; 
-      display: inline-flex !important; flex-direction: row !important; align-items: center !important; 
-      gap: 8px !important; border: 1px solid rgba(255, 255, 255, 0.3); white-space: nowrap !important;
-    }
-    .player-tag.active { border-color: #22c55e; background: rgba(34, 197, 94, 0.35); color: #22c55e; font-weight: bold; }
-    .player-btns-group { display: inline-flex; align-items: center; gap: 4px; }
-    .player-btn { background: rgba(255, 255, 255, 0.25); border: none; color: #fff; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; width: auto; }
-
-    .turn-banner { background: linear-gradient(135deg, rgba(34, 197, 94, 0.3), rgba(59, 130, 246, 0.3)); border: 2px solid #22c55e; border-radius: 12px; padding: 10px; text-align: center; }
-    .turn-banner .title { font-size: 0.85rem; color: #bbb; margin-bottom: 2px; }
-    .turn-banner .name { font-size: 1.7rem; font-weight: 900; color: #22c55e; text-shadow: 0 0 12px rgba(34, 197, 94, 0.6); }
-
-    .control-btns { display: flex; gap: 8px; justify-content: center; align-items: center; flex-wrap: wrap; }
-    .btn-sub { font-size: 0.85rem; padding: 8px 14px; border-radius: 8px; width: auto; }
-    .btn-shuffle { background: #e67e22; color: #fff; }
-    .btn-reset { background: #e74c3c; color: #fff; }
-
-    .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; position: relative; }
-
-    .kuji-card { position: relative; aspect-ratio: 1.25 / 1; border-radius: 8px; overflow: hidden; background: rgba(10, 10, 10, 0.6); cursor: pointer; border: 1px solid rgba(255, 255, 255, 0.25); }
-    .card-content { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1; pointer-events: none; padding: 4px; width: 100%; opacity: 0; }
-    .kuji-card.picked .card-content { opacity: 1; }
-
-    .card-number { font-size: 1.3rem; font-weight: 900; color: #ffeb3b; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000; }
-    
-    .card-picker { 
-      position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%);
-      font-size: 0.75rem; color: #ffffff; font-weight: bold; background: rgba(0, 0, 0, 0.85); 
-      padding: 2px 6px; border-radius: 8px; max-width: 90%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; 
-      border: 1px solid rgba(255, 255, 255, 0.4); 
+    /* 헤더 영역 */
+    .header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 16px;
+      margin-bottom: 20px;
+      border-bottom: 2px solid var(--border-color);
+      flex-wrap: wrap;
+      gap: 12px;
     }
 
-    .card-cover { position: absolute; inset: 0; background-size: cover; background-position: center; background-color: #222; z-index: 10; }
-    .kuji-card.picked .card-cover { display: none !important; }
-
-    @keyframes cardShake {
-      0% { transform: translate(0, 0) rotate(0deg); }
-      20% { transform: translate(-4px, 3px) rotate(-3deg); }
-      40% { transform: translate(4px, -3px) rotate(3deg); }
-      60% { transform: translate(-3px, -2px) rotate(-2deg); }
-      80% { transform: translate(3px, 2px) rotate(2deg); }
-      100% { transform: translate(0, 0) rotate(0deg); }
-    }
-    .kuji-card.shaking { animation: cardShake 0.15s infinite; }
-
-    .kuji-card.win { 
-      background-image: url('https://i.ibb.co/wr4D4fR8/image.jpg') !important; 
-      background-size: cover !important; 
-      background-position: center !important;
-      border: 2.5px solid #ff3333 !important; 
-      box-shadow: 0 0 12px rgba(255, 51, 51, 0.8);
+    .header-bar h1 {
+      margin: 0;
+      font-size: 1.4rem;
+      font-weight: 700;
     }
 
-    .num-reveal-overlay {
-      position: fixed; inset: 0; background: rgba(0,0,0,0.85);
-      z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center;
-      opacity: 0; pointer-events: none; transition: opacity 0.25s ease;
-    }
-    .num-reveal-overlay.show { opacity: 1; pointer-events: auto; }
-    .num-reveal-box {
-      font-size: 6rem; font-weight: 900; color: #ffeb3b;
-      text-shadow: 0 0 30px rgba(255, 235, 59, 0.8), 0 0 10px #000;
-      transform: scale(0.3); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
-    .num-reveal-overlay.show .num-reveal-box { transform: scale(1.2); }
-    .num-reveal-sub { font-size: 1.4rem; color: #22c55e; font-weight: bold; margin-top: 10px; }
-
-    .card-modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(12px); z-index: 1500; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-    .pop-card-wrapper { position: relative; width: 280px; height: 220px; border-radius: 16px; overflow: hidden; background: #151515; border: 2px solid rgba(255,255,255,0.3); box-shadow: 0 10px 40px rgba(0,0,0,0.8); touch-action: none; }
-    
-    .pop-card-content { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; z-index: 1; }
-    .pop-card-num { font-size: 3.5rem; font-weight: 900; color: #ffeb3b; }
-    .pop-card-user { position: absolute; bottom: 12px; font-size: 1rem; font-weight: bold; color: #fff; background: rgba(0,0,0,0.8); padding: 4px 12px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.3); }
-
-    .pop-card-cover { 
-      position: absolute; inset: 0; background-size: cover; background-position: center; background-color: #222; z-index: 10;
-      transition: transform 0.1s ease-out; cursor: grab; transform-origin: center center; touch-action: none;
+    /* 음악 플레이어 */
+    .audio-player-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #f1f5f9;
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
     }
 
-    .modal-btn-group { display: flex; gap: 10px; margin-top: 15px; width: 280px; }
-    .modal-btn-group button { font-size: 0.85rem; padding: 10px; }
-
-    .sound-uploader-box {
-      background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255,235,59,0.3);
-      padding: 12px; border-radius: 10px; margin-top: 10px; text-align: left;
-    }
-    .sound-uploader-box label { font-size: 0.85rem; color: #ffeb3b; font-weight: bold; display: block; margin-bottom: 4px; }
-    .sound-uploader-box input[type="file"] { margin-bottom: 8px; font-size: 0.8rem; }
-
-    .sound-list-container {
-      max-height: 120px; overflow-y: auto; background: rgba(0,0,0,0.5);
-      border-radius: 6px; padding: 6px; margin-top: 6px; border: 1px solid rgba(255,255,255,0.1);
-    }
-    .sound-item {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 4px 8px; border-bottom: 1px solid rgba(255,255,255,0.08); font-size: 0.8rem;
-    }
-    .sound-item.active { background: rgba(34, 197, 94, 0.25); border-radius: 4px; font-weight: bold; color: #22c55e; }
-
-    .room-info-bottom { background: rgba(0, 0, 0, 0.4); padding: 10px 14px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255, 255, 255, 0.15); font-size: 0.85rem; color: #aaa; flex-wrap: wrap; gap: 10px; }
-    .room-code { color: #4dabf7; font-size: 1.1rem; font-weight: bold; }
-    .hidden { display: none !important; }
-
-    .reset-modal-box {
-      background: #1e1e1e; border: 1px solid rgba(255,255,255,0.3); border-radius: 16px;
-      padding: 20px; width: 92%; max-width: 550px; max-height: 85vh; overflow-y: auto;
-      text-align: left; box-shadow: 0 10px 30px rgba(0,0,0,0.9);
+    .audio-player-wrapper input[type="text"] {
+      width: 220px;
+      padding: 6px 10px;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      font-size: 0.85rem;
     }
 
-    /* 전용 새 탭 현황판 스타일 */
-    .history-tab-view { width: 100%; max-width: 950px; margin: 0 auto; text-align: left; padding-bottom: 40px; }
-    .round-group { background: rgba(0, 0, 0, 0.6); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 12px; padding: 15px; margin-bottom: 20px; }
-    .round-title { font-size: 1.2rem; font-weight: bold; color: #ffeb3b; border-bottom: 1px solid rgba(255,255,255,0.15); padding-bottom: 8px; margin-bottom: 12px; display: flex; justify-content: space-between; }
-    .history-row { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05); padding: 10px 14px; border-radius: 8px; margin-bottom: 8px; border: 1px solid rgba(255,255,255,0.1); }
-    .flow-tag { font-size: 1rem; font-weight: bold; }
-    .flow-from { color: #f39c12; }
-    .flow-arrow { color: #fff; margin: 0 6px; }
-    .flow-to { color: #22c55e; }
-
-    .user-summary-card { background: rgba(0, 0, 0, 0.7); border: 1px solid #3b82f6; border-radius: 12px; padding: 15px; margin-bottom: 20px; }
-    .summary-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; margin-top: 10px; }
-    .summary-box { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 8px; padding: 10px; }
-    .summary-box h5 { font-size: 1rem; color: #ffeb3b; margin-bottom: 8px; border-bottom: 1px dashed rgba(255,255,255,0.2); padding-bottom: 4px; }
-    .item-list-sm { font-size: 0.85rem; line-height: 1.5; color: #ddd; }
-    .btn-edit-note { background: rgba(255,255,255,0.2); color: #fff; font-size: 0.75rem; padding: 2px 6px; border-radius: 4px; width: auto; display: inline-block; cursor: pointer; }
-
-    /* 최종 총정리 보드 스타일 */
-    .grand-summary-card {
-      background: linear-gradient(135deg, rgba(20, 20, 20, 0.95), rgba(40, 25, 60, 0.95));
-      border: 2px solid #ffeb3b; border-radius: 16px; padding: 20px; margin-top: 30px;
-      box-shadow: 0 10px 30px rgba(255, 235, 59, 0.2);
+    .audio-player-wrapper button {
+      padding: 6px 12px;
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
     }
-    .grand-summary-title { font-size: 1.3rem; font-weight: 900; color: #ffeb3b; margin-bottom: 15px; border-bottom: 2px solid #ffeb3b; padding-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+
+    audio {
+      height: 32px;
+      outline: none;
+    }
+
+    /* 현황판 테이블 */
+    .table-container {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+
+    th, td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    th {
+      background-color: #f8fafc;
+      font-weight: 600;
+      color: #64748b;
+      font-size: 0.9rem;
+    }
+
+    .edit-input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 6px 8px;
+      border: 1px solid var(--primary-color);
+      border-radius: 4px;
+      font-size: 0.9rem;
+    }
+
+    /* 버튼 스타일 */
+    .btn {
+      padding: 6px 12px;
+      border: none;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      font-weight: 600;
+      transition: opacity 0.2s;
+    }
+
+    .btn:hover { opacity: 0.85; }
+    .btn-add { background-color: var(--accent-color); color: white; margin-top: 16px; }
+    .btn-edit { background-color: #f59e0b; color: white; }
+    .btn-save { background-color: var(--primary-color); color: white; }
+    .btn-delete { background-color: var(--danger-color); color: white; }
+
+    .action-btns {
+      display: flex;
+      gap: 6px;
+    }
   </style>
-
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 </head>
 <body>
 
+<div class="dashboard-container">
   <div class="header-bar">
-    <div class="title-wrapper">
-      <h1>🍢 MY KUJI (규어빵 전용판)</h1>
-      <span class="version-tag">v16</span>
-    </div>
-    <div class="top-action-btns">
-      <button class="sound-btn" onclick="toggleBgClear()">
-        <span id="bgIcon">👁️</span> <span id="bgText">배경 선명하게</span>
-      </button>
-      <button id="soundToggleBtn" class="sound-btn" onclick="toggleSound()">
-        <span id="soundIcon">🔊</span> <span id="soundText">사운드 ON</span>
-      </button>
-    </div>
-  </div>
-  <p class="sub">실시간 제비뽑기 및 피규어 정산 현황 시스템</p>
-
-  <!-- 로비 화면 -->
-  <div id="lobby" class="card-box">
-    <div class="setting-group">
-      <label>👤 내 닉네임 설정</label>
-      <input type="text" id="nicknameInput" placeholder="사용할 닉네임 입력">
-
-      <hr style="border-color: rgba(255,255,255,0.1); margin: 15px 0;">
-
-      <div class="sound-uploader-box" style="margin-top:0;">
-        <label>🎵 당첨 음원 파일 등록 (IndexedDB 영구보존)</label>
-        <input type="file" accept="audio/*" onchange="handleAudioUpload(event)">
-        <div style="font-size: 0.8rem; color: #ffeb3b; margin-top: 4px; font-weight: bold;">📂 저장된 음원 목록</div>
-        <div id="lobbySoundList" class="sound-list-container"></div>
-      </div>
-
-      <hr style="border-color: rgba(255,255,255,0.1); margin: 15px 0;">
-
-      <label>1. 카드 총 수량 (최대 50장)</label>
-      <input type="number" id="totalCardsInput" value="30" min="5" max="50">
-
-      <label>2. 이전 방 현황 이어가기 (선택)</label>
-      <input type="text" id="prevRoomInput" placeholder="이전 방 코드 6자리 (누적 현황 유지)" maxlength="6" style="text-transform: uppercase;">
-
-      <label>3. 당첨 번호, 소유자 및 상품 설정</label>
-      <div id="prizeInputs"></div>
-      <button onclick="addPrizeInput('prizeInputs')" style="background: rgba(255,255,255,0.15); color: #fff; font-size: 0.85rem; padding: 6px; border: 1px solid rgba(255,255,255,0.2);">+ 당첨 상품 추가</button>
-    </div>
-
-    <div style="max-width: 400px; margin: 0 auto; width: 100%;">
-      <button id="btnCreateRoom" onclick="createRoom()" style="background: #22c55e; color: #fff; margin-bottom: 8px;">방 만들기</button>
-      <div style="color: #ddd; margin: 8px 0; font-size: 0.85rem;">— 또는 —</div>
-      <input type="text" id="roomInput" placeholder="방 코드 6자리 입력" maxlength="6" style="text-transform: uppercase;">
-      <button onclick="joinRoom()" style="background: #3b82f6; color: #fff;">방 참가하기</button>
+    <h1>총정리 현황판</h1>
+    <div class="audio-player-wrapper">
+      <input type="text" id="audioUrlInput" placeholder="음악 Link URL 입력 (.mp3 등)">
+      <button onclick="loadAndPlayAudio()">재생</button>
+      <audio id="bgAudio" controls style="display: none;"></audio>
     </div>
   </div>
 
-  <!-- 메인 게임 화면 -->
-  <div id="game" class="card-box hidden">
-    <!-- 상단: 누적 당첨 현황판 새 탭 열기 버튼 -->
-    <div style="display:flex; justify-content: space-between; align-items:center; background:rgba(0,0,0,0.4); padding:10px; border-radius:12px; border:1px solid rgba(255,255,255,0.15);">
-      <div style="font-size:0.9rem; font-weight:bold; color:#ffeb3b;" id="roundDisplay">현재 회차: 1회차</div>
-      <button onclick="openHistoryNewTab()" style="background:#8e44ad; color:#fff; width:auto; font-size:0.85rem; padding:6px 14px;">📋 실시간 누적 당첨 현황판 (새 탭)</button>
-    </div>
-
-    <!-- 현재 등록된 상품 현황 목록 -->
-    <div class="prize-board-top">
-      <div style="font-weight:bold; margin-bottom:10px; color:#ffeb3b; font-size:0.95rem;">🎁 이번 회차 등록 피규어 현황</div>
-      <div id="tabContentCurrent" class="prize-list-grid"></div>
-    </div>
-
-    <div class="turn-banner">
-      <div class="title">🎯 현재 차례 (카드 뽑을 사람)</div>
-      <div id="currentTurnInfo" class="name">-</div>
-    </div>
-
-    <div class="manager-box">
-      <h4>👥 참가자 순서 목록</h4>
-      <div id="playerTagsList" class="player-tags-container"></div>
-    </div>
-
-    <div id="status" style="font-size: 0.95rem; color: #ffeb3b; font-weight: bold;">남은 카드: -장</div>
-
-    <!-- 셔플 및 판 리셋 제어 영역 -->
-    <div id="hostControls" class="control-btns hidden" style="background: rgba(0,0,0,0.4); padding: 10px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.15);">
-      <div style="display:flex; align-items:center; gap:6px;">
-        <label style="font-size:0.85rem; color:#ccc;">셔플 횟수:</label>
-        <input type="number" id="shuffleCountInput" value="5" min="1" max="50" style="width:55px; margin-bottom:0; padding:5px; text-align:center;">
-      </div>
-      <button onclick="shuffleAndOpenRandom()" class="btn-sub btn-shuffle">🔀 셔플 후 카드 개봉</button>
-      <button onclick="openResetModal()" class="btn-sub btn-reset">🔄 다음 회차 시작 (판 리셋 & 상품 교체)</button>
-    </div>
-
-    <!-- 제비뽑기 카드 그리드 -->
-    <div class="grid" id="grid"></div>
-
-    <!-- 하단 음원 보관함 영역 -->
-    <div class="sound-uploader-box">
-      <label>🎵 당첨 효과음 보관함 (MP3 / WAV)</label>
-      <input type="file" accept="audio/*" onchange="handleAudioUpload(event)">
-      <div style="font-size: 0.8rem; color: #ffeb3b; margin-top: 4px; font-weight: bold;">📂 저장된 음원 목록</div>
-      <div id="gameSoundList" class="sound-list-container"></div>
-    </div>
-
-    <div class="room-info-bottom">
-      <div>방 코드: <span id="currentRoomCode" class="room-code"></span> | 방장: <span id="hostName" style="color:#fff;">-</span></div>
-      <button onclick="copyShareLink()" class="btn-share">📋 초대 링크 복사</button>
-    </div>
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>항목명</th>
+          <th>수량 / 상태</th>
+          <th>비고</th>
+          <th>관리</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+    <button class="btn btn-add" onclick="addNewRow()">+ 새 항목 추가</button>
   </div>
+</div>
 
-  <!-- 독립된 새 탭 전용 누적 당첨 현황 화면 (View Mode) -->
-  <div id="historyTabView" class="history-tab-view hidden">
-    <div class="header-bar" style="width:100%;">
-      <h1>📋 실시간 누적 당첨 현황판</h1>
-      <span id="historyRoomCode" class="version-tag" style="background:#3b82f6;"></span>
-    </div>
+<script>
+  // 저장된 데이터 로드 또는 초기 데이터 설정
+  let dashboardData = JSON.parse(localStorage.getItem('dashboardData')) || [
+    { title: '기본 항목 A', status: '완료', note: '정상 처리됨' }
+  ];
 
-    <!-- 참가자별 종합 정산 요약 (받을/보낼 피규어 목록) -->
-    <div class="user-summary-card">
-      <h3 style="color:#ffeb3b; font-size:1.1rem; margin-bottom:6px;">📦 참가자별 정산 세부 목록</h3>
-      <p style="font-size:0.88rem; color:#aaa;">누가 어떤 상품을 누구에게 보내야 하는지 상세 내역입니다.</p>
-      <div id="summaryGrid" class="summary-grid"></div>
-    </div>
+  // 로컬 스토리지 저장
+  function saveData() {
+    localStorage.setItem('dashboardData', JSON.stringify(dashboardData));
+  }
 
-    <!-- 회차별 상세 이력 -->
-    <div id="historyRoundsContainer"></div>
+  // 특수문자 이스케이프
+  function escapeHtml(text) {
+    return String(text || '')
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
 
-    <!-- 🏆 [요청 기능] 전체 회차 총정리 보드 -->
-    <div class="grand-summary-card">
-      <div class="grand-summary-title">
-        <span>🏆 전체회차 총정리</span>
-        <span id="grandTotalCountBadge" style="font-size:0.9rem; color:#22c55e; background:rgba(34,197,94,0.15); padding:4px 10px; border-radius:12px; border:1px solid #22c55e;">총 당첨: 0건</span>
-      </div>
-      <div id="grandSummaryContent"></div>
-    </div>
-  </div>
+  // 테이블 렌더링
+  function renderTable() {
+    const tbody = document.getElementById('tableBody');
+    tbody.innerHTML = '';
 
-  <!-- 판 리셋 & 상품 설정 수정 모달 -->
-  <div id="resetModal" class="card-modal-overlay hidden">
-    <div class="reset-modal-box">
-      <h3 style="color:#ffeb3b; margin-bottom: 12px; font-size: 1.1rem;">🔄 다음 회차 시작 (판 리셋 & 상품 교체)</h3>
-      
-      <label style="font-size: 0.85rem; color: #ccc;">카드 총 수량</label>
-      <input type="number" id="resetTotalCardsInput" value="30" min="5" max="50">
-
-      <label style="font-size: 0.85rem; color: #ccc; margin-top: 6px; display: block;">상품 / 소유자 / 번호 설정</label>
-      <div id="resetPrizeInputs" style="margin-top: 6px;"></div>
-      <button onclick="addPrizeInput('resetPrizeInputs')" style="background: rgba(255,255,255,0.15); color: #fff; font-size: 0.8rem; padding: 6px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.2);">+ 상품 추가</button>
-
-      <div style="display: flex; gap: 8px;">
-        <button onclick="executeResetWithPrizes()" style="background: #e74c3c; color: #fff;">새 회차 시작</button>
-        <button onclick="closeResetModal()" style="background: rgba(255,255,255,0.2); color: #fff;">취소</button>
-      </div>
-    </div>
-  </div>
-
-  <div id="numRevealOverlay" class="num-reveal-overlay">
-    <div id="revealNumText" class="num-reveal-box">7</div>
-    <div id="revealSubText" class="num-reveal-sub">지정인 : 게스트</div>
-  </div>
-
-  <!-- 카드 슬라이드 뜯기 모달 -->
-  <div id="cardZoomModal" class="card-modal-overlay hidden">
-    <div style="color: #bbb; font-size: 0.9rem; margin-bottom: 15px;">👉 커버를 조금만 쓱 드래그하고 손을 떼어보세요!</div>
-    <div class="pop-card-wrapper">
-      <div class="pop-card-content">
-        <div id="zoomCardNum" class="pop-card-num">?</div>
-        <div id="zoomCardUser" class="pop-card-user">-</div>
-      </div>
-      <div id="zoomCardCover" class="pop-card-cover"></div>
-    </div>
-
-    <div class="modal-btn-group">
-      <button onclick="forceRipOpen('right')" style="background: #e74c3c; color: #fff;">💥 확 뜯기</button>
-      <button onclick="reselectRandomCard()" style="background: #f39c12; color: #fff;">🔄 다시 선택</button>
-    </div>
-    <button onclick="closeZoomModal()" style="margin-top: 10px; width: 280px; background: rgba(255,255,255,0.2); color: #fff; padding: 8px;">닫기</button>
-  </div>
-
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyCK9pczUoVYyMcckD136aW",
-      authDomain: "my-kuji-4d235.firebaseapp.com",
-      databaseURL: "https://my-kuji-4d235-default-rtdb.firebaseio.com",
-      projectId: "my-kuji-4d235",
-      storageBucket: "my-kuji-4d235.firebasestorage.app",
-      messagingSenderId: "47327791417",
-      appId: "1:47327791417:web:e22ef4062"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-    let currentRoom = null;
-    let currentRound = 1;
-    let prizesData = {};
-    let currentCardsData = [];
-    let historyByRound = {};
-    let myName = "";
-    let playersList = [];
-    let hostName = "";
-    let selectedIndex = null;
-
-    let winAudio = null;
-    let activeSoundId = null;
-    let isMuted = false;
-    let isClearBg = false;
-    let audioCtx = null;
-
-    let dbInstance = null;
-    function initIndexedDB() {
-      return new Promise((resolve, reject) => {
-        const req = indexedDB.open("KujiSoundDB", 1);
-        req.onupgradeneeded = (e) => {
-          const idb = e.target.result;
-          if (!idb.objectStoreNames.contains("sounds")) {
-            idb.createObjectStore("sounds", { keyPath: "id", autoIncrement: true });
-          }
-        };
-        req.onsuccess = (e) => { dbInstance = e.target.result; resolve(dbInstance); };
-        req.onerror = (e) => reject(e);
-      });
-    }
-
-    async function saveSoundToDB(file) {
-      if (!dbInstance) await initIndexedDB();
-      return new Promise((resolve, reject) => {
-        const transaction = dbInstance.transaction(["sounds"], "readwrite");
-        const store = transaction.objectStore("sounds");
-        const req = store.add({ name: file.name, data: file, createdAt: Date.now() });
-        req.onsuccess = (e) => resolve(e.target.result);
-        req.onerror = (e) => reject(e);
-      });
-    }
-
-    async function getAllSoundsFromDB() {
-      if (!dbInstance) await initIndexedDB();
-      return new Promise((resolve) => {
-        const transaction = dbInstance.transaction(["sounds"], "readonly");
-        const store = transaction.objectStore("sounds");
-        const req = store.getAll();
-        req.onsuccess = () => resolve(req.result || []);
-        req.onerror = () => resolve([]);
-      });
-    }
-
-    async function deleteSoundFromDB(id) {
-      if (!dbInstance) await initIndexedDB();
-      return new Promise((resolve) => {
-        const transaction = dbInstance.transaction(["sounds"], "readwrite");
-        const store = transaction.objectStore("sounds");
-        const req = store.delete(id);
-        req.onsuccess = () => resolve(true);
-      });
-    }
-
-    async function selectSound(id) {
-      const sounds = await getAllSoundsFromDB();
-      const target = sounds.find(s => s.id === id);
-      if (target) {
-        activeSoundId = id;
-        localStorage.setItem('kuji_active_sound', id);
-        winAudio = new Audio(URL.createObjectURL(target.data));
-        renderSoundLists();
-      }
-    }
-
-    async function renderSoundLists() {
-      const sounds = await getAllSoundsFromDB();
-      const savedActiveId = parseInt(localStorage.getItem('kuji_active_sound'));
-
-      if (!activeSoundId && savedActiveId) {
-        const found = sounds.find(s => s.id === savedActiveId);
-        if (found) {
-          activeSoundId = savedActiveId;
-          winAudio = new Audio(URL.createObjectURL(found.data));
-        }
-      }
-
-      ['lobbySoundList', 'gameSoundList'].forEach(listId => {
-        const container = document.getElementById(listId);
-        if (!container) return;
-        container.innerHTML = '';
-        if (sounds.length === 0) {
-          container.innerHTML = `<div style="font-size:0.75rem; color:#888; padding:4px;">저장된 음원이 없습니다.</div>`;
-          return;
-        }
-        sounds.forEach(s => {
-          const item = document.createElement('div');
-          const isActive = s.id === activeSoundId;
-          item.className = 'sound-item' + (isActive ? ' active' : '');
-          item.innerHTML = `
-            <span>${isActive ? '🔊 ' : ''}${s.name}</span>
-            <div class="sound-item-btns">
-              ${!isActive ? `<button class="sound-item-btn" onclick="selectSound(${s.id})">선택</button>` : ''}
-              <button class="sound-item-btn" style="background:#e74c3c" onclick="removeSound(${s.id})">삭제</button>
-            </div>
-          `;
-          container.appendChild(item);
-        });
-      });
-    }
-
-    async function handleAudioUpload(event) {
-      const file = event.target.files[0];
-      if (file) {
-        const newId = await saveSoundToDB(file);
-        await selectSound(newId);
-        alert(`'${file.name}' 사운드가 보관함에 저장되었습니다!`);
-      }
-    }
-
-    async function removeSound(id) {
-      if (confirm('삭제하시겠습니까?')) {
-        await deleteSoundFromDB(id);
-        if (activeSoundId === id) { activeSoundId = null; winAudio = null; localStorage.removeItem('kuji_active_sound'); }
-        renderSoundLists();
-      }
-    }
-
-    function toggleBgClear() {
-      isClearBg = !isClearBg;
-      document.body.classList.toggle('clear-bg', isClearBg);
-      document.getElementById('bgText').textContent = isClearBg ? '배경 흐리게' : '배경 선명하게';
-    }
-
-    function getAudioContext() {
-      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      if (audioCtx.state === 'suspended') audioCtx.resume();
-      return audioCtx;
-    }
-
-    function playShuffleSound() {
-      if (isMuted) return;
-      try {
-        const ctx = getAudioContext();
-        const now = ctx.currentTime;
-        for (let i = 0; i < 12; i++) {
-          const osc = ctx.createOscillator();
-          const gain = ctx.createGain();
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(400 + (i * 65), now + (i * 0.05));
-          gain.gain.setValueAtTime(0.12, now + (i * 0.05));
-          gain.gain.exponentialRampToValueAtTime(0.001, now + (i * 0.05) + 0.08);
-          osc.connect(gain); gain.connect(ctx.destination);
-          osc.start(now + (i * 0.05)); osc.stop(now + (i * 0.05) + 0.09);
-        }
-      } catch (e) {}
-    }
-
-    function playLoseSound() {
-      if (isMuted) return;
-      try {
-        const ctx = getAudioContext();
-        const now = ctx.currentTime;
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(600, now);
-        osc.frequency.exponentialRampToValueAtTime(150, now + 0.35);
-        gain.gain.setValueAtTime(0.2, now);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
-        osc.connect(gain); gain.connect(ctx.destination);
-        osc.start(now); osc.stop(now + 0.35);
-      } catch (e) {}
-    }
-
-    function playWinSound() {
-      if (isMuted || !winAudio) return;
-      winAudio.currentTime = 0;
-      winAudio.play().catch(e => console.log("음원 재생 제한: ", e));
-    }
-
-    function toggleSound() {
-      isMuted = !isMuted;
-      const btn = document.getElementById('soundToggleBtn');
-      document.getElementById('soundIcon').textContent = isMuted ? '🔇' : '🔊';
-      document.getElementById('soundText').textContent = isMuted ? '사운드 OFF' : '사운드 ON';
-      btn.classList.toggle('active', !isMuted);
-    }
-
-    const charImages = [
-      'https://i.ibb.co/nMGG93YS/miku.jpg',
-      'https://i.ibb.co/vx66H5YR/marin.jpg',
-      'https://i.ibb.co/QjP9RC5F/toga.jpg'
-    ];
-
-    window.addEventListener('DOMContentLoaded', async () => {
-      await initIndexedDB();
-      renderSoundLists();
-
-      const savedName = localStorage.getItem('kuji_nickname');
-      if (savedName) document.getElementById('nicknameInput').value = savedName;
-
-      const urlParams = new URLSearchParams(window.location.search);
-      const roomParam = urlParams.get('room');
-      const viewMode = urlParams.get('view');
-
-      if (roomParam && viewMode === 'history') {
-        openHistoryViewOnly(roomParam.toUpperCase());
-        return;
-      }
-
-      if (roomParam) document.getElementById('roomInput').value = roomParam.toUpperCase();
-
-      addPrizeInput('prizeInputs'); addPrizeInput('prizeInputs');
-      setupZoomDrag();
+    dashboardData.forEach((item, index) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${escapeHtml(item.title)}</td>
+        <td>${escapeHtml(item.status)}</td>
+        <td>${escapeHtml(item.note)}</td>
+        <td>
+          <div class="action-btns">
+            <button class="btn btn-edit" onclick="editRow(${index}, this)">수정</button>
+            <button class="btn btn-delete" onclick="deleteRow(${index})">삭제</button>
+          </div>
+        </td>
+      `;
+      tbody.appendChild(tr);
     });
+  }
 
-    function saveNickname() {
-      const input = document.getElementById('nicknameInput').value.trim();
-      myName = input || ("게스트_" + Math.floor(Math.random() * 1000));
-      localStorage.setItem('kuji_nickname', myName);
-    }
+  // 행 편집 모드 전환
+  function editRow(index, btn) {
+    const tr = btn.closest('tr');
+    const item = dashboardData[index];
 
-    function addPrizeInput(containerId, initialNum = '', initialOwner = '', initialName = '', initialImg = '') {
-      const container = document.getElementById(containerId);
-      if (!container) return;
-      const div = document.createElement('div');
-      div.className = 'prize-item';
-      div.innerHTML = `
-        <div class="prize-item-row">
-          <input type="number" placeholder="번호" class="p-num" value="${initialNum}" style="width: 65px;">
-          <input type="text" placeholder="소유자(누구건지)" class="p-owner" value="${initialOwner}" style="width: 110px;">
-          <input type="text" placeholder="상품 이름" class="p-name" value="${initialName}">
+    tr.innerHTML = `
+      <td><input type="text" class="edit-input" id="edit-title-${index}" value="${escapeHtml(item.title)}"></td>
+      <td><input type="text" class="edit-input" id="edit-status-${index}" value="${escapeHtml(item.status)}"></td>
+      <td><input type="text" class="edit-input" id="edit-note-${index}" value="${escapeHtml(item.note)}"></td>
+      <td>
+        <div class="action-btns">
+          <button class="btn btn-save" onclick="saveRow(${index})">저장</button>
+          <button class="btn btn-delete" onclick="renderTable()">취소</button>
         </div>
-        <input type="file" accept="image/*" class="p-file">
-      `;
-      div.dataset.existingImg = initialImg || '';
-      container.appendChild(div);
+      </td>
+    `;
+  }
+
+  // 수정사항 저장
+  function saveRow(index) {
+    const titleVal = document.getElementById(`edit-title-${index}`).value.trim();
+    const statusVal = document.getElementById(`edit-status-${index}`).value.trim();
+    const noteVal = document.getElementById(`edit-note-${index}`).value.trim();
+
+    dashboardData[index] = { title: titleVal, status: statusVal, note: noteVal };
+    saveData();
+    renderTable();
+  }
+
+  // 행 삭제
+  function deleteRow(index) {
+    if (confirm('해당 항목을 삭제하시겠습니까?')) {
+      dashboardData.splice(index, 1);
+      saveData();
+      renderTable();
+    }
+  }
+
+  // 새 행 추가
+  function addNewRow() {
+    dashboardData.push({ title: '', status: '', note: '' });
+    renderTable();
+    const lastIndex = dashboardData.length - 1;
+    const lastRowEditBtn = document.querySelectorAll('.btn-edit')[lastIndex];
+    if (lastRowEditBtn) editRow(lastIndex, lastRowEditBtn);
+  }
+
+  // 음악 로드 및 재생
+  function loadAndPlayAudio() {
+    const url = document.getElementById('audioUrlInput').value.trim();
+    const audio = document.getElementById('bgAudio');
+
+    if (!url) {
+      alert('음악 링크 URL을 입력해주세요.');
+      return;
     }
 
-    function compressAndReadFile(file, defaultVal = 'https://via.placeholder.com/150?text=Prize') {
-      return new Promise((resolve) => {
-        if (!file) resolve(defaultVal);
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const img = new Image();
-          img.onload = () => {
-            const canvas = document.createElement('canvas');
-            let width = img.width, height = img.height, max_size = 300;
-            if (width > height) { if (width > max_size) { height *= max_size / width; width = max_size; } }
-            else { if (height > max_size) { width *= max_size / height; height = max_size; } }
-            canvas.width = width; canvas.height = height;
-            canvas.getContext('2d').drawImage(img, 0, 0, width, height);
-            resolve(canvas.toDataURL('image/jpeg', 0.7));
-          };
-          img.src = e.target.result;
-        };
-        reader.readAsDataURL(file);
-      });
-    }
+    audio.src = url;
+    audio.style.display = 'inline-block';
+    audio.play().catch(err => {
+      alert('오디오를 재생할 수 없습니다. URL 주소나 외부 접근 권한(CORS)을 확인해주세요.');
+    });
+  }
+
+  // 초기 렌더링
+  document.addEventListener('DOMContentLoaded', renderTable);
+</script>
 
-    function shuffle(array) {
-      let arr = [...array];
-      for (let i = arr.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [arr[i], arr[j]] = [arr[j], arr[i]];
-      }
-      return arr;
-    }
-
-    async function parsePrizeInputsFromContainer(containerId) {
-      const parsedPrizes = {};
-      const prizeItems = document.querySelectorAll(`#${containerId} .prize-item`);
-      for (let item of prizeItems) {
-        const num = parseInt(item.querySelector('.p-num').value);
-        const owner = item.querySelector('.p-owner').value.trim() || '방장';
-        const name = item.querySelector('.p-name').value.trim();
-        const file = item.querySelector('.p-file').files[0];
-        const existingImg = item.dataset.existingImg || 'https://via.placeholder.com/150?text=Prize';
-        
-        if (!isNaN(num) && name) {
-          const imgSrc = file ? await compressAndReadFile(file) : existingImg;
-          parsedPrizes[num] = { name: name, owner: owner, img: imgSrc };
-        }
-      }
-      return parsedPrizes;
-    }
-
-    async function createRoom() {
-      saveNickname();
-      const btn = document.getElementById('btnCreateRoom');
-      btn.disabled = true; btn.textContent = '방 생성 중...';
-
-      let total = parseInt(document.getElementById('totalCardsInput').value) || 30;
-      const prevRoomCode = document.getElementById('prevRoomInput').value.trim().toUpperCase();
-      prizesData = await parsePrizeInputsFromContainer('prizeInputs');
-
-      let inheritedHistory = {};
-      let inheritedRound = 1;
-
-      if (prevRoomCode) {
-        try {
-          const snap = await db.ref('rooms/' + prevRoomCode).once('value');
-          if (snap.exists()) {
-            const oldData = snap.val();
-            inheritedHistory = oldData.history || {};
-            inheritedRound = (oldData.round || 1) + 1;
-          }
-        } catch (e) { console.log("이전 방 불러오기 실패:", e); }
-      }
-
-      const code = Math.random().toString(36).substring(2, 8).toUpperCase();
-      const numbers = shuffle(Array.from({length: total}, (_, i) => i + 1));
-      const initialCards = numbers.map(num => ({ 
-        value: num, picked: false, pickedBy: "", img: charImages[Math.floor(Math.random() * charImages.length)] 
-      }));
-      
-      playersList = [myName];
-
-      db.ref('rooms/' + code).set({ 
-        round: inheritedRound, cards: initialCards, prizes: prizesData, host: myName, players: playersList, history: inheritedHistory, createdAt: Date.now() 
-      }).then(() => enterRoom(code));
-    }
-
-    function joinRoom() {
-      saveNickname();
-      const code = document.getElementById('roomInput').value.trim().toUpperCase();
-      if (!code) return alert('방 코드를 입력해주세요.');
-
-      db.ref('rooms/' + code).once('value', (snapshot) => { 
-        if (snapshot.exists()) {
-          const data = snapshot.val();
-          let currentPlayers = data.players || [];
-          if (!currentPlayers.includes(myName)) currentPlayers.push(myName);
-          db.ref('rooms/' + code + '/players').set(currentPlayers);
-          enterRoom(code);
-        } else alert('방이 존재하지 않습니다.'); 
-      });
-    }
-
-    function enterRoom(code) {
-      currentRoom = code;
-      document.getElementById('lobby').classList.add('hidden');
-      document.getElementById('game').classList.remove('hidden');
-      document.getElementById('currentRoomCode').textContent = code;
-      
-      db.ref('rooms/' + code).on('value', (snapshot) => {
-        const data = snapshot.val();
-        if (!data) return;
-        currentRound = data.round || 1;
-        prizesData = data.prizes || {};
-        currentCardsData = data.cards || [];
-        playersList = data.players || [];
-        historyByRound = data.history || {};
-        hostName = data.host || "방장";
-        
-        document.getElementById('roundDisplay').textContent = `현재 회차: ${currentRound}회차`;
-        if (isHost()) document.getElementById('hostControls').classList.remove('hidden');
-
-        renderPlayersOrder();
-        renderPrizeBoard();
-        renderGrid(currentCardsData);
-      });
-    }
-
-    function isHost() { return hostName && hostName.trim() === myName.trim(); }
-
-    function getCurrentTurnPlayer() {
-      if (!playersList || playersList.length === 0) return "미지정";
-      const pickedCount = currentCardsData.filter(c => c.picked).length;
-      return playersList[pickedCount % playersList.length];
-    }
-
-    function isAllOpened() {
-      return currentCardsData.length > 0 && currentCardsData.every(c => c.picked);
-    }
-
-    function renderPlayersOrder() {
-      document.getElementById('hostName').textContent = hostName;
-      const currentTurn = isAllOpened() ? "게임 종료" : getCurrentTurnPlayer();
-      document.getElementById('currentTurnInfo').textContent = currentTurn;
-
-      const tagsContainer = document.getElementById('playerTagsList');
-      tagsContainer.innerHTML = '';
-      const hostFlag = isHost();
-
-      playersList.forEach((p, idx) => {
-        const tag = document.createElement('div');
-        tag.className = 'player-tag' + (p === currentTurn ? ' active' : '');
-        let html = `<span>${idx + 1}. ${p}</span>`;
-        if (hostFlag) {
-          html += `
-            <div class="player-btns-group">
-              <button class="player-btn" onclick="movePlayer(${idx}, -1)">◀</button>
-              <button class="player-btn" onclick="movePlayer(${idx}, 1)">▶</button>
-              <button class="player-btn" onclick="editPlayerName(${idx})">✏️</button>
-            </div>
-          `;
-        }
-        tag.innerHTML = html;
-        tagsContainer.appendChild(tag);
-      });
-    }
-
-    function movePlayer(index, direction) {
-      let targetIdx = index + direction;
-      if (targetIdx < 0 || targetIdx >= playersList.length) return;
-      let temp = playersList[index];
-      playersList[index] = playersList[targetIdx];
-      playersList[targetIdx] = temp;
-      db.ref('rooms/' + currentRoom + '/players').set(playersList);
-    }
-
-    function editPlayerName(index) {
-      let current = playersList[index];
-      let newName = prompt('변경할 참가자 닉네임을 입력하세요:', current);
-      if (newName && newName.trim() !== '') {
-        playersList[index] = newName.trim();
-        db.ref('rooms/' + currentRoom + '/players').set(playersList);
-      }
-    }
-
-    function renderPrizeBoard() {
-      const board = document.getElementById('tabContentCurrent');
-      board.innerHTML = '';
-
-      Object.keys(prizesData).forEach(num => {
-        const prize = prizesData[num];
-        const winnerCard = currentCardsData.find(c => c.value == num && c.picked);
-        const winnerName = winnerCard ? winnerCard.pickedBy : null;
-
-        const item = document.createElement('div');
-        item.className = 'prize-card';
-        item.innerHTML = `
-          <img src="${prize.img}" onerror="this.src='https://via.placeholder.com/150?text=Prize'">
-          <div class="prize-info">
-            <div class="num">[${num}번] ${prize.name}</div>
-            <div class="owner">👤 제공자: ${prize.owner || '방장'}</div>
-            <div class="winner">
-              ${winnerName ? `🎉 ${prize.owner || '방장'} ➔ ${winnerName}` : '⏳ 미당첨'}
-            </div>
-          </div>
-        `;
-        board.appendChild(item);
-      });
-    }
-
-    function renderGrid(cards) {
-      const grid = document.getElementById('grid');
-      let remainingCount = 0;
-
-      cards.forEach((card, index) => {
-        if (!card.picked) remainingCount++;
-        let cardElem = document.getElementById(`kuji-card-${index}`);
-        const prize = prizesData[card.value];
-        const isWin = card.picked && !!prize;
-
-        if (!cardElem) {
-          cardElem = document.createElement('div');
-          cardElem.id = `kuji-card-${index}`;
-          cardElem.className = 'kuji-card';
-          cardElem.onclick = () => openCardZoomModal(index);
-          
-          const contentDiv = document.createElement('div');
-          contentDiv.className = 'card-content';
-          contentDiv.innerHTML = `
-            <div class="card-number" id="card-num-${index}"></div>
-            <div class="card-picker" id="card-picker-${index}"></div>
-          `;
-          cardElem.appendChild(contentDiv);
-
-          const coverElem = document.createElement('div');
-          coverElem.className = 'card-cover';
-          coverElem.id = `card-cover-${index}`;
-          coverElem.style.backgroundImage = `url('${card.img || charImages[0]}')`;
-
-          cardElem.appendChild(coverElem);
-          grid.appendChild(cardElem);
-        }
-
-        const numElem = document.getElementById(`card-num-${index}`);
-        const pickerElem = document.getElementById(`card-picker-${index}`);
-
-        numElem.textContent = card.value;
-        if (pickerElem) {
-          if (card.pickedBy) {
-            pickerElem.textContent = card.pickedBy;
-            pickerElem.style.display = 'inline-block';
-          } else {
-            pickerElem.style.display = 'none';
-          }
-        }
-        cardElem.className = 'kuji-card' + (card.picked ? ' picked' : '') + (isWin ? ' win' : '');
-      });
-
-      document.getElementById('status').textContent = `남은 카드: ${remainingCount}장`;
-    }
-
-    function openCardZoomModal(index) {
-      const card = currentCardsData[index];
-      if (!card || card.picked) return;
-      
-      selectedIndex = index;
-      const modal = document.getElementById('cardZoomModal');
-      document.getElementById('zoomCardNum').textContent = card.value;
-      document.getElementById('zoomCardUser').textContent = getCurrentTurnPlayer();
-      const zoomCover = document.getElementById('zoomCardCover');
-      zoomCover.style.backgroundImage = `url('${card.img || charImages[0]}')`;
-      zoomCover.style.transform = 'translateX(0) rotate(0deg)';
-
-      modal.classList.remove('hidden');
-    }
-
-    function closeZoomModal() {
-      document.getElementById('cardZoomModal').classList.add('hidden');
-      selectedIndex = null;
-    }
-
-    function setupZoomDrag() {
-      const coverElem = document.getElementById('zoomCardCover');
-      let startX = 0, currentDiff = 0, isDragging = false;
-
-      const onStart = (x) => {
-        if (selectedIndex === null) return;
-        startX = x; currentDiff = 0; isDragging = true;
-        coverElem.style.transition = 'none';
-      };
-
-      const onMove = (x) => {
-        if (!isDragging) return;
-        currentDiff = x - startX;
-        coverElem.style.transform = `translateX(${currentDiff}px) rotate(${currentDiff * 0.1}deg)`;
-      };
-
-      const onEnd = () => {
-        if (!isDragging) return;
-        isDragging = false;
-        if (Math.abs(currentDiff) > 30) {
-          forceRipOpen(currentDiff > 0 ? 'right' : 'left');
-        } else {
-          coverElem.style.transition = 'transform 0.25s ease';
-          coverElem.style.transform = 'translateX(0) rotate(0deg)';
-        }
-      };
-
-      coverElem.addEventListener('touchstart', (e) => onStart(e.touches[0].clientX));
-      coverElem.addEventListener('touchmove', (e) => onMove(e.touches[0].clientX));
-      coverElem.addEventListener('touchend', onEnd);
-      coverElem.addEventListener('mousedown', (e) => onStart(e.clientX));
-      window.addEventListener('mousemove', (e) => onMove(e.clientX));
-      window.addEventListener('mouseup', onEnd);
-    }
-
-    function forceRipOpen(direction = 'right') {
-      if (selectedIndex === null) return;
-      const coverElem = document.getElementById('zoomCardCover');
-      coverElem.style.transition = 'transform 0.3s ease-out';
-      coverElem.style.transform = `translateX(${direction === 'right' ? '200%' : '-200%'}) rotate(${direction === 'right' ? '45deg' : '-45deg'})`;
-      
-      setTimeout(() => {
-        const chosenIndex = selectedIndex;
-        closeZoomModal();
-        pickCard(chosenIndex);
-      }, 220);
-    }
-
-    function reselectRandomCard() {
-      let unpickedIndices = [];
-      currentCardsData.forEach((c, idx) => { if(!c.picked) unpickedIndices.push(idx); });
-      if (unpickedIndices.length === 0) return alert('남은 카드가 없습니다.');
-      
-      const newIndex = unpickedIndices[Math.floor(Math.random() * unpickedIndices.length)];
-      openCardZoomModal(newIndex);
-    }
-
-    function showNumberRevealAnimation(val, player, isWin, owner) {
-      const overlay = document.getElementById('numRevealOverlay');
-      document.getElementById('revealNumText').textContent = val + "번";
-      document.getElementById('revealSubText').textContent = isWin ? `🎉 [당첨!] ${owner} ➔ ${player}` : `👤 ${player}`;
-      overlay.classList.add('show');
-      setTimeout(() => overlay.classList.remove('show'), 1300);
-    }
-
-    function pickCard(index) { 
-      if (!isHost()) return alert('방장만 카드를 뽑을 수 있습니다.');
-      const card = currentCardsData[index];
-      if (!card || card.picked) return;
-
-      const turnPlayer = getCurrentTurnPlayer();
-      const prize = prizesData[card.value];
-      const isWin = !!prize;
-      const owner = prize ? (prize.owner || '방장') : '';
-
-      showNumberRevealAnimation(card.value, turnPlayer, isWin, owner);
-
-      if (isWin) {
-        playWinSound();
-        confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 } });
-
-        const nowStr = new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
-        const roundHist = historyByRound[`round_${currentRound}`] || [];
-        const itemId = Date.now().toString();
-        roundHist.push({
-          id: itemId,
-          num: card.value,
-          from: owner,
-          to: turnPlayer,
-          prizeName: prize.name,
-          time: nowStr,
-          status: 'pending',
-          note: ''
-        });
-
-        db.ref(`rooms/${currentRoom}/history/round_${currentRound}`).set(roundHist);
-      } else {
-        playLoseSound();
-      }
-
-      db.ref(`rooms/${currentRoom}`).update({
-        [`cards/${index}/picked`]: true,
-        [`cards/${index}/pickedBy`]: turnPlayer
-      });
-    }
-
-    function shuffleAndOpenRandom() {
-      if (!isHost()) return alert('방장만 셔플할 수 있습니다.');
-      let count = parseInt(document.getElementById('shuffleCountInput').value) || 5;
-
-      let shuffledCards = [...currentCardsData];
-      let unpickedIndices = [];
-      shuffledCards.forEach((c, idx) => { if(!c.picked) unpickedIndices.push(idx); });
-
-      if (unpickedIndices.length === 0) return alert('남아있는 카드가 없습니다.');
-
-      playShuffleSound();
-      unpickedIndices.forEach(idx => {
-        const elem = document.getElementById(`kuji-card-${idx}`);
-        if(elem) elem.classList.add('shaking');
-      });
-
-      setTimeout(() => {
-        unpickedIndices.forEach(idx => {
-          const elem = document.getElementById(`kuji-card-${idx}`);
-          if(elem) elem.classList.remove('shaking');
-        });
-
-        for (let k = 0; k < count; k++) {
-          let unpickedValues = unpickedIndices.map(i => shuffledCards[i]);
-          unpickedValues = shuffle(unpickedValues);
-          unpickedIndices.forEach((origIdx, i) => {
-            shuffledCards[origIdx] = unpickedValues[i];
-          });
-        }
-
-        db.ref('rooms/' + currentRoom + '/cards').set(shuffledCards).then(() => {
-          const randomTarget = unpickedIndices[Math.floor(Math.random() * unpickedIndices.length)];
-          openCardZoomModal(randomTarget);
-        });
-      }, 700);
-    }
-
-    function openHistoryNewTab() {
-      const url = `${window.location.origin}${window.location.pathname}?room=${currentRoom}&view=history`;
-      window.open(url, '_blank');
-    }
-
-    function openHistoryViewOnly(code) {
-      currentRoom = code;
-      document.getElementById('lobby').classList.add('hidden');
-      document.getElementById('game').classList.add('hidden');
-      const historyView = document.getElementById('historyTabView');
-      historyView.classList.remove('hidden');
-      document.getElementById('historyRoomCode').textContent = `ROOM: ${code}`;
-
-      db.ref('rooms/' + code).on('value', (snapshot) => {
-        const data = snapshot.val();
-        if (!data) return;
-        const historyData = data.history || {};
-        renderFullHistoryView(historyData);
-        renderUserSummaryView(historyData);
-        renderGrandSummary(historyData);
-      });
-    }
-
-    function renderUserSummaryView(historyData) {
-      const summaryGrid = document.getElementById('summaryGrid');
-      summaryGrid.innerHTML = '';
-
-      const usersMap = {};
-
-      Object.keys(historyData).forEach(rKey => {
-        const items = historyData[rKey] || [];
-        items.forEach(item => {
-          const fromUser = item.from || '방장';
-          const toUser = item.to || '게스트';
-
-          if (!usersMap[fromUser]) usersMap[fromUser] = { receive: [], send: [] };
-          if (!usersMap[toUser]) usersMap[toUser] = { receive: [], send: [] };
-
-          usersMap[fromUser].send.push(item);
-          usersMap[toUser].receive.push(item);
-        });
-      });
-
-      const userNames = Object.keys(usersMap);
-      if (userNames.length === 0) {
-        summaryGrid.innerHTML = `<div style="color:#aaa; font-size:0.85rem;">당첨 내역이 없어 정산할 목록이 없습니다.</div>`;
-        return;
-      }
-
-      userNames.forEach(uName => {
-        const box = document.createElement('div');
-        box.className = 'summary-box';
-
-        const recList = usersMap[uName].receive.map(it => 
-          `• <b>${it.from}</b> ➔ [${it.prizeName}] ${it.status === 'done' ? '✅' : '⏳'} <span class="btn-edit-note" onclick="editItemStatus('${it.id}')">수정</span>`
-        ).join('<br>') || '<span style="color:#777;">없음</span>';
-
-        const sendList = usersMap[uName].send.map(it => 
-          `• ➔ <b>${it.to}</b> [${it.prizeName}] ${it.status === 'done' ? '✅' : '⏳'} <span class="btn-edit-note" onclick="editItemStatus('${it.id}')">수정</span>`
-        ).join('<br>') || '<span style="color:#777;">없음</span>';
-
-        box.innerHTML = `
-          <h5>👤 ${uName}</h5>
-          <div class="item-list-sm">
-            <div style="color:#22c55e; font-weight:bold; margin-top:4px;">📥 받을 물건 (${usersMap[uName].receive.length}개):</div>
-            ${recList}
-            <div style="color:#f39c12; font-weight:bold; margin-top:8px;">📤 보낼 물건 (${usersMap[uName].send.length}개):</div>
-            ${sendList}
-          </div>
-        `;
-        summaryGrid.appendChild(box);
-      });
-    }
-
-    // 🏆 [수정 기능] 전체회차 총정리 탭 텍스트 정리 함수
-    function renderGrandSummary(historyData) {
-      const container = document.getElementById('grandSummaryContent');
-      let totalPrizesCount = 0;
-
-      const ulsanShipments = {}; // { 사람: [물건1, 물건2, ...] }
-      const generalShipments = {}; // { 사람: [물건1, 물건2, ...] }
-
-      Object.keys(historyData).forEach(rKey => {
-        const items = historyData[rKey] || [];
-        items.forEach(item => {
-          totalPrizesCount++;
-          const sender = item.from || '방장';
-          const receiver = item.to || '게스트';
-          const prizeName = item.prizeName || item.itemName || '상품';
-          const note = item.note || '';
-
-          // 보내는 사람, 받는 사람, 비고 항목에 '울산'이 포함되어 있는지 확인
-          const isUlsan = sender.includes('울산') || receiver.includes('울산') || note.includes('울산');
-          const targetMap = isUlsan ? ulsanShipments : generalShipments;
-
-          if (!targetMap[sender]) targetMap[sender] = [];
-          targetMap[sender].push(prizeName);
-        });
-      });
-
-      document.getElementById('grandTotalCountBadge').textContent = `총 당첨: ${totalPrizesCount}건`;
-
-      // 울산 보낼물건 포맷팅
-      let ulsanText = "";
-      const ulsanKeys = Object.keys(ulsanShipments);
-      if (ulsanKeys.length === 0) {
-        ulsanText = "없음";
-      } else {
-        ulsanText = ulsanKeys.map(name => `${name} - ${ulsanShipments[name].join(', ')}`).join('\n');
-      }
-
-      // 보낼물건 포맷팅
-      let generalText = "";
-      const generalKeys = Object.keys(generalShipments);
-      if (generalKeys.length === 0) {
-        generalText = "없음";
-      } else {
-        generalText = generalKeys.map(name => `${name} - ${generalShipments[name].join(', ')}`).join('\n');
-      }
-
-      const fullSummaryText = `울산 보낼물건\n${ulsanText}\n\n보낼물건\n${generalText}`;
-
-      container.innerHTML = `
-        <div id="summaryTextDisplay" style="background: rgba(0,0,0,0.6); padding: 16px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2); font-family: monospace; white-space: pre-wrap; line-height: 1.6; font-size: 0.95rem; color: #fff; text-align: left;">${fullSummaryText}</div>
-        <button onclick="copyGrandSummaryText()" style="margin-top: 12px; background: #22c55e; color: #fff; width: auto; padding: 8px 16px; font-size: 0.85rem; border-radius: 6px; font-weight: bold; cursor: pointer;">📋 총정리 텍스트 복사하기</button>
-      `;
-
-      window.copyGrandSummaryText = function() {
-        navigator.clipboard.writeText(fullSummaryText).then(() => {
-          alert('전체 총정리 내역이 클립보드에 복사되었습니다!');
-        });
-      };
-    }
-
-    function editItemStatus(itemId) {
-      if (!currentRoom) return;
-
-      db.ref(`rooms/${currentRoom}/history`).once('value', (snap) => {
-        const histData = snap.val() || {};
-        let targetRoundKey = null;
-        let targetIndex = -1;
-        let targetItem = null;
-
-        Object.keys(histData).forEach(rKey => {
-          const arr = histData[rKey] || [];
-          arr.forEach((it, idx) => {
-            if (it.id === itemId) {
-              targetRoundKey = rKey;
-              targetIndex = idx;
-              targetItem = it;
-            }
-          });
-        });
-
-        if (targetItem) {
-          const isDone = confirm(`'${targetItem.prizeName}' 진행 상태를 '완료(✅)'로 변경할까요?\n(취소를 누르면 미완료 대기상태로 변경됩니다)`);
-          const newStatus = isDone ? 'done' : 'pending';
-          const newNote = prompt("비고 메모 입력 (선택, 예: 8/17 발송완료 / 계좌입금 등):", targetItem.note || '');
-
-          db.ref(`rooms/${currentRoom}/history/${targetRoundKey}/${targetIndex}`).update({
-            status: newStatus,
-            note: newNote || ''
-          });
-        }
-      });
-    }
-
-    function renderFullHistoryView(historyData) {
-      const container = document.getElementById('historyRoundsContainer');
-      container.innerHTML = '';
-
-      const keys = Object.keys(historyData);
-      if (keys.length === 0) {
-        container.innerHTML = `<div style="text-align:center; padding: 40px; color:#aaa;">아직 기록된 당첨 이력이 없습니다.</div>`;
-        return;
-      }
-
-      keys.sort((a, b) => {
-        const rA = parseInt(a.replace('round_', ''));
-        const rB = parseInt(b.replace('round_', ''));
-        return rB - rA;
-      });
-
-      keys.forEach(rKey => {
-        const rNum = rKey.replace('round_', '');
-        const items = historyData[rKey] || [];
-
-        const group = document.createElement('div');
-        group.className = 'round-group';
-
-        let itemsHtml = items.map(item => `
-          <div class="history-row">
-            <div>
-              <span class="flow-tag">
-                <span class="flow-from">👤 ${item.from}</span>
-                <span class="flow-arrow">➔</span>
-                <span class="flow-to">🎉 ${item.to}</span>
-              </span>
-              <div style="color:#ffeb3b; font-size:0.9rem; margin-top:3px;">
-                [${item.num}번] ${item.prizeName} 
-                <span style="font-size:0.8rem; color:${item.status === 'done' ? '#22c55e' : '#e74c3c'}">
-                  (${item.status === 'done' ? '✅ 정산완료' : '⏳ 미정산'})
-                </span>
-                ${item.note ? `<span style="color:#aaa; font-size:0.8rem;"> - ${item.note}</span>` : ''}
-              </div>
-            </div>
-            <div style="display:flex; align-items:center; gap:8px;">
-              <span class="btn-edit-note" onclick="editItemStatus('${item.id}')">상태수정</span>
-              <div style="color:#aaa; font-size:0.8rem;">${item.time}</div>
-            </div>
-          </div>
-        `).reverse().join('');
-
-        group.innerHTML = `
-          <div class="round-title">
-            <span>🎲 제 ${rNum} 회차 당첨 현황</span>
-            <span style="font-size:0.85rem; color:#aaa;">총 ${items.length}건 당첨</span>
-          </div>
-          <div>${itemsHtml || '<div style="color:#888; font-size:0.85rem;">당첨 이력 없음</div>'}</div>
-        `;
-        container.appendChild(group);
-      });
-    }
-
-    function openResetModal() {
-      if (!isHost()) return alert('방장만 회차를 리셋할 수 있습니다.');
-
-      const modal = document.getElementById('resetModal');
-      const resetPrizeContainer = document.getElementById('resetPrizeInputs');
-      document.getElementById('resetTotalCardsInput').value = currentCardsData.length || 30;
-
-      resetPrizeContainer.innerHTML = '';
-      Object.keys(prizesData).forEach(num => {
-        addPrizeInput('resetPrizeInputs', num, prizesData[num].owner, prizesData[num].name, prizesData[num].img);
-      });
-
-      if (Object.keys(prizesData).length === 0) {
-        addPrizeInput('resetPrizeInputs');
-      }
-
-      modal.classList.remove('hidden');
-    }
-
-    function closeResetModal() {
-      document.getElementById('resetModal').classList.add('hidden');
-    }
-
-    async function executeResetWithPrizes() {
-      if (!confirm(`현재 회차(${currentRound}회차)를 종료하고, 다음 회차(${currentRound + 1}회차)를 시작하시겠습니까?\n(기존 당첨 기록은 누적 유지됩니다)`)) return;
-
-      let total = parseInt(document.getElementById('resetTotalCardsInput').value) || 30;
-      const updatedPrizes = await parsePrizeInputsFromContainer('resetPrizeInputs');
-
-      const numbers = shuffle(Array.from({length: total}, (_, i) => i + 1));
-      const resetCards = numbers.map(num => ({
-        value: num,
-        picked: false,
-        pickedBy: "",
-        img: charImages[Math.floor(Math.random() * charImages.length)]
-      }));
-
-      const nextRound = currentRound + 1;
-
-      db.ref('rooms/' + currentRoom).update({
-        round: nextRound,
-        cards: resetCards,
-        prizes: updatedPrizes
-      }).then(() => {
-        closeResetModal();
-        alert(`제 ${nextRound} 회차가 성공적으로 시작되었습니다!\n기존 기록은 현황판에 그대로 보존됩니다.`);
-      });
-    }
-
-    function copyShareLink() { 
-      const inviteUrl = `${window.location.origin}${window.location.pathname}?room=${currentRoom}`;
-      navigator.clipboard.writeText(inviteUrl).then(() => alert('초대 링크가 복사되었습니다!')); 
-    }
-  </script>
 </body>
 </html>
