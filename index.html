@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>🍢 MY KUJI (규어빵 전용판) v4</title>
+  <title>🍢 MY KUJI (규어빵 전용판) v6</title>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; user-select: none; }
@@ -16,15 +16,13 @@
     
     .header-bar { display: flex; justify-content: space-between; align-items: center; width: 98%; max-width: 1000px; margin-top: 5px; margin-bottom: 10px; }
     .title-wrapper { display: flex; align-items: center; gap: 8px; }
-    h1 { font-size: 1.8rem; text-align: center; text-shadow: 0 2px 6px rgba(0,0,0,0.9); }
-    .version-tag { background: #e67e22; color: #fff; font-size: 0.8rem; font-weight: bold; padding: 2px 8px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.4); }
+    h1 { font-size: 1.5rem; text-align: center; text-shadow: 0 2px 6px rgba(0,0,0,0.9); }
+    .version-tag { background: #e67e22; color: #fff; font-size: 0.8rem; font-weight: bold; padding: 2px 8px; border-radius: 12px; }
     
-    /* 오른쪽 상단 사운드 토글/활성화 버튼 */
     .sound-btn { 
       background: rgba(0, 0, 0, 0.6); color: #ffeb3b; border: 1.5px solid #ffeb3b; 
       padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold; cursor: pointer;
       display: flex; align-items: center; gap: 6px; backdrop-filter: blur(8px); width: auto;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.5); transition: all 0.2s;
     }
     .sound-btn.active { background: #22c55e; color: #fff; border-color: #fff; }
 
@@ -44,11 +42,10 @@
     .prize-item-row { display: flex; gap: 8px; align-items: center; }
     .prize-item input { margin-bottom: 0; }
 
-    button { width: 100%; padding: 12px; font-size: 1rem; font-weight: bold; border-radius: 8px; border: none; background: #ffffff; color: #000; cursor: pointer; transition: all 0.2s; }
+    button { width: 100%; padding: 12px; font-size: 1rem; font-weight: bold; border-radius: 8px; border: none; background: #ffffff; color: #000; cursor: pointer; }
     button:active { opacity: 0.8; }
     button.btn-share { background: #4dabf7; color: #fff; width: auto; padding: 6px 14px; font-size: 0.85rem; }
     
-    /* 당첨 상품 목록 영역 */
     .prize-board-top { background: rgba(0, 0, 0, 0.5); padding: 14px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.2); text-align: left; }
     .prize-board-top h3 { font-size: 1.1rem; color: #ffeb3b; margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 6px; }
     .prize-list-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
@@ -59,52 +56,58 @@
     .prize-info .num { color: #f39c12; font-weight: bold; font-size: 1.15rem; }
     .prize-info .winner { color: #22c55e; font-weight: bold; font-size: 0.95rem; margin-top: 6px; }
 
-    /* 참가자 순서 설정 영역 (가로 방향 한 줄/여러 줄 나열) */
     .manager-box { 
-      background: rgba(0, 0, 0, 0.35); 
-      border: 1px solid rgba(255, 255, 255, 0.15); 
-      border-radius: 8px; 
-      padding: 8px 12px; 
+      background: rgba(0, 0, 0, 0.5); 
+      border: 1px solid rgba(255, 255, 255, 0.2); 
+      border-radius: 12px; 
+      padding: 10px 14px; 
       text-align: left; 
       display: flex; 
-      flex-direction: row; 
-      align-items: center; 
-      gap: 10px; 
+      flex-direction: column; 
+      gap: 8px; 
       width: 100%;
     }
-    .manager-box h4 { color: #ffeb3b; font-size: 0.8rem; white-space: nowrap; margin: 0; }
+    .manager-box h4 { color: #ffeb3b; font-size: 0.9rem; margin: 0; }
     .player-tags-container { 
       display: flex; 
       flex-direction: row; 
       flex-wrap: wrap; 
-      gap: 6px; 
+      gap: 8px; 
       align-items: center; 
-      flex-grow: 1; 
+      width: 100%;
     }
     .player-tag { 
-      background: rgba(0, 0, 0, 0.6); 
-      padding: 3px 8px; 
-      border-radius: 16px; 
-      font-size: 0.75rem; 
-      display: inline-flex; 
-      align-items: center; 
-      gap: 4px; 
-      border: 1px solid rgba(255, 255, 255, 0.2); 
+      background: rgba(0, 0, 0, 0.75); 
+      padding: 6px 12px; 
+      border-radius: 20px; 
+      font-size: 0.85rem; 
+      display: inline-flex !important; 
+      flex-direction: row !important;
+      align-items: center !important; 
+      gap: 8px !important; 
+      border: 1px solid rgba(255, 255, 255, 0.3); 
+      white-space: nowrap !important;
     }
     .player-tag.active { 
       border-color: #22c55e; 
-      background: rgba(34, 197, 94, 0.3); 
+      background: rgba(34, 197, 94, 0.35); 
       color: #22c55e; 
       font-weight: bold; 
     }
+    .player-btns-group {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
     .player-btn { 
-      background: rgba(255, 255, 255, 0.2); 
+      background: rgba(255, 255, 255, 0.25); 
       border: none; 
       color: #fff; 
-      padding: 1px 4px; 
+      padding: 2px 6px; 
       border-radius: 4px; 
-      font-size: 0.65rem; 
+      font-size: 0.75rem; 
       cursor: pointer; 
+      width: auto;
     }
 
     .turn-banner { background: linear-gradient(135deg, rgba(34, 197, 94, 0.3), rgba(59, 130, 246, 0.3)); border: 2px solid #22c55e; border-radius: 12px; padding: 10px; text-align: center; }
@@ -151,7 +154,6 @@
       box-shadow: 0 0 12px rgba(255, 51, 51, 0.8);
     }
 
-    /* 중앙 카드 확대 뜯기 모달 */
     .card-modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(12px); z-index: 1500; display: flex; flex-direction: column; align-items: center; justify-content: center; }
     .pop-card-wrapper { position: relative; width: 280px; height: 220px; border-radius: 16px; overflow: hidden; background: #151515; border: 2px solid rgba(255,255,255,0.3); box-shadow: 0 10px 40px rgba(0,0,0,0.8); touch-action: none; }
     
@@ -187,7 +189,7 @@
   <div class="header-bar">
     <div class="title-wrapper">
       <h1>🍢 MY KUJI (규어빵 전용판)</h1>
-      <span class="version-tag">v4</span>
+      <span class="version-tag">v6</span>
     </div>
     <button id="soundToggleBtn" class="sound-btn" onclick="toggleSound()">
       <span id="soundIcon">🔊</span> <span id="soundText">사운드 ON</span>
@@ -230,7 +232,7 @@
     </div>
 
     <div class="manager-box">
-      <h4>👥 순서:</h4>
+      <h4>👥 참가자 순서 목록</h4>
       <div id="playerTagsList" class="player-tags-container"></div>
     </div>
 
@@ -289,49 +291,62 @@
     let hostName = "";
     let selectedIndex = null;
 
-    // 전달받으신 오디오 링크 설정
+    // 전달받으신 음원 링크 적용
     const WIN_SOUND_URL = 'https://pdftolink.io/file/r2_dXNlcnMvZ3Vlc3QvM2JiNTIzY2MtZWVmYi00YmY4LWFkNjMtOWZkOGQ0Mjc4NGRjLm1wMw';
     let winAudio = new Audio(WIN_SOUND_URL);
-    let audioUnlocked = false;
+    let isMuted = false;
 
-    function enableAudio() {
-      if (!audioUnlocked) {
-        winAudio.play().then(() => {
-          winAudio.pause();
-          winAudio.currentTime = 0;
-          audioUnlocked = true;
-          const btn = document.getElementById('soundToggleBtn');
-          if(btn) btn.classList.add('active');
-        }).catch(err => {
-          console.log("Audio unlock error:", err);
+    // 브라우저 내장 Web Audio API 효과음 (외부 URL 차단 시 즉시 백업 출력)
+    function playSynthFanfare() {
+      if (isMuted) return;
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+        const notes = [523.25, 659.25, 783.99, 1046.50];
+        
+        notes.forEach((freq, i) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.value = freq;
+          
+          let startTime = ctx.currentTime + (i * 0.1);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          
+          gain.gain.setValueAtTime(0.3, startTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.4);
+          
+          osc.start(startTime);
+          osc.stop(startTime + 0.4);
         });
-      }
-    }
-
-    function toggleSound() {
-      enableAudio();
-      if (winAudio.muted) {
-        winAudio.muted = false;
-        document.getElementById('soundIcon').textContent = '🔊';
-        document.getElementById('soundText').textContent = '사운드 ON';
-      } else {
-        winAudio.muted = true;
-        document.getElementById('soundIcon').textContent = '🔇';
-        document.getElementById('soundText').textContent = '사운드 OFF';
-      }
+      } catch(e) { console.log(e); }
     }
 
     function playWinSound() {
-      try {
-        enableAudio();
-        winAudio.currentTime = 0;
-        winAudio.play().catch(e => console.log("Sound play error", e));
-      } catch(e) { console.log("Audio error", e); }
+      if (isMuted) return;
+      winAudio.currentTime = 0;
+      winAudio.play().catch(err => {
+        console.log("외부 음원 재생 차단 감지 -> 내장 효과음으로 재생합니다.");
+        playSynthFanfare();
+      });
     }
 
-    // 첫 화면 터치/클릭 시 오디오 해제
-    window.addEventListener('click', enableAudio, { once: true });
-    window.addEventListener('touchstart', enableAudio, { once: true });
+    function toggleSound() {
+      isMuted = !isMuted;
+      const btn = document.getElementById('soundToggleBtn');
+      if (isMuted) {
+        document.getElementById('soundIcon').textContent = '🔇';
+        document.getElementById('soundText').textContent = '사운드 OFF';
+        btn.classList.remove('active');
+      } else {
+        document.getElementById('soundIcon').textContent = '🔊';
+        document.getElementById('soundText').textContent = '사운드 ON';
+        btn.classList.add('active');
+        playSynthFanfare();
+      }
+    }
 
     const charImages = [
       'https://i.ibb.co/nMGG93YS/miku.jpg',
@@ -493,12 +508,14 @@
         const tag = document.createElement('div');
         tag.className = 'player-tag' + (p === currentTurn ? ' active' : '');
         
-        let html = `<span>${idx + 1}.${p}</span>`;
+        let html = `<span>${idx + 1}. ${p}</span>`;
         if (hostFlag) {
           html += `
-            <button class="player-btn" onclick="movePlayer(${idx}, -1)">◀</button>
-            <button class="player-btn" onclick="movePlayer(${idx}, 1)">▶</button>
-            <button class="player-btn" onclick="editPlayerName(${idx})">✏️</button>
+            <div class="player-btns-group">
+              <button class="player-btn" onclick="movePlayer(${idx}, -1)">◀</button>
+              <button class="player-btn" onclick="movePlayer(${idx}, 1)">▶</button>
+              <button class="player-btn" onclick="editPlayerName(${idx})">✏️</button>
+            </div>
           `;
         }
         tag.innerHTML = html;
