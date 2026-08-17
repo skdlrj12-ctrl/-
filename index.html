@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>🍢 MY KUJI (규어빵 전용판) v8</title>
+  <title>🍢 MY KUJI (규어빵 전용판) v9</title>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; user-select: none; }
@@ -199,7 +199,7 @@
   <div class="header-bar">
     <div class="title-wrapper">
       <h1>🍢 MY KUJI (규어빵 전용판)</h1>
-      <span class="version-tag">v8</span>
+      <span class="version-tag">v9</span>
     </div>
     <button id="soundToggleBtn" class="sound-btn" onclick="toggleSound()">
       <span id="soundIcon">🔊</span> <span id="soundText">사운드 ON</span>
@@ -319,18 +319,86 @@
     let hostName = "";
     let selectedIndex = null;
 
-    // 기본 대체음원 및 사운드 객체
+    // 사운드 관련 객체
     let winAudio = new Audio('https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3');
     let isMuted = false;
+    let audioCtx = null;
 
-    // 사용자가 MP3 첨부 시 로컬 파일 로드 및 오디오 할당
+    function getAudioContext() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      return audioCtx;
+    }
+
+    // 1. 오들오들 셔플 떨림 효과음 (Web Audio 합성음)
+    function playShuffleSound() {
+      if (isMuted) return;
+      try {
+        const ctx = getAudioContext();
+        const now = ctx.currentTime;
+        const duration = 0.75;
+
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.type = 'triangle';
+        // 빠른 진동 떨림음 연출
+        osc.frequency.setValueAtTime(120, now);
+        for (let i = 0; i < 15; i++) {
+          osc.frequency.setValueAtTime(100 + (i % 2 === 0 ? 50 : -30), now + (i * 0.05));
+        }
+
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + duration);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.start(now);
+        osc.stop(now + duration);
+      } catch (e) {
+        console.log("셔플 사운드 재생 불가: ", e);
+      }
+    }
+
+    // 2. 꽝 번호 아쉬운 효과음 (내림조 아쉬운 톤)
+    function playLoseSound() {
+      if (isMuted) return;
+      try {
+        const ctx = getAudioContext();
+        const now = ctx.currentTime;
+
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(260, now); // C4 -> B3 -> A3 하강
+        osc.frequency.exponentialRampToValueAtTime(130, now + 0.5);
+
+        gain.gain.setValueAtTime(0.18, now);
+        gain.gain.linearRampToValueAtTime(0.01, now + 0.55);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.start(now);
+        osc.stop(now + 0.55);
+      } catch (e) {
+        console.log("꽝 사운드 재생 불가: ", e);
+      }
+    }
+
+    // 파일 로드 시 당첨음 변경
     function handleAudioUpload(event) {
       const file = event.target.files[0];
       if (file) {
         const fileURL = URL.createObjectURL(file);
         winAudio = new Audio(fileURL);
         
-        // 브라우저 재생 잠금 해제 미리 실행
         winAudio.play().then(() => {
           winAudio.pause();
           winAudio.currentTime = 0;
@@ -343,8 +411,8 @@
       }
     }
 
-    // 브라우저 재생 차단 방지용 초기 클릭 핸들러
     function unlockAudio() {
+      getAudioContext();
       if (winAudio) {
         winAudio.play().then(() => {
           winAudio.pause();
@@ -760,6 +828,9 @@
       if (isWin) {
         playWinSound();
         confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 } });
+      } else {
+        // 꽝일 때 아쉬운 효과음 재생
+        playLoseSound();
       }
 
       db.ref('rooms/' + currentRoom).update({
@@ -777,6 +848,9 @@
       shuffledCards.forEach((c, idx) => { if(!c.picked) unpickedIndices.push(idx); });
 
       if (unpickedIndices.length === 0) return alert('남아있는 카드가 없습니다.');
+
+      // 셔플 떨림 효과음 재생
+      playShuffleSound();
 
       unpickedIndices.forEach(idx => {
         const elem = document.getElementById(`kuji-card-${idx}`);
