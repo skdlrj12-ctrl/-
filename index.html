@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>🍢 MY KUJI (규어빵 전용판) v1</title>
+  <title>🍢 MY KUJI (규어빵 전용판) v2</title>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; user-select: none; }
@@ -38,24 +38,24 @@
     button:active { opacity: 0.8; }
     button.btn-share { background: #4dabf7; color: #fff; width: auto; padding: 6px 14px; font-size: 0.85rem; }
     
+    /* 당첨 상품 목록 영역 (이미지 크기 및 카드 크기 키움) */
     .prize-board-top { background: rgba(0, 0, 0, 0.4); padding: 12px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.15); text-align: left; }
     .prize-board-top h3 { font-size: 0.95rem; color: #ffeb3b; margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 4px; }
-    .prize-list-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 8px; }
+    .prize-list-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
     
-    .prize-card { display: flex; align-items: center; gap: 8px; background: rgba(0, 0, 0, 0.5); padding: 6px 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); }
-    .prize-card img { width: 38px; height: 38px; border-radius: 4px; object-fit: cover; }
-    .prize-info { font-size: 0.8rem; }
-    .prize-info .num { color: #f39c12; font-weight: bold; }
-    .prize-info .winner { color: #22c55e; font-weight: bold; font-size: 0.75rem; margin-top: 2px; }
+    .prize-card { display: flex; align-items: center; gap: 12px; background: rgba(0, 0, 0, 0.5); padding: 8px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); }
+    .prize-card img { width: 60px; height: 60px; border-radius: 6px; object-fit: cover; border: 1px solid rgba(255,255,255,0.3); }
+    .prize-info { font-size: 0.88rem; }
+    .prize-info .num { color: #f39c12; font-weight: bold; font-size: 0.95rem; }
+    .prize-info .winner { color: #22c55e; font-weight: bold; font-size: 0.8rem; margin-top: 3px; }
 
-    /* 참가자 현황 영역 세로 높이 줄임 (기존 대비 약 1/3 크기) */
-    .manager-box { background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 12px; padding: 6px 10px; text-align: left; }
-    .manager-box h4 { color: #ffeb3b; font-size: 0.8rem; margin-bottom: 4px; }
-    .player-tags-container { display: flex; flex-wrap: wrap; gap: 4px; }
-    .player-tag { background: rgba(0,0,0,0.5); padding: 2px 6px; border-radius: 10px; font-size: 0.75rem; display: flex; align-items: center; gap: 3px; border: 1px solid #555; }
+    /* 참가자 순서 설정 영역 (세로 크기 극단적 축소: 초슬림 한줄 형태) */
+    .manager-box { background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 8px; padding: 4px 8px; text-align: left; display: flex; align-items: center; gap: 8px; }
+    .manager-box h4 { color: #ffeb3b; font-size: 0.75rem; white-space: nowrap; margin: 0; }
+    .player-tags-container { display: flex; flex-wrap: wrap; gap: 3px; flex-grow: 1; }
+    .player-tag { background: rgba(0,0,0,0.5); padding: 1px 5px; border-radius: 6px; font-size: 0.7rem; display: flex; align-items: center; gap: 2px; border: 1px solid #555; }
     .player-tag.active { border-color: #22c55e; background: rgba(34, 197, 94, 0.25); color: #22c55e; font-weight: bold; }
-    .player-btn { background: rgba(255,255,255,0.2); border: none; color: #fff; padding: 1px 4px; border-radius: 3px; font-size: 0.65rem; cursor: pointer; }
-    .player-btn:hover { background: rgba(255,255,255,0.4); }
+    .player-btn { background: rgba(255,255,255,0.2); border: none; color: #fff; padding: 0px 3px; border-radius: 2px; font-size: 0.6rem; cursor: pointer; }
 
     .turn-banner { background: linear-gradient(135deg, rgba(34, 197, 94, 0.3), rgba(59, 130, 246, 0.3)); border: 2px solid #22c55e; border-radius: 12px; padding: 10px; text-align: center; }
     .turn-banner .title { font-size: 0.85rem; color: #bbb; margin-bottom: 2px; }
@@ -83,7 +83,6 @@
     .card-cover { position: absolute; inset: 0; background-size: cover; background-position: center; background-color: #222; z-index: 10; }
     .kuji-card.picked .card-cover { display: none !important; }
 
-    /* 셔플 애니메이션 스타일 */
     @keyframes cardShake {
       0% { transform: translate(0, 0) rotate(0deg); }
       20% { transform: translate(-4px, 3px) rotate(-3deg); }
@@ -92,9 +91,7 @@
       80% { transform: translate(3px, 2px) rotate(2deg); }
       100% { transform: translate(0, 0) rotate(0deg); }
     }
-    .kuji-card.shaking {
-      animation: cardShake 0.15s infinite;
-    }
+    .kuji-card.shaking { animation: cardShake 0.15s infinite; }
 
     .kuji-card.win { 
       background-image: url('https://i.ibb.co/wr4D4fR8/image.jpg') !important; 
@@ -117,6 +114,9 @@
       transition: transform 0.1s ease-out; cursor: grab; transform-origin: center center; touch-action: none;
     }
 
+    .modal-btn-group { display: flex; gap: 10px; margin-top: 15px; width: 280px; }
+    .modal-btn-group button { font-size: 0.85rem; padding: 10px; }
+
     .room-info-bottom { background: rgba(0, 0, 0, 0.4); padding: 10px 14px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255, 255, 255, 0.15); font-size: 0.85rem; color: #aaa; }
     .room-code { color: #4dabf7; font-size: 1.1rem; font-weight: bold; }
     .hidden { display: none !important; }
@@ -124,6 +124,8 @@
     @media (max-width: 768px) {
       .grid { grid-template-columns: repeat(5, 1fr); gap: 5px; }
       .card-number { font-size: 1.0rem; }
+      .prize-list-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+      .prize-card img { width: 48px; height: 48px; }
     }
   </style>
 
@@ -134,10 +136,11 @@
 
   <div class="title-wrapper">
     <h1>🍢 MY KUJI (규어빵 전용판)</h1>
-    <span class="version-tag">v1</span>
+    <span class="version-tag">v2</span>
   </div>
   <p class="sub">실시간 제비뽑기 게임</p>
 
+  <!-- 로비 화면 -->
   <div id="lobby" class="card-box">
     <div class="setting-group">
       <label>👤 내 닉네임 설정</label>
@@ -161,6 +164,7 @@
     </div>
   </div>
 
+  <!-- 게임 화면 -->
   <div id="game" class="card-box hidden">
     <div class="prize-board-top">
       <h3>🎁 당첨 상품 목록</h3>
@@ -173,7 +177,7 @@
     </div>
 
     <div class="manager-box">
-      <h4>👥 참가자 순서 설정</h4>
+      <h4>👥 참가자 순서:</h4>
       <div id="playerTagsList" class="player-tags-container"></div>
     </div>
 
@@ -182,7 +186,7 @@
         <label style="font-size:0.85rem; color:#ccc;">셔플 횟수:</label>
         <input type="number" id="shuffleCountInput" value="5" min="1" max="50" style="width:60px; margin-bottom:0; padding:6px; text-align:center;">
       </div>
-      <button onclick="shuffleAndOpenRandom()" class="btn-sub btn-shuffle">🔀 셔플 후 바로 뜯기</button>
+      <button onclick="shuffleAndOpenRandom()" class="btn-sub btn-shuffle">🔀 셔플 후 선택하기</button>
     </div>
     <div id="status" style="font-size: 0.9rem; color: #ccc;">남은 카드: -장</div>
 
@@ -194,8 +198,9 @@
     </div>
   </div>
 
+  <!-- 중앙 카드 확대 뜯기 모달 -->
   <div id="cardZoomModal" class="card-modal-overlay hidden">
-    <div style="color: #bbb; font-size: 0.9rem; margin-bottom: 15px;">👉 좌우로 완전히 밀어내어 카드를 오픈하세요!</div>
+    <div style="color: #bbb; font-size: 0.9rem; margin-bottom: 15px;">👉 드래그하거나 아래 버튼으로 카드를 오픈하세요!</div>
     <div class="pop-card-wrapper">
       <div class="pop-card-content">
         <div id="zoomCardNum" class="pop-card-num">?</div>
@@ -203,7 +208,12 @@
       </div>
       <div id="zoomCardCover" class="pop-card-cover"></div>
     </div>
-    <button onclick="closeZoomModal()" style="margin-top: 20px; width: 120px; background: rgba(255,255,255,0.2); color: #fff; padding: 8px;">닫기</button>
+
+    <div class="modal-btn-group">
+      <button onclick="forceRipOpen()" style="background: #e74c3c; color: #fff;">💥 확 뜯기</button>
+      <button onclick="reselectRandomCard()" style="background: #f39c12; color: #fff;">🔄 다시 선택</button>
+    </div>
+    <button onclick="closeZoomModal()" style="margin-top: 10px; width: 280px; background: rgba(255,255,255,0.2); color: #fff; padding: 8px;">닫기</button>
   </div>
 
   <script>
@@ -227,27 +237,29 @@
     let hostName = "";
     let selectedIndex = null;
 
-    // Web Audio API를 활용한 기본 효과음 (외부 링크 재생 오류 방지)
+    // 사운드 해제 및 오디오 객체 미리 로딩
+    const WIN_SOUND_URL = 'https://pdftolink.io/file/r2_dXNlcnMvZ3Vlc3QvM2JiNTIzY2MtZWVmYi00YmY4LWFkNjMtOWZkOGQ0Mjc4NGRjLm1wMw';
+    let winAudio = new Audio(WIN_SOUND_URL);
+    let audioUnlocked = false;
+
+    function unlockAudio() {
+      if (audioUnlocked) return;
+      winAudio.play().then(() => {
+        winAudio.pause();
+        winAudio.currentTime = 0;
+        audioUnlocked = true;
+      }).catch(() => {});
+    }
+
     function playWinSound() {
       try {
-        const AudioCtx = window.AudioContext || window.webkitAudioContext;
-        if (!AudioCtx) return;
-        const ctx = new AudioCtx();
-        const notes = [261.63, 329.63, 392.00, 523.25, 659.25, 783.99]; // 도 미 솔 도 미 솔
-        notes.forEach((freq, i) => {
-          const osc = ctx.createOscillator();
-          const gain = ctx.createGain();
-          osc.type = 'triangle';
-          osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.1);
-          gain.gain.setValueAtTime(0.3, ctx.currentTime + i * 0.1);
-          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.1 + 0.3);
-          osc.connect(gain);
-          gain.connect(ctx.destination);
-          osc.start(ctx.currentTime + i * 0.1);
-          osc.stop(ctx.currentTime + i * 0.1 + 0.3);
-        });
-      } catch(e) { console.log("Sound error", e); }
+        winAudio.currentTime = 0;
+        winAudio.play().catch(e => console.log("Sound play error", e));
+      } catch(e) { console.log("Audio error", e); }
     }
+
+    window.addEventListener('click', unlockAudio, { once: true });
+    window.addEventListener('touchstart', unlockAudio, { once: true });
 
     const charImages = [
       'https://i.ibb.co/nMGG93YS/miku.jpg',
@@ -556,13 +568,7 @@
 
         if (Math.abs(diff) > 200) {
           isDragging = false;
-          coverElem.style.transition = 'transform 0.25 ease-out';
-          const exitX = diff > 0 ? '150%' : '-150%';
-          coverElem.style.transform = `translateX(${exitX}) rotate(${diff > 0 ? 35 : -35}deg)`;
-          setTimeout(() => {
-            pickCard(selectedIndex);
-            closeZoomModal();
-          }, 200);
+          forceRipOpen();
         }
       };
 
@@ -582,11 +588,35 @@
       window.addEventListener('mouseup', onEnd);
     }
 
+    /* 확 뜯기 기능 */
+    function forceRipOpen() {
+      if (selectedIndex === null) return;
+      const coverElem = document.getElementById('zoomCardCover');
+      coverElem.style.transition = 'transform 0.25s ease-out';
+      coverElem.style.transform = 'translateX(150%) rotate(35deg)';
+      
+      setTimeout(() => {
+        pickCard(selectedIndex);
+        closeZoomModal();
+      }, 200);
+    }
+
+    /* 다시 선택 기능 */
+    function reselectRandomCard() {
+      let unpickedIndices = [];
+      currentCardsData.forEach((c, idx) => { if(!c.picked) unpickedIndices.push(idx); });
+      if (unpickedIndices.length === 0) return alert('남은 카드가 없습니다.');
+      
+      const newIndex = unpickedIndices[Math.floor(Math.random() * unpickedIndices.length)];
+      openCardZoomModal(newIndex);
+    }
+
     function pickCard(index) { 
       if (!isHost()) return alert('방장만 카드를 뽑을 수 있습니다.');
       const card = currentCardsData[index];
       if (!card || card.picked) return;
 
+      unlockAudio();
       const turnPlayer = getCurrentTurnPlayer();
       const isWin = !!prizesData[card.value];
 
@@ -601,7 +631,6 @@
       });
     }
 
-    // 셔플 및 카드가 흔들리는 연출 모션 추가
     function shuffleAndOpenRandom() {
       if (!isHost()) return alert('방장만 셔플할 수 있습니다.');
       let count = parseInt(document.getElementById('shuffleCountInput').value) || 5;
@@ -612,13 +641,11 @@
 
       if (unpickedIndices.length === 0) return alert('남아있는 카드가 없습니다.');
 
-      // 1. 카드 흔들림 애니메이션 시작
       unpickedIndices.forEach(idx => {
         const elem = document.getElementById(`kuji-card-${idx}`);
         if(elem) elem.classList.add('shaking');
       });
 
-      // 2. 0.8초간 흔들린 후 셔플 적용 및 모달 열기
       setTimeout(() => {
         unpickedIndices.forEach(idx => {
           const elem = document.getElementById(`kuji-card-${idx}`);
