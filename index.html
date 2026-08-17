@@ -25,11 +25,6 @@
     .version-tag { background: #e67e22; color: #fff; font-size: 0.8rem; font-weight: bold; padding: 2px 8px; border-radius: 12px; }
     
     .top-action-btns { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
-    .sound-btn { 
-      background: rgba(0, 0, 0, 0.6); color: #ffeb3b; border: 1.5px solid #ffeb3b; 
-      padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold; cursor: pointer;
-      display: flex; align-items: center; gap: 6px; backdrop-filter: blur(8px); width: auto;
-    }
 
     /* 외부 URL 음악 플레이어 연동 스타일 */
     .audio-url-wrapper {
@@ -58,7 +53,7 @@
     
     .setting-group { text-align: left; background: rgba(0, 0, 0, 0.5); padding: 16px; border-radius: 12px; max-width: 600px; margin: 0 auto 10px auto; border: 1px solid rgba(255, 255, 255, 0.15); }
     .setting-group label { font-size: 0.95rem; color: #ddd; display: block; margin-bottom: 6px; font-weight: bold; }
-    input[type="number"], input[type="text"], input[type="file"] { width: 100%; padding: 9px; margin-bottom: 10px; border-radius: 8px; border: 1px solid #555; background: rgba(0, 0, 0, 0.6); color: #fff; font-size: 0.95rem; }
+    input[type="number"], input[type="text"], input[type="file"], textarea { width: 100%; padding: 9px; margin-bottom: 10px; border-radius: 8px; border: 1px solid #555; background: rgba(0, 0, 0, 0.6); color: #fff; font-size: 0.95rem; }
     
     .prize-item { display: flex; flex-direction: column; gap: 6px; background: rgba(0, 0, 0, 0.4); padding: 10px; border-radius: 8px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.1); }
     .prize-item-row { display: flex; gap: 6px; align-items: center; }
@@ -219,6 +214,13 @@
       box-shadow: 0 10px 30px rgba(255, 235, 59, 0.2);
     }
     .grand-summary-title { font-size: 1.3rem; font-weight: 900; color: #ffeb3b; margin-bottom: 15px; border-bottom: 2px solid #ffeb3b; padding-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+    .grand-summary-textarea {
+      width: 100%; height: 220px; background: rgba(0, 0, 0, 0.7); border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 10px; padding: 14px; font-family: monospace; font-size: 0.95rem; color: #fff;
+      line-height: 1.6; resize: vertical; margin-bottom: 10px; user-select: text;
+    }
+    .grand-btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+    .grand-btn-group button { width: auto; font-size: 0.85rem; padding: 8px 16px; border-radius: 6px; }
   </style>
 
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -232,18 +234,12 @@
       <span class="version-tag">v16</span>
     </div>
     <div class="top-action-btns">
-      <!-- 추가된 외부 링크 음원 재생기 -->
+      <!-- 외부 링크 음원 재생기 -->
       <div class="audio-url-wrapper">
         <input type="text" id="externalAudioUrl" placeholder="음악 Link URL (.mp3)">
         <button onclick="playExternalAudio()">🎵 재생</button>
         <audio id="externalAudioPlayer" style="display:none;"></audio>
       </div>
-      <button class="sound-btn" onclick="toggleBgClear()">
-        <span id="bgIcon">👁️</span> <span id="bgText">배경 선명하게</span>
-      </button>
-      <button id="soundToggleBtn" class="sound-btn" onclick="toggleSound()">
-        <span id="soundIcon">🔊</span> <span id="soundText">사운드 ON</span>
-      </button>
     </div>
   </div>
   <p class="sub">실시간 제비뽑기 및 피규어 정산 현황 시스템</p>
@@ -354,12 +350,13 @@
     <!-- 회차별 상세 이력 -->
     <div id="historyRoundsContainer"></div>
 
-    <!-- 전체 회차 총정리 보드 -->
+    <!-- 전체 회차 총정리 보드 (직접 수정 기능 포함) -->
     <div class="grand-summary-card">
       <div class="grand-summary-title">
-        <span>🏆 전체회차 총정리</span>
+        <span>🏆 전체회차 총정리 (직접 수정 가능)</span>
         <span id="grandTotalCountBadge" style="font-size:0.9rem; color:#22c55e; background:rgba(34,197,94,0.15); padding:4px 10px; border-radius:12px; border:1px solid #22c55e;">총 당첨: 0건</span>
       </div>
+      <p style="font-size:0.85rem; color:#aaa; margin-bottom:10px;">아래 텍스트를 자유롭게 편집 후 저장하세요. 실시간으로 방에 반영됩니다.</p>
       <div id="grandSummaryContent"></div>
     </div>
   </div>
@@ -431,8 +428,6 @@
 
     let winAudio = null;
     let activeSoundId = null;
-    let isMuted = false;
-    let isClearBg = false;
     let audioCtx = null;
 
     // 외부 URL 음악 재생 기능 함수
@@ -558,12 +553,6 @@
       }
     }
 
-    function toggleBgClear() {
-      isClearBg = !isClearBg;
-      document.body.classList.toggle('clear-bg', isClearBg);
-      document.getElementById('bgText').textContent = isClearBg ? '배경 흐리게' : '배경 선명하게';
-    }
-
     function getAudioContext() {
       if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
       if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -571,7 +560,6 @@
     }
 
     function playShuffleSound() {
-      if (isMuted) return;
       try {
         const ctx = getAudioContext();
         const now = ctx.currentTime;
@@ -589,7 +577,6 @@
     }
 
     function playLoseSound() {
-      if (isMuted) return;
       try {
         const ctx = getAudioContext();
         const now = ctx.currentTime;
@@ -606,17 +593,9 @@
     }
 
     function playWinSound() {
-      if (isMuted || !winAudio) return;
+      if (!winAudio) return;
       winAudio.currentTime = 0;
       winAudio.play().catch(e => console.log("음원 재생 제한: ", e));
-    }
-
-    function toggleSound() {
-      isMuted = !isMuted;
-      const btn = document.getElementById('soundToggleBtn');
-      document.getElementById('soundIcon').textContent = isMuted ? '🔇' : '🔊';
-      document.getElementById('soundText').textContent = isMuted ? '사운드 OFF' : '사운드 ON';
-      btn.classList.toggle('active', !isMuted);
     }
 
     const charImages = [
@@ -1108,9 +1087,11 @@
         const data = snapshot.val();
         if (!data) return;
         const historyData = data.history || {};
+        const customSummary = data.customGrandSummary || null;
+
         renderFullHistoryView(historyData);
         renderUserSummaryView(historyData);
-        renderGrandSummary(historyData);
+        renderGrandSummary(historyData, customSummary);
       });
     }
 
@@ -1165,17 +1146,13 @@
       });
     }
 
-    function renderGrandSummary(historyData) {
-      const container = document.getElementById('grandSummaryContent');
-      let totalPrizesCount = 0;
-
+    function generateDefaultSummaryText(historyData) {
       const ulsanShipments = {};
       const generalShipments = {};
 
       Object.keys(historyData).forEach(rKey => {
         const items = historyData[rKey] || [];
         items.forEach(item => {
-          totalPrizesCount++;
           const sender = item.from || '방장';
           const receiver = item.to || '게스트';
           const prizeName = item.prizeName || item.itemName || '상품';
@@ -1189,34 +1166,61 @@
         });
       });
 
-      document.getElementById('grandTotalCountBadge').textContent = `총 당첨: ${totalPrizesCount}건`;
-
       let ulsanText = "";
       const ulsanKeys = Object.keys(ulsanShipments);
-      if (ulsanKeys.length === 0) {
-        ulsanText = "없음";
-      } else {
-        ulsanText = ulsanKeys.map(name => `${name} - ${ulsanShipments[name].join(', ')}`).join('\n');
-      }
+      ulsanText = ulsanKeys.length === 0 ? "없음" : ulsanKeys.map(name => `${name} - ${ulsanShipments[name].join(', ')}`).join('\n');
 
       let generalText = "";
       const generalKeys = Object.keys(generalShipments);
-      if (generalKeys.length === 0) {
-        generalText = "없음";
-      } else {
-        generalText = generalKeys.map(name => `${name} - ${generalShipments[name].join(', ')}`).join('\n');
-      }
+      generalText = generalKeys.length === 0 ? "없음" : generalKeys.map(name => `${name} - ${generalShipments[name].join(', ')}`).join('\n');
 
-      const fullSummaryText = `울산 보낼물건\n${ulsanText}\n\n보낼물건\n${generalText}`;
+      return `울산 보낼물건\n${ulsanText}\n\n보낼물건\n${generalText}`;
+    }
+
+    function renderGrandSummary(historyData, customSummary = null) {
+      const container = document.getElementById('grandSummaryContent');
+      let totalPrizesCount = 0;
+
+      Object.keys(historyData).forEach(rKey => {
+        totalPrizesCount += (historyData[rKey] || []).length;
+      });
+
+      document.getElementById('grandTotalCountBadge').textContent = `총 당첨: ${totalPrizesCount}건`;
+
+      const displayText = (customSummary !== null && customSummary !== undefined) 
+        ? customSummary 
+        : generateDefaultSummaryText(historyData);
 
       container.innerHTML = `
-        <div id="summaryTextDisplay" style="background: rgba(0,0,0,0.6); padding: 16px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2); font-family: monospace; white-space: pre-wrap; line-height: 1.6; font-size: 0.95rem; color: #fff; text-align: left;">${fullSummaryText}</div>
-        <button onclick="copyGrandSummaryText()" style="margin-top: 12px; background: #22c55e; color: #fff; width: auto; padding: 8px 16px; font-size: 0.85rem; border-radius: 6px; font-weight: bold; cursor: pointer;">📋 총정리 텍스트 복사하기</button>
+        <textarea id="grandSummaryTextArea" class="grand-summary-textarea">${displayText}</textarea>
+        <div class="grand-btn-group">
+          <button onclick="saveGrandSummaryText()" style="background: #3b82f6; color: #fff;">💾 수정사항 저장</button>
+          <button onclick="resetGrandSummaryText()" style="background: #e67e22; color: #fff;">🔄 자동 계산으로 복원</button>
+          <button onclick="copyGrandSummaryText()" style="background: #22c55e; color: #fff;">📋 텍스트 복사하기</button>
+        </div>
       `;
 
+      window.saveGrandSummaryText = function() {
+        if (!currentRoom) return;
+        const editedText = document.getElementById('grandSummaryTextArea').value;
+        db.ref(`rooms/${currentRoom}/customGrandSummary`).set(editedText).then(() => {
+          alert('총정리 수정사항이 저장되었습니다!');
+        });
+      };
+
+      window.resetGrandSummaryText = function() {
+        if (!currentRoom) return;
+        if (confirm('자동 계산된 원본 텍스트로 복원하시겠습니까? (수정 내역 초기화)')) {
+          db.ref(`rooms/${currentRoom}/customGrandSummary`).remove().then(() => {
+            alert('원본 자동계산 내용으로 복원되었습니다.');
+          });
+        }
+      };
+
       window.copyGrandSummaryText = function() {
-        navigator.clipboard.writeText(fullSummaryText).then(() => {
-          alert('전체 총정리 내역이 클립보드에 복사되었습니다!');
+        const textToCopy = document.getElementById('grandSummaryTextArea').value;
+        navigator.clipboard.writeText(textToCopy).then(() => {
+          alert('총정리 내역이 클립보드에 복사되었습니다!');
         });
       };
     }
