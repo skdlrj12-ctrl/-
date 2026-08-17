@@ -55,29 +55,31 @@
     .turn-banner .title { font-size: 0.85rem; color: #bbb; margin-bottom: 2px; }
     .turn-banner .name { font-size: 1.7rem; font-weight: 900; color: #22c55e; text-shadow: 0 0 12px rgba(34, 197, 94, 0.6); }
 
-    .control-btns { display: flex; gap: 8px; justify-content: center; }
+    .control-btns { display: flex; gap: 8px; justify-content: center; align-items: center; flex-wrap: wrap; }
     .btn-sub { font-size: 0.85rem; padding: 8px 14px; border-radius: 8px; width: auto; }
     .btn-shuffle { background: #e67e22; color: #fff; }
-    .btn-random { background: #8e44ad; color: #fff; }
 
     .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; position: relative; }
 
-    .kuji-card { position: relative; aspect-ratio: 1.25 / 1; border-radius: 8px; overflow: hidden; background: rgba(10, 10, 10, 0.6); touch-action: none; cursor: pointer; border: 1px solid rgba(255, 255, 255, 0.25); }
-    .card-content { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1; pointer-events: none; padding: 4px; width: 100%; opacity: 0; transition: opacity 0.1s ease; }
+    .kuji-card { position: relative; aspect-ratio: 1.25 / 1; border-radius: 8px; overflow: hidden; background: rgba(10, 10, 10, 0.6); cursor: pointer; border: 1px solid rgba(255, 255, 255, 0.25); }
+    .card-content { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1; pointer-events: none; padding: 4px; width: 100%; opacity: 0; }
     .kuji-card.picked .card-content { opacity: 1; }
 
     .card-number { font-size: 1.3rem; font-weight: 900; color: #ffeb3b; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000; }
-    .card-picker { font-size: 0.8rem; color: #ffffff; font-weight: bold; background: rgba(0, 0, 0, 0.85); padding: 3px 8px; border-radius: 10px; max-width: 95%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; border: 1px solid rgba(255, 255, 255, 0.4); }
-
-    /* 슬라이드 뜯기 커버 */
-    .card-cover { 
-      position: absolute; inset: 0; background-size: cover; background-position: center; background-color: #222; 
-      z-index: 10; transition: transform 0.1s ease-out; cursor: grab; transform-origin: left center; touch-action: none;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.6);
+    
+    /* 당첨자 이름 카드의 제일 하단부에 위치 고정 */
+    .card-picker { 
+      position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%);
+      font-size: 0.75rem; color: #ffffff; font-weight: bold; background: rgba(0, 0, 0, 0.85); 
+      padding: 2px 6px; border-radius: 8px; max-width: 90%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; 
+      border: 1px solid rgba(255, 255, 255, 0.4); 
     }
+
+    /* 일반 상태 커버 */
+    .card-cover { position: absolute; inset: 0; background-size: cover; background-position: center; background-color: #222; z-index: 10; }
     .kuji-card.picked .card-cover { display: none !important; }
 
-    /* 당첨 카드: 테두리 유지, 배경 이미지 유지, 당첨 마크 없이 이름만 표기 */
+    /* 전부 열린 후 당첨 카드 스타일 */
     .kuji-card.win { 
       background-image: url('https://i.ibb.co/wr4D4fR8/image.jpg') !important; 
       background-size: cover !important; 
@@ -86,14 +88,18 @@
       box-shadow: 0 0 12px rgba(255, 51, 51, 0.8);
     }
 
-    .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(16px); z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-    .pop-card { background: #181818; border: 3px solid #ffeb3b; border-radius: 16px; padding: 24px; width: 280px; text-align: center; box-shadow: 0 0 35px rgba(255, 235, 59, 0.5); }
-    .pop-card.is-win { border-color: #ff3333; box-shadow: 0 0 45px rgba(255, 51, 51, 0.8); }
-    .pop-title { font-size: 1.1rem; color: #aaa; margin-bottom: 8px; }
-    .pop-num { font-size: 3.5rem; font-weight: 900; color: #ffeb3b; margin: 10px 0; }
-    .pop-card.is-win .pop-num { color: #ff3333; }
-    .pop-result { font-size: 1.2rem; font-weight: bold; color: #22c55e; }
-    .pop-card.is-win .pop-result { color: #ffeb3b; }
+    /* 중앙 카드 확대 모달 레이어 */
+    .card-modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(12px); z-index: 1500; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .pop-card-wrapper { position: relative; width: 280px; height: 220px; border-radius: 16px; overflow: hidden; background: #151515; border: 2px solid rgba(255,255,255,0.3); box-shadow: 0 10px 40px rgba(0,0,0,0.8); touch-action: none; }
+    
+    .pop-card-content { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; z-index: 1; }
+    .pop-card-num { font-size: 3rem; font-weight: 900; color: #ffeb3b; }
+    .pop-card-user { position: absolute; bottom: 12px; font-size: 1rem; font-weight: bold; color: #fff; background: rgba(0,0,0,0.8); padding: 4px 12px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.3); }
+
+    .pop-card-cover { 
+      position: absolute; inset: 0; background-size: cover; background-position: center; background-color: #222; z-index: 10;
+      transition: transform 0.1s ease-out; cursor: grab; transform-origin: left center; touch-action: none;
+    }
 
     .room-info-bottom { background: rgba(0, 0, 0, 0.4); padding: 10px 14px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255, 255, 255, 0.15); font-size: 0.85rem; color: #aaa; }
     .room-code { color: #4dabf7; font-size: 1.1rem; font-weight: bold; }
@@ -153,8 +159,11 @@
     </div>
 
     <div id="hostControls" class="control-btns hidden">
-      <button onclick="shuffleAndPick()" class="btn-sub btn-shuffle">🔀 무작위 셔플 후 뽑기</button>
-      <button onclick="pickRandomDirect()" class="btn-sub btn-random">🎲 즉시 랜덤 뽑기</button>
+      <div style="display:flex; align-items:center; gap:6px;">
+        <label style="font-size:0.85rem; color:#ccc;">셔플 횟수:</label>
+        <input type="number" id="shuffleCountInput" value="5" min="1" max="50" style="width:60px; margin-bottom:0; padding:6px; text-align:center;">
+      </div>
+      <button onclick="shuffleCardsByCount()" class="btn-sub btn-shuffle">🔀 카드 셔플하기</button>
     </div>
     <div id="status" style="font-size: 0.9rem; color: #ccc;">남은 카드: -장</div>
 
@@ -166,12 +175,16 @@
     </div>
   </div>
 
-  <div id="resultModal" class="modal-overlay hidden">
-    <div id="popCardBox" class="pop-card">
-      <div class="pop-title">카드 오픈 결과</div>
-      <div id="popNum" class="pop-num">0</div>
-      <div id="popResult" class="pop-result">콰꽝! 꽝입니다</div>
+  <div id="cardZoomModal" class="card-modal-overlay hidden">
+    <div style="color: #bbb; font-size: 0.9rem; margin-bottom: 15px;">👉 좌우로 뜯어서 카드를 오픈하세요!</div>
+    <div class="pop-card-wrapper">
+      <div class="pop-card-content">
+        <div id="zoomCardNum" class="pop-card-num">?</div>
+        <div id="zoomCardUser" class="pop-card-user">-</div>
+      </div>
+      <div id="zoomCardCover" class="pop-card-cover"></div>
     </div>
+    <button onclick="closeZoomModal()" style="margin-top: 20px; width: 120px; background: rgba(255,255,255,0.2); color: #fff; padding: 8px;">닫기</button>
   </div>
 
   <script>
@@ -193,9 +206,9 @@
     let myName = "";
     let playersList = [];
     let hostName = "";
-    let lastHandledTime = 0;
+    let selectedIndex = null;
 
-    // 🔊 사용자 지정 당첨 효과음 URL (원하시는 사운드 주소로 교체 가능)
+    // 🔊 고죠 영역전개 Direct MP3 링크 적용
     const WIN_SOUND_URL = 'https://www.myinstants.com/media/sounds/gojo-domain-expansion-60533.mp3';
     let winAudio = new Audio(WIN_SOUND_URL);
 
@@ -231,6 +244,7 @@
       if (roomParam) document.getElementById('roomInput').value = roomParam.toUpperCase();
 
       addPrizeInput(); addPrizeInput();
+      setupZoomDrag();
     });
 
     function saveNickname() {
@@ -275,11 +289,12 @@
     }
 
     function shuffle(array) {
-      for (let i = array.length - 1; i > 0; i--) {
+      let arr = [...array];
+      for (let i = arr.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
+        [arr[i], arr[j]] = [arr[j], arr[i]];
       }
-      return array;
+      return arr;
     }
 
     async function createRoom() {
@@ -342,11 +357,6 @@
         
         if (isHost()) document.getElementById('hostControls').classList.remove('hidden');
 
-        if (data.lastPicked && data.lastPicked.time > lastHandledTime) {
-          lastHandledTime = data.lastPicked.time;
-          showPopModal(data.lastPicked.val, data.lastPicked.isWin, data.lastPicked.prizeName);
-        }
-
         renderPlayersOrder();
         renderPrizeBoard();
         renderGrid(currentCardsData);
@@ -361,9 +371,13 @@
       return playersList[pickedCount % playersList.length];
     }
 
+    function isAllOpened() {
+      return currentCardsData.length > 0 && currentCardsData.every(c => c.picked);
+    }
+
     function renderPlayersOrder() {
       document.getElementById('hostName').textContent = hostName;
-      const currentTurn = getCurrentTurnPlayer();
+      const currentTurn = isAllOpened() ? "게임 종료" : getCurrentTurnPlayer();
       document.getElementById('currentTurnInfo').textContent = currentTurn;
 
       const tagsContainer = document.getElementById('playerTagsList');
@@ -379,10 +393,18 @@
     function renderPrizeBoard() {
       const board = document.getElementById('prizeBoardList');
       board.innerHTML = '';
+      const allDone = isAllOpened();
+
+      if (allDone && !window.hasPlayedSound) {
+        window.hasPlayedSound = true;
+        playWinSound();
+        confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 } });
+      }
+
       Object.keys(prizesData).forEach(num => {
         const prize = prizesData[num];
         const winnerCard = currentCardsData.find(c => c.value == num && c.picked);
-        const winnerName = winnerCard ? winnerCard.pickedBy : null;
+        const winnerName = (allDone && winnerCard) ? winnerCard.pickedBy : null;
 
         const item = document.createElement('div');
         item.className = 'prize-card';
@@ -390,7 +412,7 @@
           <img src="${prize.img}" onerror="this.src='https://via.placeholder.com/150?text=Prize'">
           <div class="prize-info">
             <div class="num">[${num}번] ${prize.name}</div>
-            <div class="winner">${winnerName ? '🎉 당첨자: ' + winnerName : '⏳ 미당첨'}</div>
+            <div class="winner">${allDone ? (winnerName ? '🎉 당첨자: ' + winnerName : '⏳ 미당첨') : '❓ 미공개 (전체 오픈 후 공개)'}</div>
           </div>
         `;
         board.appendChild(item);
@@ -400,17 +422,19 @@
     function renderGrid(cards) {
       const grid = document.getElementById('grid');
       let remainingCount = 0;
+      const allDone = isAllOpened();
 
       cards.forEach((card, index) => {
         if (!card.picked) remainingCount++;
         let cardElem = document.getElementById(`kuji-card-${index}`);
         const prize = prizesData[card.value];
-        const isWin = card.picked && !!prize;
+        const isWin = allDone && card.picked && !!prize;
 
         if (!cardElem) {
           cardElem = document.createElement('div');
           cardElem.id = `kuji-card-${index}`;
           cardElem.className = 'kuji-card';
+          cardElem.onclick = () => openCardZoomModal(index);
           
           const contentDiv = document.createElement('div');
           contentDiv.className = 'card-content';
@@ -424,43 +448,6 @@
           coverElem.className = 'card-cover';
           coverElem.id = `card-cover-${index}`;
           coverElem.style.backgroundImage = `url('${card.img || charImages[0]}')`;
-          
-          // 기존 슬라이드 뜯기 드래그 로직 복원
-          let startX = 0, isDragging = false;
-          const onStart = (x) => { 
-            if(!currentCardsData[index].picked) { 
-              startX = x; 
-              isDragging = true; 
-              coverElem.style.transition = 'none';
-            } 
-          };
-          const onMove = (x) => {
-            if(!isDragging) return;
-            let diff = x - startX;
-            if (diff > 0) {
-              coverElem.style.transform = `translateX(${diff}px) rotate(${diff * 0.15}deg)`;
-            }
-            if(diff > 70) { 
-              isDragging = false; 
-              coverElem.style.transition = 'transform 0.2s ease';
-              coverElem.style.transform = 'translateX(100%) rotate(30deg)';
-              pickCard(index); 
-            }
-          };
-          const onEnd = () => { 
-            if(isDragging) { 
-              coverElem.style.transition = 'transform 0.2s ease';
-              coverElem.style.transform = 'translateX(0) rotate(0deg)'; 
-              isDragging = false; 
-            } 
-          };
-
-          coverElem.addEventListener('touchstart', (e) => onStart(e.touches[0].clientX));
-          coverElem.addEventListener('touchmove', (e) => onMove(e.touches[0].clientX));
-          coverElem.addEventListener('touchend', onEnd);
-          coverElem.addEventListener('mousedown', (e) => onStart(e.clientX));
-          window.addEventListener('mousemove', (e) => onMove(e.clientX));
-          window.addEventListener('mouseup', onEnd);
 
           cardElem.appendChild(coverElem);
           grid.appendChild(cardElem);
@@ -469,8 +456,7 @@
         const numElem = document.getElementById(`card-num-${index}`);
         const pickerElem = document.getElementById(`card-picker-${index}`);
 
-        if (isWin) {
-          // 당첨 카드는 숫자를 지움
+        if (allDone && isWin) {
           numElem.textContent = '';
         } else {
           numElem.textContent = card.value;
@@ -491,25 +477,71 @@
       document.getElementById('status').textContent = `남은 카드: ${remainingCount}장`;
     }
 
-    function showPopModal(num, isWin, prizeName) {
-      const modal = document.getElementById('resultModal');
-      const box = document.getElementById('popCardBox');
-      const popNum = document.getElementById('popNum');
-      const popResult = document.getElementById('popResult');
+    function openCardZoomModal(index) {
+      const card = currentCardsData[index];
+      if (!card || card.picked) return;
+      
+      selectedIndex = index;
+      const modal = document.getElementById('cardZoomModal');
+      const zoomNum = document.getElementById('zoomCardNum');
+      const zoomUser = document.getElementById('zoomCardUser');
+      const zoomCover = document.getElementById('zoomCardCover');
 
-      popNum.textContent = num + '번';
-      if (isWin) {
-        box.className = 'pop-card is-win';
-        popResult.textContent = `🔥 축하합니다! [${prizeName}] 당첨!`;
-        confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 } });
-        playWinSound();
-      } else {
-        box.className = 'pop-card';
-        popResult.textContent = '꽝! 다음 기회에...';
-      }
+      zoomNum.textContent = card.value;
+      zoomUser.textContent = getCurrentTurnPlayer();
+      zoomCover.style.backgroundImage = `url('${card.img || charImages[0]}')`;
+      zoomCover.style.transform = 'translateX(0) rotate(0deg)';
 
       modal.classList.remove('hidden');
-      setTimeout(() => modal.classList.add('hidden'), 1500);
+    }
+
+    function closeZoomModal() {
+      document.getElementById('cardZoomModal').classList.add('hidden');
+      selectedIndex = null;
+    }
+
+    function setupZoomDrag() {
+      const coverElem = document.getElementById('zoomCardCover');
+      let startX = 0, isDragging = false;
+
+      const onStart = (x) => {
+        if (selectedIndex === null) return;
+        startX = x;
+        isDragging = true;
+        coverElem.style.transition = 'none';
+      };
+
+      const onMove = (x) => {
+        if (!isDragging) return;
+        let diff = x - startX;
+        if (diff > 0) {
+          coverElem.style.transform = `translateX(${diff}px) rotate(${diff * 0.1}deg)`;
+        }
+        if (diff > 120) {
+          isDragging = false;
+          coverElem.style.transition = 'transform 0.2s ease';
+          coverElem.style.transform = 'translateX(100%) rotate(30deg)';
+          setTimeout(() => {
+            pickCard(selectedIndex);
+            closeZoomModal();
+          }, 200);
+        }
+      };
+
+      const onEnd = () => {
+        if (isDragging) {
+          coverElem.style.transition = 'transform 0.2s ease';
+          coverElem.style.transform = 'translateX(0) rotate(0deg)';
+          isDragging = false;
+        }
+      };
+
+      coverElem.addEventListener('touchstart', (e) => onStart(e.touches[0].clientX));
+      coverElem.addEventListener('touchmove', (e) => onMove(e.touches[0].clientX));
+      coverElem.addEventListener('touchend', onEnd);
+      coverElem.addEventListener('mousedown', (e) => onStart(e.clientX));
+      window.addEventListener('mousemove', (e) => onMove(e.clientX));
+      window.addEventListener('mouseup', onEnd);
     }
 
     function pickCard(index) { 
@@ -519,23 +551,41 @@
 
       initAudio();
       const turnPlayer = getCurrentTurnPlayer();
-      const prize = prizesData[card.value];
-      const isWin = !!prize;
 
       db.ref('rooms/' + currentRoom).update({
         [`cards/${index}/picked`]: true,
-        [`cards/${index}/pickedBy`]: turnPlayer,
-        lastPicked: { val: card.value, isWin: isWin, prizeName: prize ? prize.name : '', time: Date.now() }
+        [`cards/${index}/pickedBy`]: turnPlayer
       });
     }
 
-    function shuffleAndPick() {
-      const unpicked = currentCardsData.map((c, i) => c.picked ? null : i).filter(i => i !== null);
-      if (unpicked.length === 0) return;
-      pickCard(unpicked[Math.floor(Math.random() * unpicked.length)]);
-    }
+    // 지정한 횟수만큼 안 뽑힌 카드를 셔플하는 로직
+    function shuffleCardsByCount() {
+      if (!isHost()) return alert('방장만 셔플할 수 있습니다.');
+      let count = parseInt(document.getElementById('shuffleCountInput').value) || 5;
 
-    function pickRandomDirect() { shuffleAndPick(); }
+      let shuffledCards = [...currentCardsData];
+      
+      // 안 뽑힌 카드들만 추출
+      let unpickedIndices = [];
+      shuffledCards.forEach((c, idx) => { if(!c.picked) unpickedIndices.push(idx); });
+
+      if (unpickedIndices.length <= 1) {
+        return alert('셔플할 남아있는 카드가 충분하지 않습니다.');
+      }
+
+      // 지정된 횟수만큼 반복 셔플
+      for (let k = 0; k < count; k++) {
+        let unpickedValues = unpickedIndices.map(i => shuffledCards[i]);
+        unpickedValues = shuffle(unpickedValues);
+        unpickedIndices.forEach((origIdx, i) => {
+          shuffledCards[origIdx] = unpickedValues[i];
+        });
+      }
+
+      db.ref('rooms/' + currentRoom + '/cards').set(shuffledCards).then(() => {
+        alert(`${count}회 무작위 카드 셔플이 완료되었습니다!`);
+      });
+    }
     
     function copyShareLink() { 
       const inviteUrl = `${window.location.origin}${window.location.pathname}?room=${currentRoom}`;
