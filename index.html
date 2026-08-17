@@ -1564,7 +1564,7 @@ function playLoseSound() {
 function playWinSound() {
   if (!winAudio) return;
   winAudio.currentTime = 0;
-  winAudio.play().catch(e => console.log("음원 재생 제한:", e));
+  winAudio.play().catch(e => console.log("음원 제한:", e));
 }
 
 const charImages = [
@@ -1907,6 +1907,7 @@ function renderGrid(cards) {
 
     const coverElem = document.getElementById(`card-cover-${index}`);
     if (coverElem) {
+      // [수정됨] 방장이면서, 본인 화면에서 치트모드가 켜져있을 때만 당첨 정보 표시
       if (isHost() && isCheatMode && !card.picked) {
         if (prize) {
           coverElem.style.border = "2px solid #ff3333";
