@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>🍢 MY KUJI (규어빵 전용판) v9</title>
+  <title>🍢 MY KUJI (규어빵 전용판) v10</title>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; user-select: none; }
@@ -199,7 +199,7 @@
   <div class="header-bar">
     <div class="title-wrapper">
       <h1>🍢 MY KUJI (규어빵 전용판)</h1>
-      <span class="version-tag">v9</span>
+      <span class="version-tag">v10</span>
     </div>
     <button id="soundToggleBtn" class="sound-btn" onclick="toggleSound()">
       <span id="soundIcon">🔊</span> <span id="soundText">사운드 ON</span>
@@ -266,7 +266,7 @@
     <div class="sound-uploader-box">
       <label>🎵 당첨 효과음 파일 업로드 (MP3 / WAV)</label>
       <input type="file" id="soundFileInputBottom" accept="audio/*" onchange="handleAudioUpload(event)">
-      <div id="soundStatusText" style="font-size:0.75rem; color:#aaa; margin-top:4px;">기본 효과음이 등록되어 있습니다. 파일 등록 시 본인 파일로 변경됩니다.</div>
+      <div id="soundStatusText" style="font-size:0.75rem; color:#aaa; margin-top:4px;">당첨 음원이 등록되지 않았습니다. 파일 첨부 시 당첨 소리가 재생됩니다.</div>
     </div>
 
     <div class="room-info-bottom">
@@ -319,8 +319,8 @@
     let hostName = "";
     let selectedIndex = null;
 
-    // 사운드 관련 객체
-    let winAudio = new Audio('https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3');
+    // 사운드 관련 객체 (기본 당첨 음원은 null로 변경하여 업로드 시에만 재생)
+    let winAudio = null;
     let isMuted = false;
     let audioCtx = null;
 
@@ -334,38 +334,38 @@
       return audioCtx;
     }
 
-    // 1. 오들오들 셔플 떨림 효과음 (Web Audio 합성음)
+    // 1. 경쾌한 셔플 효과음 (따라락 경쾌하게 올라가는 주파수 트리거)
     function playShuffleSound() {
       if (isMuted) return;
       try {
         const ctx = getAudioContext();
         const now = ctx.currentTime;
-        const duration = 0.75;
+        const totalSteps = 12;
 
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
+        for (let i = 0; i < totalSteps; i++) {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
 
-        osc.type = 'triangle';
-        // 빠른 진동 떨림음 연출
-        osc.frequency.setValueAtTime(120, now);
-        for (let i = 0; i < 15; i++) {
-          osc.frequency.setValueAtTime(100 + (i % 2 === 0 ? 50 : -30), now + (i * 0.05));
+          osc.type = 'sine';
+          // 신나고 경쾌한 실로폰/아르페지오 톤
+          const freq = 400 + (i * 65);
+          osc.frequency.setValueAtTime(freq, now + (i * 0.05));
+
+          gain.gain.setValueAtTime(0.12, now + (i * 0.05));
+          gain.gain.exponentialRampToValueAtTime(0.001, now + (i * 0.05) + 0.08);
+
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+
+          osc.start(now + (i * 0.05));
+          osc.stop(now + (i * 0.05) + 0.09);
         }
-
-        gain.gain.setValueAtTime(0.2, now);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + duration);
-
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-
-        osc.start(now);
-        osc.stop(now + duration);
       } catch (e) {
         console.log("셔플 사운드 재생 불가: ", e);
       }
     }
 
-    // 2. 꽝 번호 아쉬운 효과음 (내림조 아쉬운 톤)
+    // 2. 경쾌한 꽝 효과음 (피용~ 경쾌하게 내려가는 재치있는 효과음)
     function playLoseSound() {
       if (isMuted) return;
       try {
@@ -375,24 +375,24 @@
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
 
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(260, now); // C4 -> B3 -> A3 하강
-        osc.frequency.exponentialRampToValueAtTime(130, now + 0.5);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(600, now);
+        osc.frequency.exponentialRampToValueAtTime(150, now + 0.35);
 
-        gain.gain.setValueAtTime(0.18, now);
-        gain.gain.linearRampToValueAtTime(0.01, now + 0.55);
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
 
         osc.connect(gain);
         gain.connect(ctx.destination);
 
         osc.start(now);
-        osc.stop(now + 0.55);
+        osc.stop(now + 0.35);
       } catch (e) {
         console.log("꽝 사운드 재생 불가: ", e);
       }
     }
 
-    // 파일 로드 시 당첨음 변경
+    // 파일 로드 시 당첨음 등록
     function handleAudioUpload(event) {
       const file = event.target.files[0];
       if (file) {
@@ -442,7 +442,7 @@
         document.getElementById('soundIcon').textContent = '🔊';
         document.getElementById('soundText').textContent = '사운드 ON';
         btn.classList.add('active');
-        playWinSound();
+        if (winAudio) playWinSound();
       }
     }
 
@@ -826,10 +826,11 @@
       showNumberRevealAnimation(card.value, turnPlayer, isWin);
 
       if (isWin) {
+        // 등록된 mp3 음원이 있을 경우에만 당첨음 재생
         playWinSound();
         confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 } });
       } else {
-        // 꽝일 때 아쉬운 효과음 재생
+        // 꽝일 때 경쾌한 피용~ 효과음 재생
         playLoseSound();
       }
 
@@ -849,7 +850,7 @@
 
       if (unpickedIndices.length === 0) return alert('남아있는 카드가 없습니다.');
 
-      // 셔플 떨림 효과음 재생
+      // 경쾌한 따라락 셔플 효과음 재생
       playShuffleSound();
 
       unpickedIndices.forEach(idx => {
@@ -875,7 +876,7 @@
           const randomTarget = unpickedIndices[Math.floor(Math.random() * unpickedIndices.length)];
           openCardZoomModal(randomTarget);
         });
-      }, 800);
+      }, 700);
     }
     
     function copyShareLink() { 
