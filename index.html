@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>🍢 MY KUJI (규어빵 전용판) v15</title>
+  <title>🍢 MY KUJI (규어빵 전용판) v16</title>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; user-select: none; }
@@ -183,7 +183,7 @@
     }
 
     /* 전용 새 탭 현황판 스타일 */
-    .history-tab-view { width: 100%; max-width: 950px; margin: 0 auto; text-align: left; }
+    .history-tab-view { width: 100%; max-width: 950px; margin: 0 auto; text-align: left; padding-bottom: 40px; }
     .round-group { background: rgba(0, 0, 0, 0.6); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 12px; padding: 15px; margin-bottom: 20px; }
     .round-title { font-size: 1.2rem; font-weight: bold; color: #ffeb3b; border-bottom: 1px solid rgba(255,255,255,0.15); padding-bottom: 8px; margin-bottom: 12px; display: flex; justify-content: space-between; }
     .history-row { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05); padding: 10px 14px; border-radius: 8px; margin-bottom: 8px; border: 1px solid rgba(255,255,255,0.1); }
@@ -198,6 +198,18 @@
     .summary-box h5 { font-size: 1rem; color: #ffeb3b; margin-bottom: 8px; border-bottom: 1px dashed rgba(255,255,255,0.2); padding-bottom: 4px; }
     .item-list-sm { font-size: 0.85rem; line-height: 1.5; color: #ddd; }
     .btn-edit-note { background: rgba(255,255,255,0.2); color: #fff; font-size: 0.75rem; padding: 2px 6px; border-radius: 4px; width: auto; display: inline-block; cursor: pointer; }
+
+    /* 최종 총정리 보드 스타일 */
+    .grand-summary-card {
+      background: linear-gradient(135deg, rgba(20, 20, 20, 0.95), rgba(40, 25, 60, 0.95));
+      border: 2px solid #ffeb3b; border-radius: 16px; padding: 20px; margin-top: 30px;
+      box-shadow: 0 10px 30px rgba(255, 235, 59, 0.2);
+    }
+    .grand-summary-title { font-size: 1.3rem; font-weight: 900; color: #ffeb3b; margin-bottom: 15px; border-bottom: 2px solid #ffeb3b; padding-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+    .grand-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9rem; }
+    .grand-table th, .grand-table td { padding: 10px; border: 1px solid rgba(255,255,255,0.15); text-align: center; }
+    .grand-table th { background: rgba(255,235,59,0.15); color: #ffeb3b; font-weight: bold; }
+    .grand-table td { background: rgba(0,0,0,0.3); }
   </style>
 
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -208,7 +220,7 @@
   <div class="header-bar">
     <div class="title-wrapper">
       <h1>🍢 MY KUJI (규어빵 전용판)</h1>
-      <span class="version-tag">v15</span>
+      <span class="version-tag">v16</span>
     </div>
     <div class="top-action-btns">
       <button class="sound-btn" onclick="toggleBgClear()">
@@ -240,7 +252,7 @@
 
       <label>1. 카드 총 수량 (최대 50장)</label>
       <input type="number" id="totalCardsInput" value="30" min="5" max="50">
-      
+
       <label>2. 이전 방 현황 이어가기 (선택)</label>
       <input type="text" id="prevRoomInput" placeholder="이전 방 코드 6자리 (누적 현황 유지)" maxlength="6" style="text-transform: uppercase;">
 
@@ -319,13 +331,22 @@
 
     <!-- 참가자별 종합 정산 요약 (받을/보낼 피규어 목록) -->
     <div class="user-summary-card">
-      <h3 style="color:#ffeb3b; font-size:1.1rem; margin-bottom:6px;">📦 참가자별 최종 정산 요약</h3>
-      <p style="font-size:0.8rem; color:#aaa;">누가 어떤 상품을 누구에게 보내야 하는지 한눈에 정리됩니다.</p>
+      <h3 style="color:#ffeb3b; font-size:1.1rem; margin-bottom:6px;">📦 참가자별 정산 세부 목록</h3>
+      <p style="font-size:0.88rem; color:#aaa;">누가 어떤 상품을 누구에게 보내야 하는지 상세 내역입니다.</p>
       <div id="summaryGrid" class="summary-grid"></div>
     </div>
 
     <!-- 회차별 상세 이력 -->
     <div id="historyRoundsContainer"></div>
+
+    <!-- 🏆 [요청 기능] 전체 총정리 보드 -->
+    <div class="grand-summary-card">
+      <div class="grand-summary-title">
+        <span>🏆 전체 회차 최종 총정리 요약본</span>
+        <span id="grandTotalCountBadge" style="font-size:0.9rem; color:#22c55e; background:rgba(34,197,94,0.15); padding:4px 10px; border-radius:12px; border:1px solid #22c55e;">총 당첨: 0건</span>
+      </div>
+      <div id="grandSummaryContent"></div>
+    </div>
   </div>
 
   <!-- 판 리셋 & 상품 설정 수정 모달 -->
@@ -399,7 +420,6 @@
     let isClearBg = false;
     let audioCtx = null;
 
-    // IndexedDB 오디오 영구 저장
     let dbInstance = null;
     function initIndexedDB() {
       return new Promise((resolve, reject) => {
@@ -683,7 +703,6 @@
       let inheritedHistory = {};
       let inheritedRound = 1;
 
-      // 이전 방 코드가 입력되었을 경우 누적 당첨 현황 가져오기
       if (prevRoomCode) {
         try {
           const snap = await db.ref('rooms/' + prevRoomCode).once('value');
@@ -692,9 +711,7 @@
             inheritedHistory = oldData.history || {};
             inheritedRound = (oldData.round || 1) + 1;
           }
-        } catch (e) {
-          console.log("이전 방 불러오기 실패:", e);
-        }
+        } catch (e) { console.log("이전 방 불러오기 실패:", e); }
       }
 
       const code = Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -995,7 +1012,7 @@
           to: turnPlayer,
           prizeName: prize.name,
           time: nowStr,
-          status: 'pending', // pending(대기중), done(완료)
+          status: 'pending',
           note: ''
         });
 
@@ -1066,15 +1083,15 @@
         const historyData = data.history || {};
         renderFullHistoryView(historyData);
         renderUserSummaryView(historyData);
+        renderGrandSummary(historyData); // 총정리 렌더링 호출
       });
     }
 
-    // 참가자별 [받을 물건 / 보낼 물건] 정산 요약 뷰
     function renderUserSummaryView(historyData) {
       const summaryGrid = document.getElementById('summaryGrid');
       summaryGrid.innerHTML = '';
 
-      const usersMap = {}; // { userName: { receive: [], send: [] } }
+      const usersMap = {};
 
       Object.keys(historyData).forEach(rKey => {
         const items = historyData[rKey] || [];
@@ -1101,19 +1118,19 @@
         box.className = 'summary-box';
 
         const recList = usersMap[uName].receive.map(it => 
-          `• <b>${it.from}</b> ➔ [${it.prizeName}] ${it.status === 'done' ? '✅(완료)' : '⏳(대기)'} <span class="btn-edit-note" onclick="editItemStatus('${it.id}')">수정</span>`
+          `• <b>${it.from}</b> ➔ [${it.prizeName}] ${it.status === 'done' ? '✅' : '⏳'} <span class="btn-edit-note" onclick="editItemStatus('${it.id}')">수정</span>`
         ).join('<br>') || '<span style="color:#777;">없음</span>';
 
         const sendList = usersMap[uName].send.map(it => 
-          `• ➔ <b>${it.to}</b> [${it.prizeName}] ${it.status === 'done' ? '✅(완료)' : '⏳(대기)'} <span class="btn-edit-note" onclick="editItemStatus('${it.id}')">수정</span>`
+          `• ➔ <b>${it.to}</b> [${it.prizeName}] ${it.status === 'done' ? '✅' : '⏳'} <span class="btn-edit-note" onclick="editItemStatus('${it.id}')">수정</span>`
         ).join('<br>') || '<span style="color:#777;">없음</span>';
 
         box.innerHTML = `
           <h5>👤 ${uName}</h5>
           <div class="item-list-sm">
-            <div style="color:#22c55e; font-weight:bold; margin-top:4px;">📥 받을 물건:</div>
+            <div style="color:#22c55e; font-weight:bold; margin-top:4px;">📥 받을 물건 (${usersMap[uName].receive.length}개):</div>
             ${recList}
-            <div style="color:#f39c12; font-weight:bold; margin-top:8px;">📤 보낼 물건:</div>
+            <div style="color:#f39c12; font-weight:bold; margin-top:8px;">📤 보낼 물건 (${usersMap[uName].send.length}개):</div>
             ${sendList}
           </div>
         `;
@@ -1121,7 +1138,77 @@
       });
     }
 
-    // 아이템 수령/발송 상태 수정
+    // 🏆 [요청 기능] 전체 회차 최종 총정리 보드 구현
+    function renderGrandSummary(historyData) {
+      const container = document.getElementById('grandSummaryContent');
+      let totalPrizesCount = 0;
+      let totalDoneCount = 0;
+      const stats = {}; // { userName: { getCount: 0, sendCount: 0, doneGet: 0, doneSend: 0 } }
+
+      Object.keys(historyData).forEach(rKey => {
+        const items = historyData[rKey] || [];
+        items.forEach(item => {
+          totalPrizesCount++;
+          if (item.status === 'done') totalDoneCount++;
+
+          const fromUser = item.from || '방장';
+          const toUser = item.to || '게스트';
+
+          if (!stats[fromUser]) stats[fromUser] = { getCount: 0, sendCount: 0, doneGet: 0, doneSend: 0 };
+          if (!stats[toUser]) stats[toUser] = { getCount: 0, sendCount: 0, doneGet: 0, doneSend: 0 };
+
+          stats[toUser].getCount++;
+          stats[fromUser].sendCount++;
+
+          if (item.status === 'done') {
+            stats[toUser].doneGet++;
+            stats[fromUser].doneSend++;
+          }
+        });
+      });
+
+      document.getElementById('grandTotalCountBadge').textContent = `총 당첨: ${totalPrizesCount}건 (정산완료: ${totalDoneCount}건)`;
+
+      const userNames = Object.keys(stats);
+      if (userNames.length === 0) {
+        container.innerHTML = `<div style="color:#aaa; text-align:center; padding:15px;">기록된 당첨 결과가 없습니다.</div>`;
+        return;
+      }
+
+      let tableRows = userNames.map(name => {
+        const s = stats[name];
+        const pendingGet = s.getCount - s.doneGet;
+        const pendingSend = s.sendCount - s.doneSend;
+        
+        return `
+          <tr>
+            <td style="font-weight:bold; color:#ffeb3b;">👤 ${name}</td>
+            <td style="color:#22c55e;"><b>${s.getCount}개</b> <span style="font-size:0.75rem; color:#aaa;">(완료 ${s.doneGet} / 미완료 ${pendingGet})</span></td>
+            <td style="color:#f39c12;"><b>${s.sendCount}개</b> <span style="font-size:0.75rem; color:#aaa;">(완료 ${s.doneSend} / 미완료 ${pendingSend})</span></td>
+            <td>
+              ${(pendingGet === 0 && pendingSend === 0) ? '<span style="color:#22c55e; font-weight:bold;">🎉 정산 모두 완료</span>' : '<span style="color:#e74c3c; font-weight:bold;">⏳ 진행중</span>'}
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      container.innerHTML = `
+        <table class="grand-table">
+          <thead>
+            <tr>
+              <th>참가자</th>
+              <th>총 받을 피규어</th>
+              <th>총 보낼 피규어</th>
+              <th>최종 상태</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${tableRows}
+          </tbody>
+        </table>
+      `;
+    }
+
     function editItemStatus(itemId) {
       if (!currentRoom) return;
 
@@ -1235,8 +1322,9 @@
       document.getElementById('resetModal').classList.add('hidden');
     }
 
+    // 🔄 [핵심 수정] 판 리셋시 이전 회차의 당첨 기록(history)은 누적 저장하며 유지시킴
     async function executeResetWithPrizes() {
-      if (!confirm(`현재 회차(${currentRound}회차)를 종료하고, 다음 회차(${currentRound + 1}회차)를 시작하시겠습니까?`)) return;
+      if (!confirm(`현재 회차(${currentRound}회차)를 종료하고, 다음 회차(${currentRound + 1}회차)를 시작하시겠습니까?\n(기존 당첨 기록은 누적 유지됩니다)`)) return;
 
       let total = parseInt(document.getElementById('resetTotalCardsInput').value) || 30;
       const updatedPrizes = await parsePrizeInputsFromContainer('resetPrizeInputs');
@@ -1251,13 +1339,14 @@
 
       const nextRound = currentRound + 1;
 
+      // history 항목을 지우지 않고 cards, prizes, round만 업데이트하여 당첨 내역 영구 보존
       db.ref('rooms/' + currentRoom).update({
         round: nextRound,
         cards: resetCards,
         prizes: updatedPrizes
       }).then(() => {
         closeResetModal();
-        alert(`제 ${nextRound} 회차가 성공적으로 시작되었습니다!`);
+        alert(`제 ${nextRound} 회차가 성공적으로 시작되었습니다!\n기존 기록은 현황판에 그대로 보존됩니다.`);
       });
     }
 
