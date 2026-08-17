@@ -3,11 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>🍢 MY KUJI (규어빵 전용판) v24 - 최종 완성판</title>
+  <title>🍢 MY KUJI (규어빵 전용판) v25 - 최종 완성판</title>
 
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
-  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
   <script src="https://www.youtube.com/iframe_api"></script>
@@ -235,7 +234,7 @@
       font-size: 0.95rem;
     }
 
-    /* 상품 입력 폼 스타일 (번호, 수령자, 발송자, 이름, 사진첨부 순서) */
+    /* 상품 입력 폼 스타일 (번호, 수령자, 발송자 한 줄 / 이름, 사진 아래쪽) */
     .prize-item {
       display: flex;
       flex-direction: column;
@@ -966,7 +965,7 @@
   <div class="header-bar">
     <div class="title-wrapper">
       <h1 onclick="handleTitleCheatClick()">🍢 MY KUJI (규어빵 전용판)</h1>
-      <span class="version-tag">v24</span>
+      <span class="version-tag">v25</span>
     </div>
     <div class="top-action-btns">
       <button onclick="openGrandTotalHistoryView()" style="background:#8e44ad; color:#fff; width:auto; font-size:0.85rem; padding:6px 14px; border-radius:12px;">📋 총 상품 현황판 보기</button>
@@ -1047,7 +1046,6 @@
       <div id="playerTagsList" class="player-tags-container"></div>
     </div>
 
-    <!-- 대기 관전자 승인 섹션 (방장용) -->
     <div id="waitingApprovalBox" class="manager-box hidden" style="border-color:#3b82f6;">
       <h4 style="color:#3b82f6;">⏳ 참가 승인 대기중인 인원 (관전자)</h4>
       <div id="waitingTagsList" class="player-tags-container"></div>
@@ -1115,7 +1113,6 @@
     </div>
   </div>
 
-  <!-- 상품 목록 중간 편집 모달 -->
   <div id="editPrizeModal" class="card-modal-overlay hidden">
     <div class="reset-modal-box">
       <h3 style="color:#ffeb3b; margin-bottom:12px; font-size:1.1rem;">⚙️ 중간 상품 목록 추가 / 삭제 / 변경</h3>
@@ -1557,7 +1554,7 @@ function saveNickname() {
   localStorage.setItem("kuji_nickname", myName);
 }
 
-/* 수정된 순서: 번호, 수령자, 발송자, 상품 이름, 상품 사진 첨부 */
+/* 수정된 순서: 번호, 수령자, 발송자 한 줄 배치 / 이름, 사진 아래 배치 */
 function addPrizeInput(containerId, initialNum = "", initialOwner = "", initialName = "", initialImg = "", initialSender = "") {
   const container = document.getElementById(containerId);
   if (!container) return;
@@ -1565,9 +1562,9 @@ function addPrizeInput(containerId, initialNum = "", initialOwner = "", initialN
   div.className = "prize-item";
   div.innerHTML = `
     <div class="prize-item-row">
-      <input type="number" placeholder="번호 (1~150)" class="p-num" value="${escapeHtml(initialNum)}" style="width:85px;">
-      <input type="text" placeholder="수령자" class="p-owner" value="${escapeHtml(initialOwner)}" style="flex-grow:1;">
-      <input type="text" placeholder="상품 발송자" class="p-sender" value="${escapeHtml(initialSender)}" style="flex-grow:1;">
+      <input type="number" placeholder="번호 (1~150)" class="p-num" value="${escapeHtml(initialNum)}" style="width:85px; margin-bottom:0;">
+      <input type="text" placeholder="수령자" class="p-owner" value="${escapeHtml(initialOwner)}" style="flex-grow:1; margin-bottom:0;">
+      <input type="text" placeholder="상품 발송자" class="p-sender" value="${escapeHtml(initialSender)}" style="flex-grow:1; margin-bottom:0;">
     </div>
     <input type="text" placeholder="상품 이름" class="p-name" value="${escapeHtml(initialName)}">
     <div style="font-size:0.8rem; color:#ccc; margin-top:2px;">상품 사진 첨부:</div>
@@ -1988,7 +1985,7 @@ function openCardZoomModal(index, isSync = false, syncTransform = null) {
     zoomCover.style.transform = "translateX(0) rotate(0deg)";
   }
 
-  const btnGroup = document.getElementById("modalBtnGroup") || document.getElementById("zoomModalBtnGroup");
+  const btnGroup = document.getElementById("zoomModalBtnGroup");
   const guideText = document.getElementById("zoomModalGuideText");
   if (isHost()) {
     if (btnGroup) btnGroup.style.display = "flex";
@@ -2303,7 +2300,6 @@ function openGrandTotalHistoryView() {
       const rData = roomsVal[rCode];
       const rHist = rData.history || {};
       Object.keys(rHist).forEach(roundKey => {
-        // 방 코드별 회차를 고유하게 분리하여 누적
         const uniqueKey = `${rCode}_${roundKey}`;
         if (!aggregatedHistory[uniqueKey]) aggregatedHistory[uniqueKey] = [];
         aggregatedHistory[uniqueKey] = aggregatedHistory[uniqueKey].concat(rHist[roundKey]);
@@ -2486,7 +2482,6 @@ function clearAllGrandHistory() {
         alert("해당 방의 모든 기록이 초기화되었습니다.");
       });
     } else {
-      // 전체 보기인 경우 모든 방의 history를 제거
       db.ref("rooms/").once("value", snapshot => {
         if (!snapshot.exists()) return;
         const updates = {};
