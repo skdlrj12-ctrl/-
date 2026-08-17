@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title> MY KUJI (규어빵 전용판) v20</title>
+  <title>🍢 MY KUJI (규어빵 전용판) v20</title>
 
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
@@ -1049,8 +1049,8 @@
         <div id="lobbySoundList" class="sound-list-container"></div>
       </div>
       <hr style="border-color: rgba(255,255,255,0.1); margin: 15px 0;">
-      <label>1. 카드 총 수량 (최대 50장)</label>
-      <input type="number" id="totalCardsInput" value="30" min="5" max="50">
+      <label>1. 카드 총 수량 (최대 150장)</label>
+      <input type="number" id="totalCardsInput" value="30" min="5" max="150">
       <label>2. 이전 방 현황 이어가기 (선택)</label>
       <input type="text" id="prevRoomInput" placeholder="이전 방 코드 6자리 (누적 현황 유지)" maxlength="6" style="text-transform:uppercase;">
       <label>3. 당첨 번호, 소유자 및 상품 설정</label>
@@ -1095,6 +1095,7 @@
         <input type="number" id="shuffleCountInput" value="5" min="1" max="50" style="width:55px; margin-bottom:0; padding:5px; text-align:center;">
       </div>
       <button onclick="shuffleAndOpenRandom()" class="btn-sub btn-shuffle">🔀 셔플 후 카드 개봉</button>
+      <button onclick="toggleCheatMode()" class="btn-sub" id="cheatModeBtn" style="background:#8b5cf6; color:#fff;">✨ 치트모드: OFF</button>
       <button onclick="openResetModal()" class="btn-sub btn-reset">🔄 다음 회차 시작 (판 리셋 & 상품 교체)</button>
     </div>
 
@@ -1143,7 +1144,7 @@
     <div class="reset-modal-box">
       <h3 style="color:#ffeb3b; margin-bottom:12px; font-size:1.1rem;">🔄 다음 회차 시작 (판 리셋 & 상품 교체)</h3>
       <label style="font-size:0.85rem; color:#ccc;">카드 총 수량</label>
-      <input type="number" id="resetTotalCardsInput" value="30" min="5" max="50">
+      <input type="number" id="resetTotalCardsInput" value="30" min="5" max="150">
       <label style="font-size:0.85rem; color:#ccc; margin-top:6px; display:block;">상품 / 소유자 / 번호 설정</label>
       <div id="resetPrizeInputs" style="margin-top:6px;"></div>
       <button onclick="addPrizeInput('resetPrizeInputs')" style="background:rgba(255,255,255,0.15); color:#fff; font-size:0.8rem; padding:6px; margin-bottom:15px; border:1px solid rgba(255,255,255,0.2);">+ 상품 추가</button>
@@ -1202,6 +1203,21 @@ let winAudio = null;
 let activeSoundId = null;
 let audioCtx = null;
 let youtubeCurrentId = null;
+let isCheatMode = false;
+
+function toggleCheatMode() {
+  if (!isHost()) {
+    alert("방장만 치트모드를 사용할 수 있습니다.");
+    return;
+  }
+  isCheatMode = !isCheatMode;
+  const btn = document.getElementById("cheatModeBtn");
+  if (btn) {
+    btn.textContent = isCheatMode ? "✨ 치트모드: ON" : "✨ 치트모드: OFF";
+    btn.style.background = isCheatMode ? "#22c55e" : "#8b5cf6";
+  }
+  renderGrid(currentCardsData);
+}
 
 function getYouTubeVideoId(url) {
   try {
@@ -1889,6 +1905,22 @@ function renderGrid(cards) {
       }
     }
 
+    const coverElem = document.getElementById(`card-cover-${index}`);
+    if (coverElem) {
+      if (isHost() && isCheatMode && !card.picked) {
+        if (prize) {
+          coverElem.style.border = "2px solid #ff3333";
+          coverElem.title = `당첨: ${prize.name} (${card.value}번)`;
+        } else {
+          coverElem.style.border = "none";
+          coverElem.title = `꽝 (${card.value}번)`;
+        }
+      } else {
+        coverElem.style.border = "none";
+        coverElem.title = "";
+      }
+    }
+
     cardElem.className = "kuji-card" + (card.picked ? " picked" : "") + (isWin ? " win" : "");
   });
 
@@ -2118,9 +2150,6 @@ function openHistoryNewTab() {
   window.open(url, "_blank");
 }
 
-/* =========================================================
-   [수정됨] 고쳐진 초대 링크 복사 함수 (copyShareLink)
-   ========================================================= */
 function copyShareLink() {
   if (!currentRoom) {
     alert("참여 중인 방 코드가 없습니다.");
