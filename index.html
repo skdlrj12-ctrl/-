@@ -206,10 +206,6 @@
       box-shadow: 0 10px 30px rgba(255, 235, 59, 0.2);
     }
     .grand-summary-title { font-size: 1.3rem; font-weight: 900; color: #ffeb3b; margin-bottom: 15px; border-bottom: 2px solid #ffeb3b; padding-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
-    .grand-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9rem; }
-    .grand-table th, .grand-table td { padding: 10px; border: 1px solid rgba(255,255,255,0.15); text-align: center; }
-    .grand-table th { background: rgba(255,235,59,0.15); color: #ffeb3b; font-weight: bold; }
-    .grand-table td { background: rgba(0,0,0,0.3); }
   </style>
 
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -339,10 +335,10 @@
     <!-- 회차별 상세 이력 -->
     <div id="historyRoundsContainer"></div>
 
-    <!-- 🏆 [요청 기능] 전체 총정리 보드 -->
+    <!-- 🏆 [요청 기능] 전체 회차 총정리 보드 -->
     <div class="grand-summary-card">
       <div class="grand-summary-title">
-        <span>🏆 전체 회차 최종 총정리 요약본</span>
+        <span>🏆 전체회차 총정리</span>
         <span id="grandTotalCountBadge" style="font-size:0.9rem; color:#22c55e; background:rgba(34,197,94,0.15); padding:4px 10px; border-radius:12px; border:1px solid #22c55e;">총 당첨: 0건</span>
       </div>
       <div id="grandSummaryContent"></div>
@@ -1083,7 +1079,7 @@
         const historyData = data.history || {};
         renderFullHistoryView(historyData);
         renderUserSummaryView(historyData);
-        renderGrandSummary(historyData); // 총정리 렌더링 호출
+        renderGrandSummary(historyData);
       });
     }
 
@@ -1138,75 +1134,64 @@
       });
     }
 
-    // 🏆 [요청 기능] 전체 회차 최종 총정리 보드 구현
+    // 🏆 [수정 기능] 전체회차 총정리 탭 텍스트 정리 함수
     function renderGrandSummary(historyData) {
       const container = document.getElementById('grandSummaryContent');
       let totalPrizesCount = 0;
-      let totalDoneCount = 0;
-      const stats = {}; // { userName: { getCount: 0, sendCount: 0, doneGet: 0, doneSend: 0 } }
+
+      const ulsanShipments = {}; // { 사람: [물건1, 물건2, ...] }
+      const generalShipments = {}; // { 사람: [물건1, 물건2, ...] }
 
       Object.keys(historyData).forEach(rKey => {
         const items = historyData[rKey] || [];
         items.forEach(item => {
           totalPrizesCount++;
-          if (item.status === 'done') totalDoneCount++;
+          const sender = item.from || '방장';
+          const receiver = item.to || '게스트';
+          const prizeName = item.prizeName || item.itemName || '상품';
+          const note = item.note || '';
 
-          const fromUser = item.from || '방장';
-          const toUser = item.to || '게스트';
+          // 보내는 사람, 받는 사람, 비고 항목에 '울산'이 포함되어 있는지 확인
+          const isUlsan = sender.includes('울산') || receiver.includes('울산') || note.includes('울산');
+          const targetMap = isUlsan ? ulsanShipments : generalShipments;
 
-          if (!stats[fromUser]) stats[fromUser] = { getCount: 0, sendCount: 0, doneGet: 0, doneSend: 0 };
-          if (!stats[toUser]) stats[toUser] = { getCount: 0, sendCount: 0, doneGet: 0, doneSend: 0 };
-
-          stats[toUser].getCount++;
-          stats[fromUser].sendCount++;
-
-          if (item.status === 'done') {
-            stats[toUser].doneGet++;
-            stats[fromUser].doneSend++;
-          }
+          if (!targetMap[sender]) targetMap[sender] = [];
+          targetMap[sender].push(prizeName);
         });
       });
 
-      document.getElementById('grandTotalCountBadge').textContent = `총 당첨: ${totalPrizesCount}건 (정산완료: ${totalDoneCount}건)`;
+      document.getElementById('grandTotalCountBadge').textContent = `총 당첨: ${totalPrizesCount}건`;
 
-      const userNames = Object.keys(stats);
-      if (userNames.length === 0) {
-        container.innerHTML = `<div style="color:#aaa; text-align:center; padding:15px;">기록된 당첨 결과가 없습니다.</div>`;
-        return;
+      // 울산 보낼물건 포맷팅
+      let ulsanText = "";
+      const ulsanKeys = Object.keys(ulsanShipments);
+      if (ulsanKeys.length === 0) {
+        ulsanText = "없음";
+      } else {
+        ulsanText = ulsanKeys.map(name => `${name} - ${ulsanShipments[name].join(', ')}`).join('\n');
       }
 
-      let tableRows = userNames.map(name => {
-        const s = stats[name];
-        const pendingGet = s.getCount - s.doneGet;
-        const pendingSend = s.sendCount - s.doneSend;
-        
-        return `
-          <tr>
-            <td style="font-weight:bold; color:#ffeb3b;">👤 ${name}</td>
-            <td style="color:#22c55e;"><b>${s.getCount}개</b> <span style="font-size:0.75rem; color:#aaa;">(완료 ${s.doneGet} / 미완료 ${pendingGet})</span></td>
-            <td style="color:#f39c12;"><b>${s.sendCount}개</b> <span style="font-size:0.75rem; color:#aaa;">(완료 ${s.doneSend} / 미완료 ${pendingSend})</span></td>
-            <td>
-              ${(pendingGet === 0 && pendingSend === 0) ? '<span style="color:#22c55e; font-weight:bold;">🎉 정산 모두 완료</span>' : '<span style="color:#e74c3c; font-weight:bold;">⏳ 진행중</span>'}
-            </td>
-          </tr>
-        `;
-      }).join('');
+      // 보낼물건 포맷팅
+      let generalText = "";
+      const generalKeys = Object.keys(generalShipments);
+      if (generalKeys.length === 0) {
+        generalText = "없음";
+      } else {
+        generalText = generalKeys.map(name => `${name} - ${generalShipments[name].join(', ')}`).join('\n');
+      }
+
+      const fullSummaryText = `울산 보낼물건\n${ulsanText}\n\n보낼물건\n${generalText}`;
 
       container.innerHTML = `
-        <table class="grand-table">
-          <thead>
-            <tr>
-              <th>참가자</th>
-              <th>총 받을 피규어</th>
-              <th>총 보낼 피규어</th>
-              <th>최종 상태</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${tableRows}
-          </tbody>
-        </table>
+        <div id="summaryTextDisplay" style="background: rgba(0,0,0,0.6); padding: 16px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2); font-family: monospace; white-space: pre-wrap; line-height: 1.6; font-size: 0.95rem; color: #fff; text-align: left;">${fullSummaryText}</div>
+        <button onclick="copyGrandSummaryText()" style="margin-top: 12px; background: #22c55e; color: #fff; width: auto; padding: 8px 16px; font-size: 0.85rem; border-radius: 6px; font-weight: bold; cursor: pointer;">📋 총정리 텍스트 복사하기</button>
       `;
+
+      window.copyGrandSummaryText = function() {
+        navigator.clipboard.writeText(fullSummaryText).then(() => {
+          alert('전체 총정리 내역이 클립보드에 복사되었습니다!');
+        });
+      };
     }
 
     function editItemStatus(itemId) {
@@ -1322,7 +1307,6 @@
       document.getElementById('resetModal').classList.add('hidden');
     }
 
-    // 🔄 [핵심 수정] 판 리셋시 이전 회차의 당첨 기록(history)은 누적 저장하며 유지시킴
     async function executeResetWithPrizes() {
       if (!confirm(`현재 회차(${currentRound}회차)를 종료하고, 다음 회차(${currentRound + 1}회차)를 시작하시겠습니까?\n(기존 당첨 기록은 누적 유지됩니다)`)) return;
 
@@ -1339,7 +1323,6 @@
 
       const nextRound = currentRound + 1;
 
-      // history 항목을 지우지 않고 cards, prizes, round만 업데이트하여 당첨 내역 영구 보존
       db.ref('rooms/' + currentRoom).update({
         round: nextRound,
         cards: resetCards,
