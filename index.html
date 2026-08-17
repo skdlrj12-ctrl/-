@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>🍢 MY KUJI (규어빵 전용판) v10</title>
+  <title>🍢 MY KUJI (규어빵 전용판) v11</title>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; user-select: none; }
@@ -141,7 +141,6 @@
       box-shadow: 0 0 12px rgba(255, 51, 51, 0.8);
     }
 
-    /* 개봉 시 번호 팝업 연출 오버레이 */
     .num-reveal-overlay {
       position: fixed; inset: 0; background: rgba(0,0,0,0.85);
       z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -156,7 +155,6 @@
     .num-reveal-overlay.show .num-reveal-box { transform: scale(1.2); }
     .num-reveal-sub { font-size: 1.4rem; color: #22c55e; font-weight: bold; margin-top: 10px; }
 
-    /* 카드 뜯기 모달 */
     .card-modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(12px); z-index: 1500; display: flex; flex-direction: column; align-items: center; justify-content: center; }
     .pop-card-wrapper { position: relative; width: 280px; height: 220px; border-radius: 16px; overflow: hidden; background: #151515; border: 2px solid rgba(255,255,255,0.3); box-shadow: 0 10px 40px rgba(0,0,0,0.8); touch-action: none; }
     
@@ -177,7 +175,21 @@
       padding: 12px; border-radius: 10px; margin-top: 10px; text-align: left;
     }
     .sound-uploader-box label { font-size: 0.85rem; color: #ffeb3b; font-weight: bold; display: block; margin-bottom: 4px; }
-    .sound-uploader-box input[type="file"] { margin-bottom: 0; font-size: 0.8rem; }
+    .sound-uploader-box input[type="file"] { margin-bottom: 8px; font-size: 0.8rem; }
+
+    /* Sound Library Styles */
+    .sound-list-container {
+      max-height: 120px; overflow-y: auto; background: rgba(0,0,0,0.5);
+      border-radius: 6px; padding: 6px; margin-top: 6px; border: 1px solid rgba(255,255,255,0.1);
+    }
+    .sound-item {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 4px 8px; border-bottom: 1px solid rgba(255,255,255,0.08); font-size: 0.8rem;
+    }
+    .sound-item:last-child { border-bottom: none; }
+    .sound-item.active { background: rgba(34, 197, 94, 0.25); border-radius: 4px; font-weight: bold; color: #22c55e; }
+    .sound-item-btns { display: flex; gap: 4px; }
+    .sound-item-btn { padding: 2px 6px; font-size: 0.7rem; border-radius: 4px; border: none; cursor: pointer; background: rgba(255,255,255,0.2); color: #fff; width: auto; }
 
     .room-info-bottom { background: rgba(0, 0, 0, 0.4); padding: 10px 14px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255, 255, 255, 0.15); font-size: 0.85rem; color: #aaa; flex-wrap: wrap; gap: 10px; }
     .room-code { color: #4dabf7; font-size: 1.1rem; font-weight: bold; }
@@ -199,7 +211,7 @@
   <div class="header-bar">
     <div class="title-wrapper">
       <h1>🍢 MY KUJI (규어빵 전용판)</h1>
-      <span class="version-tag">v10</span>
+      <span class="version-tag">v11</span>
     </div>
     <button id="soundToggleBtn" class="sound-btn" onclick="toggleSound()">
       <span id="soundIcon">🔊</span> <span id="soundText">사운드 ON</span>
@@ -214,8 +226,12 @@
 
       <hr style="border-color: rgba(255,255,255,0.1); margin: 15px 0;">
 
-      <label>🎵 당첨 음원 파일 등록 (MP3 / WAV)</label>
-      <input type="file" id="soundFileInputLobby" accept="audio/*" onchange="handleAudioUpload(event)">
+      <div class="sound-uploader-box" style="margin-top:0;">
+        <label>🎵 당첨 음원 파일 등록 (IndexedDB 영구보존)</label>
+        <input type="file" accept="audio/*" onchange="handleAudioUpload(event)">
+        <div style="font-size: 0.8rem; color: #ffeb3b; margin-top: 4px; font-weight: bold;">📂 저장된 음원 목록</div>
+        <div id="lobbySoundList" class="sound-list-container"></div>
+      </div>
 
       <hr style="border-color: rgba(255,255,255,0.1); margin: 15px 0;">
 
@@ -262,11 +278,12 @@
 
     <div class="grid" id="grid"></div>
 
-    <!-- 하단 음원 등록 및 공유 영역 -->
+    <!-- 하단 음원 보관함 영역 -->
     <div class="sound-uploader-box">
-      <label>🎵 당첨 효과음 파일 업로드 (MP3 / WAV)</label>
-      <input type="file" id="soundFileInputBottom" accept="audio/*" onchange="handleAudioUpload(event)">
-      <div id="soundStatusText" style="font-size:0.75rem; color:#aaa; margin-top:4px;">당첨 음원이 등록되지 않았습니다. 파일 첨부 시 당첨 소리가 재생됩니다.</div>
+      <label>🎵 당첨 효과음 보관함 (MP3 / WAV)</label>
+      <input type="file" accept="audio/*" onchange="handleAudioUpload(event)">
+      <div style="font-size: 0.8rem; color: #ffeb3b; margin-top: 4px; font-weight: bold;">📂 저장된 음원 목록</div>
+      <div id="gameSoundList" class="sound-list-container"></div>
     </div>
 
     <div class="room-info-bottom">
@@ -275,14 +292,13 @@
     </div>
   </div>
 
-  <!-- 번호확인 강조 팝업 오버레이 -->
   <div id="numRevealOverlay" class="num-reveal-overlay">
     <div id="revealNumText" class="num-reveal-box">7</div>
     <div id="revealSubText" class="num-reveal-sub">지정인 : 게스트</div>
   </div>
 
   <div id="cardZoomModal" class="card-modal-overlay hidden">
-    <div style="color: #bbb; font-size: 0.9rem; margin-bottom: 15px;">👉 슬라이드 드래그하거나 확 뜯기 버튼을 누르세요!</div>
+    <div style="color: #bbb; font-size: 0.9rem; margin-bottom: 15px;">👉 커버를 조금만 쓱 드래그하고 손을 떼어보세요!</div>
     <div class="pop-card-wrapper">
       <div class="pop-card-content">
         <div id="zoomCardNum" class="pop-card-num">?</div>
@@ -319,106 +335,178 @@
     let hostName = "";
     let selectedIndex = null;
 
-    // 사운드 관련 객체 (기본 당첨 음원은 null로 변경하여 업로드 시에만 재생)
     let winAudio = null;
+    let activeSoundId = null;
     let isMuted = false;
     let audioCtx = null;
 
+    // --- IndexedDB 오디오 저장 및 제어 ---
+    let dbInstance = null;
+    function initIndexedDB() {
+      return new Promise((resolve, reject) => {
+        const req = indexedDB.open("KujiSoundDB", 1);
+        req.onupgradeneeded = (e) => {
+          const idb = e.target.result;
+          if (!idb.objectStoreNames.contains("sounds")) {
+            idb.createObjectStore("sounds", { keyPath: "id", autoIncrement: true });
+          }
+        };
+        req.onsuccess = (e) => {
+          dbInstance = e.target.result;
+          resolve(dbInstance);
+        };
+        req.onerror = (e) => reject(e);
+      });
+    }
+
+    async function saveSoundToDB(file) {
+      if (!dbInstance) await initIndexedDB();
+      return new Promise((resolve, reject) => {
+        const transaction = dbInstance.transaction(["sounds"], "readwrite");
+        const store = transaction.objectStore("sounds");
+        const soundData = { name: file.name, data: file, createdAt: Date.now() };
+        const req = store.add(soundData);
+        req.onsuccess = (e) => resolve(e.target.result);
+        req.onerror = (e) => reject(e);
+      });
+    }
+
+    async function getAllSoundsFromDB() {
+      if (!dbInstance) await initIndexedDB();
+      return new Promise((resolve) => {
+        const transaction = dbInstance.transaction(["sounds"], "readonly");
+        const store = transaction.objectStore("sounds");
+        const req = store.getAll();
+        req.onsuccess = () => resolve(req.result || []);
+        req.onerror = () => resolve([]);
+      });
+    }
+
+    async function deleteSoundFromDB(id) {
+      if (!dbInstance) await initIndexedDB();
+      return new Promise((resolve) => {
+        const transaction = dbInstance.transaction(["sounds"], "readwrite");
+        const store = transaction.objectStore("sounds");
+        const req = store.delete(id);
+        req.onsuccess = () => resolve(true);
+      });
+    }
+
+    async function selectSound(id) {
+      const sounds = await getAllSoundsFromDB();
+      const target = sounds.find(s => s.id === id);
+      if (target) {
+        activeSoundId = id;
+        localStorage.setItem('kuji_active_sound', id);
+        const url = URL.createObjectURL(target.data);
+        winAudio = new Audio(url);
+        renderSoundLists();
+      }
+    }
+
+    async function renderSoundLists() {
+      const sounds = await getAllSoundsFromDB();
+      const savedActiveId = parseInt(localStorage.getItem('kuji_active_sound'));
+
+      if (!activeSoundId && savedActiveId) {
+        const found = sounds.find(s => s.id === savedActiveId);
+        if (found) {
+          activeSoundId = savedActiveId;
+          winAudio = new Audio(URL.createObjectURL(found.data));
+        }
+      }
+
+      ['lobbySoundList', 'gameSoundList'].forEach(listId => {
+        const container = document.getElementById(listId);
+        if (!container) return;
+        container.innerHTML = '';
+
+        if (sounds.length === 0) {
+          container.innerHTML = `<div style="font-size:0.75rem; color:#888; padding:4px;">저장된 음원이 없습니다.</div>`;
+          return;
+        }
+
+        sounds.forEach(s => {
+          const item = document.createElement('div');
+          const isActive = s.id === activeSoundId;
+          item.className = 'sound-item' + (isActive ? ' active' : '');
+          item.innerHTML = `
+            <span>${isActive ? '🔊 ' : ''}${s.name}</span>
+            <div class="sound-item-btns">
+              ${!isActive ? `<button class="sound-item-btn" onclick="selectSound(${s.id})">선택</button>` : ''}
+              <button class="sound-item-btn" style="background:#e74c3c" onclick="removeSound(${s.id})">삭제</button>
+            </div>
+          `;
+          container.appendChild(item);
+        });
+      });
+    }
+
+    async function handleAudioUpload(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const newId = await saveSoundToDB(file);
+        await selectSound(newId);
+        alert(`'${file.name}' 사운드가 보관함에 영구 저장되었습니다!`);
+      }
+    }
+
+    async function removeSound(id) {
+      if (confirm('해당 음원을 삭제하시겠습니까?')) {
+        await deleteSoundFromDB(id);
+        if (activeSoundId === id) {
+          activeSoundId = null;
+          winAudio = null;
+          localStorage.removeItem('kuji_active_sound');
+        }
+        renderSoundLists();
+      }
+    }
+
     function getAudioContext() {
-      if (!audioCtx) {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      }
-      if (audioCtx.state === 'suspended') {
-        audioCtx.resume();
-      }
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
       return audioCtx;
     }
 
-    // 1. 경쾌한 셔플 효과음 (따라락 경쾌하게 올라가는 주파수 트리거)
     function playShuffleSound() {
       if (isMuted) return;
       try {
         const ctx = getAudioContext();
         const now = ctx.currentTime;
-        const totalSteps = 12;
-
-        for (let i = 0; i < totalSteps; i++) {
+        for (let i = 0; i < 12; i++) {
           const osc = ctx.createOscillator();
           const gain = ctx.createGain();
-
           osc.type = 'sine';
-          // 신나고 경쾌한 실로폰/아르페지오 톤
-          const freq = 400 + (i * 65);
-          osc.frequency.setValueAtTime(freq, now + (i * 0.05));
-
+          osc.frequency.setValueAtTime(400 + (i * 65), now + (i * 0.05));
           gain.gain.setValueAtTime(0.12, now + (i * 0.05));
           gain.gain.exponentialRampToValueAtTime(0.001, now + (i * 0.05) + 0.08);
-
-          osc.connect(gain);
-          gain.connect(ctx.destination);
-
-          osc.start(now + (i * 0.05));
-          osc.stop(now + (i * 0.05) + 0.09);
+          osc.connect(gain); gain.connect(ctx.destination);
+          osc.start(now + (i * 0.05)); osc.stop(now + (i * 0.05) + 0.09);
         }
-      } catch (e) {
-        console.log("셔플 사운드 재생 불가: ", e);
-      }
+      } catch (e) {}
     }
 
-    // 2. 경쾌한 꽝 효과음 (피용~ 경쾌하게 내려가는 재치있는 효과음)
     function playLoseSound() {
       if (isMuted) return;
       try {
         const ctx = getAudioContext();
         const now = ctx.currentTime;
-
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
-
         osc.type = 'sine';
         osc.frequency.setValueAtTime(600, now);
         osc.frequency.exponentialRampToValueAtTime(150, now + 0.35);
-
         gain.gain.setValueAtTime(0.2, now);
         gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
-
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-
-        osc.start(now);
-        osc.stop(now + 0.35);
-      } catch (e) {
-        console.log("꽝 사운드 재생 불가: ", e);
-      }
-    }
-
-    // 파일 로드 시 당첨음 등록
-    function handleAudioUpload(event) {
-      const file = event.target.files[0];
-      if (file) {
-        const fileURL = URL.createObjectURL(file);
-        winAudio = new Audio(fileURL);
-        
-        winAudio.play().then(() => {
-          winAudio.pause();
-          winAudio.currentTime = 0;
-        }).catch(() => {});
-
-        const statusMsg = `✅ 등록 완료: ${file.name}`;
-        document.getElementById('soundStatusText').textContent = statusMsg;
-        document.getElementById('soundStatusText').style.color = '#22c55e';
-        alert(`'${file.name}' 사운드가 정상적으로 설정되었습니다!`);
-      }
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.start(now); osc.stop(now + 0.35);
+      } catch (e) {}
     }
 
     function unlockAudio() {
       getAudioContext();
-      if (winAudio) {
-        winAudio.play().then(() => {
-          winAudio.pause();
-          winAudio.currentTime = 0;
-        }).catch(() => {});
-      }
+      if (winAudio) { winAudio.play().then(() => { winAudio.pause(); winAudio.currentTime = 0; }).catch(() => {}); }
       window.removeEventListener('click', unlockAudio);
       window.removeEventListener('touchstart', unlockAudio);
     }
@@ -452,7 +540,10 @@
       'https://i.ibb.co/QjP9RC5F/toga.jpg'
     ];
 
-    window.addEventListener('DOMContentLoaded', () => {
+    window.addEventListener('DOMContentLoaded', async () => {
+      await initIndexedDB();
+      renderSoundLists();
+
       const savedName = localStorage.getItem('kuji_nickname');
       if (savedName) document.getElementById('nicknameInput').value = savedName;
 
@@ -737,6 +828,7 @@
       selectedIndex = null;
     }
 
+    // --- 드래그 터치/클릭을 놓았을 때 자동 개봉 보완 로직 ---
     function setupZoomDrag() {
       const coverElem = document.getElementById('zoomCardCover');
       let startX = 0, currentDiff = 0, isDragging = false;
@@ -753,24 +845,25 @@
         if (!isDragging) return;
         currentDiff = x - startX;
         coverElem.style.transform = `translateX(${currentDiff}px) rotate(${currentDiff * 0.1}deg)`;
-
-        if (Math.abs(currentDiff) > 140) {
-          isDragging = false;
-          forceRipOpen(currentDiff > 0 ? 'right' : 'left');
-        }
       };
 
       const onEnd = () => {
-        if (isDragging) {
+        if (!isDragging) return;
+        isDragging = false;
+
+        // 약간이라도 밀고(30px 이상) 손을 떼면 완전히 확 뜯어지도록 설정
+        if (Math.abs(currentDiff) > 30) {
+          forceRipOpen(currentDiff > 0 ? 'right' : 'left');
+        } else {
           coverElem.style.transition = 'transform 0.25s ease';
           coverElem.style.transform = 'translateX(0) rotate(0deg)';
-          isDragging = false;
         }
       };
 
       coverElem.addEventListener('touchstart', (e) => onStart(e.touches[0].clientX));
       coverElem.addEventListener('touchmove', (e) => onMove(e.touches[0].clientX));
       coverElem.addEventListener('touchend', onEnd);
+
       coverElem.addEventListener('mousedown', (e) => onStart(e.clientX));
       window.addEventListener('mousemove', (e) => onMove(e.clientX));
       window.addEventListener('mouseup', onEnd);
@@ -826,11 +919,9 @@
       showNumberRevealAnimation(card.value, turnPlayer, isWin);
 
       if (isWin) {
-        // 등록된 mp3 음원이 있을 경우에만 당첨음 재생
         playWinSound();
         confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 } });
       } else {
-        // 꽝일 때 경쾌한 피용~ 효과음 재생
         playLoseSound();
       }
 
@@ -850,7 +941,6 @@
 
       if (unpickedIndices.length === 0) return alert('남아있는 카드가 없습니다.');
 
-      // 경쾌한 따라락 셔플 효과음 재생
       playShuffleSound();
 
       unpickedIndices.forEach(idx => {
