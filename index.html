@@ -48,8 +48,10 @@
     .manager-box { background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 12px; padding: 12px; text-align: left; }
     .manager-box h4 { color: #ffeb3b; font-size: 0.9rem; margin-bottom: 8px; }
     .player-tags-container { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
-    .player-tag { background: rgba(0,0,0,0.5); padding: 4px 10px; border-radius: 15px; font-size: 0.85rem; display: flex; align-items: center; gap: 6px; border: 1px solid #555; }
+    .player-tag { background: rgba(0,0,0,0.5); padding: 4px 8px; border-radius: 15px; font-size: 0.85rem; display: flex; align-items: center; gap: 4px; border: 1px solid #555; }
     .player-tag.active { border-color: #22c55e; background: rgba(34, 197, 94, 0.25); color: #22c55e; font-weight: bold; }
+    .player-btn { background: rgba(255,255,255,0.2); border: none; color: #fff; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; cursor: pointer; }
+    .player-btn:hover { background: rgba(255,255,255,0.4); }
 
     .turn-banner { background: linear-gradient(135deg, rgba(34, 197, 94, 0.3), rgba(59, 130, 246, 0.3)); border: 2px solid #22c55e; border-radius: 12px; padding: 10px; text-align: center; }
     .turn-banner .title { font-size: 0.85rem; color: #bbb; margin-bottom: 2px; }
@@ -67,7 +69,6 @@
 
     .card-number { font-size: 1.3rem; font-weight: 900; color: #ffeb3b; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000; }
     
-    /* 당첨자 이름 카드의 제일 하단부에 위치 고정 */
     .card-picker { 
       position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%);
       font-size: 0.75rem; color: #ffffff; font-weight: bold; background: rgba(0, 0, 0, 0.85); 
@@ -75,11 +76,9 @@
       border: 1px solid rgba(255, 255, 255, 0.4); 
     }
 
-    /* 일반 상태 커버 */
     .card-cover { position: absolute; inset: 0; background-size: cover; background-position: center; background-color: #222; z-index: 10; }
     .kuji-card.picked .card-cover { display: none !important; }
 
-    /* 전부 열린 후 당첨 카드 스타일 */
     .kuji-card.win { 
       background-image: url('https://i.ibb.co/wr4D4fR8/image.jpg') !important; 
       background-size: cover !important; 
@@ -88,7 +87,7 @@
       box-shadow: 0 0 12px rgba(255, 51, 51, 0.8);
     }
 
-    /* 중앙 카드 확대 모달 레이어 */
+    /* 중앙 카드 확대 뜯기 모달 */
     .card-modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(12px); z-index: 1500; display: flex; flex-direction: column; align-items: center; justify-content: center; }
     .pop-card-wrapper { position: relative; width: 280px; height: 220px; border-radius: 16px; overflow: hidden; background: #151515; border: 2px solid rgba(255,255,255,0.3); box-shadow: 0 10px 40px rgba(0,0,0,0.8); touch-action: none; }
     
@@ -98,7 +97,7 @@
 
     .pop-card-cover { 
       position: absolute; inset: 0; background-size: cover; background-position: center; background-color: #222; z-index: 10;
-      transition: transform 0.1s ease-out; cursor: grab; transform-origin: left center; touch-action: none;
+      transition: transform 0.1s ease-out; cursor: grab; transform-origin: center center; touch-action: none;
     }
 
     .room-info-bottom { background: rgba(0, 0, 0, 0.4); padding: 10px 14px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255, 255, 255, 0.15); font-size: 0.85rem; color: #aaa; }
@@ -119,6 +118,7 @@
   <h1>🍢 MY KUJI (규어빵 전용판)</h1>
   <p class="sub">실시간 제비뽑기 게임</p>
 
+  <!-- 로비 화면 -->
   <div id="lobby" class="card-box">
     <div class="setting-group">
       <label>👤 내 닉네임 설정</label>
@@ -142,6 +142,7 @@
     </div>
   </div>
 
+  <!-- 게임 화면 -->
   <div id="game" class="card-box hidden">
     <div class="prize-board-top">
       <h3>🎁 당첨 상품 목록</h3>
@@ -163,7 +164,7 @@
         <label style="font-size:0.85rem; color:#ccc;">셔플 횟수:</label>
         <input type="number" id="shuffleCountInput" value="5" min="1" max="50" style="width:60px; margin-bottom:0; padding:6px; text-align:center;">
       </div>
-      <button onclick="shuffleCardsByCount()" class="btn-sub btn-shuffle">🔀 카드 셔플하기</button>
+      <button onclick="shuffleAndOpenRandom()" class="btn-sub btn-shuffle">🔀 셔플 후 바로 뜯기</button>
     </div>
     <div id="status" style="font-size: 0.9rem; color: #ccc;">남은 카드: -장</div>
 
@@ -175,8 +176,9 @@
     </div>
   </div>
 
+  <!-- 중앙 카드 확대 뜯기 모달 -->
   <div id="cardZoomModal" class="card-modal-overlay hidden">
-    <div style="color: #bbb; font-size: 0.9rem; margin-bottom: 15px;">👉 좌우로 뜯어서 카드를 오픈하세요!</div>
+    <div style="color: #bbb; font-size: 0.9rem; margin-bottom: 15px;">👉 좌우로 완전히 밀어내어 카드를 오픈하세요!</div>
     <div class="pop-card-wrapper">
       <div class="pop-card-content">
         <div id="zoomCardNum" class="pop-card-num">?</div>
@@ -208,7 +210,6 @@
     let hostName = "";
     let selectedIndex = null;
 
-    // 🔊 고죠 영역전개 Direct MP3 링크 적용
     const WIN_SOUND_URL = 'https://www.myinstants.com/media/sounds/gojo-domain-expansion-60533.mp3';
     let winAudio = new Audio(WIN_SOUND_URL);
 
@@ -382,29 +383,53 @@
 
       const tagsContainer = document.getElementById('playerTagsList');
       tagsContainer.innerHTML = '';
+      
+      const hostFlag = isHost();
+
       playersList.forEach((p, idx) => {
         const tag = document.createElement('div');
         tag.className = 'player-tag' + (p === currentTurn ? ' active' : '');
-        tag.textContent = `${idx + 1}. ${p}`;
+        
+        let html = `<span>${idx + 1}. ${p}</span>`;
+        if (hostFlag) {
+          html += `
+            <button class="player-btn" onclick="movePlayer(${idx}, -1)">▲</button>
+            <button class="player-btn" onclick="movePlayer(${idx}, 1)">▼</button>
+            <button class="player-btn" onclick="editPlayerName(${idx})">수정</button>
+          `;
+        }
+        tag.innerHTML = html;
         tagsContainer.appendChild(tag);
       });
     }
 
+    function movePlayer(index, direction) {
+      let targetIdx = index + direction;
+      if (targetIdx < 0 || targetIdx >= playersList.length) return;
+      let temp = playersList[index];
+      playersList[index] = playersList[targetIdx];
+      playersList[targetIdx] = temp;
+      db.ref('rooms/' + currentRoom + '/players').set(playersList);
+    }
+
+    function editPlayerName(index) {
+      let current = playersList[index];
+      let newName = prompt('변경할 참가자 닉네임을 입력하세요:', current);
+      if (newName && newName.trim() !== '') {
+        playersList[index] = newName.trim();
+        db.ref('rooms/' + currentRoom + '/players').set(playersList);
+      }
+    }
+
+    // 당첨 즉시 공개 및 당첨 오디오 재생
     function renderPrizeBoard() {
       const board = document.getElementById('prizeBoardList');
       board.innerHTML = '';
-      const allDone = isAllOpened();
-
-      if (allDone && !window.hasPlayedSound) {
-        window.hasPlayedSound = true;
-        playWinSound();
-        confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 } });
-      }
 
       Object.keys(prizesData).forEach(num => {
         const prize = prizesData[num];
         const winnerCard = currentCardsData.find(c => c.value == num && c.picked);
-        const winnerName = (allDone && winnerCard) ? winnerCard.pickedBy : null;
+        const winnerName = winnerCard ? winnerCard.pickedBy : null;
 
         const item = document.createElement('div');
         item.className = 'prize-card';
@@ -412,7 +437,7 @@
           <img src="${prize.img}" onerror="this.src='https://via.placeholder.com/150?text=Prize'">
           <div class="prize-info">
             <div class="num">[${num}번] ${prize.name}</div>
-            <div class="winner">${allDone ? (winnerName ? '🎉 당첨자: ' + winnerName : '⏳ 미당첨') : '❓ 미공개 (전체 오픈 후 공개)'}</div>
+            <div class="winner">${winnerName ? '🎉 당첨자: ' + winnerName : '⏳ 미당첨'}</div>
           </div>
         `;
         board.appendChild(item);
@@ -422,13 +447,12 @@
     function renderGrid(cards) {
       const grid = document.getElementById('grid');
       let remainingCount = 0;
-      const allDone = isAllOpened();
 
       cards.forEach((card, index) => {
         if (!card.picked) remainingCount++;
         let cardElem = document.getElementById(`kuji-card-${index}`);
         const prize = prizesData[card.value];
-        const isWin = allDone && card.picked && !!prize;
+        const isWin = card.picked && !!prize;
 
         if (!cardElem) {
           cardElem = document.createElement('div');
@@ -456,11 +480,7 @@
         const numElem = document.getElementById(`card-num-${index}`);
         const pickerElem = document.getElementById(`card-picker-${index}`);
 
-        if (allDone && isWin) {
-          numElem.textContent = '';
-        } else {
-          numElem.textContent = card.value;
-        }
+        numElem.textContent = card.value;
         
         if (pickerElem) {
           if (card.pickedBy) {
@@ -500,6 +520,7 @@
       selectedIndex = null;
     }
 
+    // 양방향 좌우 슬라이드 및 카드 완전 이탈 시 뜯어짐 로직
     function setupZoomDrag() {
       const coverElem = document.getElementById('zoomCardCover');
       let startX = 0, isDragging = false;
@@ -514,13 +535,14 @@
       const onMove = (x) => {
         if (!isDragging) return;
         let diff = x - startX;
-        if (diff > 0) {
-          coverElem.style.transform = `translateX(${diff}px) rotate(${diff * 0.1}deg)`;
-        }
-        if (diff > 120) {
+        coverElem.style.transform = `translateX(${diff}px) rotate(${diff * 0.08}deg)`;
+
+        // 완전 이탈 판정 (좌/우 200px 이상 드래그)
+        if (Math.abs(diff) > 200) {
           isDragging = false;
-          coverElem.style.transition = 'transform 0.2s ease';
-          coverElem.style.transform = 'translateX(100%) rotate(30deg)';
+          coverElem.style.transition = 'transform 0.25 ease-out';
+          const exitX = diff > 0 ? '150%' : '-150%';
+          coverElem.style.transform = `translateX(${exitX}) rotate(${diff > 0 ? 35 : -35}deg)`;
           setTimeout(() => {
             pickCard(selectedIndex);
             closeZoomModal();
@@ -551,6 +573,12 @@
 
       initAudio();
       const turnPlayer = getCurrentTurnPlayer();
+      const isWin = !!prizesData[card.value];
+
+      if (isWin) {
+        playWinSound();
+        confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 } });
+      }
 
       db.ref('rooms/' + currentRoom).update({
         [`cards/${index}/picked`]: true,
@@ -558,22 +586,17 @@
       });
     }
 
-    // 지정한 횟수만큼 안 뽑힌 카드를 셔플하는 로직
-    function shuffleCardsByCount() {
+    // 셔플 후 랜덤 바로 뜯기
+    function shuffleAndOpenRandom() {
       if (!isHost()) return alert('방장만 셔플할 수 있습니다.');
       let count = parseInt(document.getElementById('shuffleCountInput').value) || 5;
 
       let shuffledCards = [...currentCardsData];
-      
-      // 안 뽑힌 카드들만 추출
       let unpickedIndices = [];
       shuffledCards.forEach((c, idx) => { if(!c.picked) unpickedIndices.push(idx); });
 
-      if (unpickedIndices.length <= 1) {
-        return alert('셔플할 남아있는 카드가 충분하지 않습니다.');
-      }
+      if (unpickedIndices.length === 0) return alert('남아있는 카드가 없습니다.');
 
-      // 지정된 횟수만큼 반복 셔플
       for (let k = 0; k < count; k++) {
         let unpickedValues = unpickedIndices.map(i => shuffledCards[i]);
         unpickedValues = shuffle(unpickedValues);
@@ -583,7 +606,8 @@
       }
 
       db.ref('rooms/' + currentRoom + '/cards').set(shuffledCards).then(() => {
-        alert(`${count}회 무작위 카드 셔플이 완료되었습니다!`);
+        const randomTarget = unpickedIndices[Math.floor(Math.random() * unpickedIndices.length)];
+        openCardZoomModal(randomTarget);
       });
     }
     
