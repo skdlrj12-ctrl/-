@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>🍢 MY KUJI (규어빵 전용판) v20</title>
+  <title>🍢 MY KUJI (규어빵 전용판) v20 - 좌표계 적용</title>
 
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
@@ -58,7 +58,7 @@
       font-size: 1.5rem;
       text-align: center;
       text-shadow: 0 2px 6px rgba(0,0,0,0.9);
-      cursor: pointer; /* 치트키 입력용 감지 */
+      cursor: pointer;
     }
 
     .version-tag {
@@ -76,10 +76,6 @@
       align-items: center;
       flex-wrap: wrap;
     }
-
-    /* ==============================
-       외부 음악 플레이어
-       ============================== */
 
     .audio-url-wrapper {
       display: flex;
@@ -112,7 +108,6 @@
       border-radius: 12px;
     }
 
-    /* 상단 음악 컨트롤 */
     .audio-controls {
       display: flex;
       align-items: center;
@@ -136,17 +131,12 @@
       border-radius: 10px;
     }
 
-    .audio-controls button:hover {
-      background: rgba(255,255,255,0.22);
-    }
-
     #volumeControl {
       width: 72px;
       accent-color: #3b82f6;
       cursor: pointer;
     }
 
-    /* YouTube 플레이어 */
     #youtubePlayerBox {
       display: none;
       position: fixed;
@@ -201,8 +191,6 @@
 
     .card-box {
       background-color: rgba(15, 15, 15, 0.18);
-      backdrop-filter: none;
-      -webkit-backdrop-filter: none;
       border: 1px solid rgba(255, 255, 255, 0.22);
       border-radius: 20px;
       padding: 18px;
@@ -262,10 +250,6 @@
       display: flex;
       gap: 6px;
       align-items: center;
-    }
-
-    .prize-item input {
-      margin-bottom: 0;
     }
 
     button {
@@ -467,12 +451,59 @@
       color: #fff;
     }
 
-    /* 가로 10장 배치 설정 */
+    /* ==============================
+       좌표계 가드 스타일 (상단 1~10, 좌측 1~15)
+       ============================== */
+    .coordinate-board-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow-x: auto;
+      width: 100%;
+      padding: 10px 0;
+    }
+
+    .coordinate-top-header {
+      display: grid;
+      grid-template-columns: 35px repeat(10, 1fr);
+      gap: 6px;
+      width: 100%;
+      max-width: 1100px;
+      margin-bottom: 6px;
+      text-align: center;
+      font-weight: bold;
+      color: #ffeb3b;
+      font-size: 0.95rem;
+    }
+
+    .coordinate-row-container {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      width: 100%;
+      max-width: 1100px;
+    }
+
+    .coordinate-grid-row {
+      display: grid;
+      grid-template-columns: 35px repeat(10, 1fr);
+      gap: 6px;
+      align-items: center;
+    }
+
+    .row-label {
+      text-align: center;
+      font-weight: bold;
+      color: #ffeb3b;
+      font-size: 0.95rem;
+    }
+
+    /* 기존 .grid 오버라이드 또는 대체 */
     .grid {
       display: grid;
       grid-template-columns: repeat(10, 1fr);
       gap: 6px;
-      position: relative;
+      width: 100%;
     }
 
     .kuji-card {
@@ -878,17 +909,6 @@
       color: #ddd;
     }
 
-    .btn-edit-note {
-      background: rgba(255,255,255,0.2);
-      color: #fff;
-      font-size: 0.75rem;
-      padding: 2px 6px;
-      border-radius: 4px;
-      width: auto;
-      display: inline-block;
-      cursor: pointer;
-    }
-
     .grand-summary-card {
       background: linear-gradient(
         135deg,
@@ -942,67 +962,6 @@
       padding: 8px 16px;
       border-radius: 6px;
     }
-
-    @media (max-width: 900px) {
-      .grid {
-        grid-template-columns: repeat(5, 1fr);
-      }
-    }
-
-    @media (max-width: 600px) {
-      body {
-        padding: 8px;
-      }
-
-      .header-bar {
-        width: 100%;
-      }
-
-      h1 {
-        font-size: 1.15rem;
-      }
-
-      .audio-url-wrapper {
-        width: 100%;
-      }
-
-      .audio-url-wrapper input[type="text"] {
-        flex: 1;
-        width: auto;
-      }
-
-      .audio-controls {
-        width: auto;
-      }
-
-      #volumeControl {
-        width: 62px;
-      }
-
-      .grid {
-        grid-template-columns: repeat(5, 1fr);
-        gap: 4px;
-      }
-
-      .card-number {
-        font-size: 0.85rem;
-      }
-
-      .card-picker {
-        font-size: 0.5rem;
-      }
-
-      .prize-card img {
-        width: 65px;
-        height: 65px;
-      }
-
-      #youtubePlayerBox {
-        right: 8px;
-        bottom: 8px;
-        width: 250px;
-      }
-    }
   </style>
 </head>
 
@@ -1010,7 +969,6 @@
 
   <div class="header-bar">
     <div class="title-wrapper">
-      <!-- 맨 위 '어묵' 글자 영역 5번 클릭 시 치트 활성화/비활성화 -->
       <h1 onclick="handleTitleCheatClick()">🍢 MY KUJI (규어빵 전용판)</h1>
       <span class="version-tag">v20</span>
     </div>
@@ -1052,7 +1010,7 @@
       </div>
       <hr style="border-color: rgba(255,255,255,0.1); margin: 15px 0;">
       <label>1. 카드 총 수량 (최대 150장)</label>
-      <input type="number" id="totalCardsInput" value="30" min="5" max="150">
+      <input type="number" id="totalCardsInput" value="150" min="5" max="150">
       <label>2. 이전 방 현황 이어가기 (선택)</label>
       <input type="text" id="prevRoomInput" placeholder="이전 방 코드 6자리 (누적 현황 유지)" maxlength="6" style="text-transform:uppercase;">
       <label>3. 당첨 번호, 소유자 및 상품 설정</label>
@@ -1091,7 +1049,6 @@
 
     <div id="status" style="font-size:0.95rem; color:#ffeb3b; font-weight:bold;">남은 카드: -</div>
 
-    <!-- 호스트 컨트롤 영역 (치트모드 버튼 코드 제거됨) -->
     <div id="hostControls" class="control-btns hidden" style="background:rgba(0,0,0,0.4); padding:10px; border-radius:12px; border:1px solid rgba(255,255,255,0.15);">
       <div style="display:flex; align-items:center; gap:6px;">
         <label style="font-size:0.85rem; color:#ccc;">셔플 횟수:</label>
@@ -1101,7 +1058,17 @@
       <button onclick="openResetModal()" class="btn-sub btn-reset">🔄 다음 회차 시작 (판 리셋 & 상품 교체)</button>
     </div>
 
-    <div class="grid" id="grid"></div>
+    <!-- 가드 상단(1~10), 좌측(1~15) 좌표계 레이아웃 컨테이너 -->
+    <div class="coordinate-board-wrapper">
+      <div class="coordinate-top-header">
+        <div></div>
+        <div>1</div><div>2</div><div>3</div><div>4</div><div>5</div>
+        <div>6</div><div>7</div><div>8</div><div>9</div><div>10</div>
+      </div>
+      <div id="coordinateRowsContainer" class="coordinate-row-container">
+        <!-- 스크립트로 1~15행 동적 생성 -->
+      </div>
+    </div>
 
     <div class="sound-uploader-box">
       <label>🎵 당첨 효과음 보관함 (MP3 / WAV)</label>
@@ -1146,7 +1113,7 @@
     <div class="reset-modal-box">
       <h3 style="color:#ffeb3b; margin-bottom:12px; font-size:1.1rem;">🔄 다음 회차 시작 (판 리셋 & 상품 교체)</h3>
       <label style="font-size:0.85rem; color:#ccc;">카드 총 수량</label>
-      <input type="number" id="resetTotalCardsInput" value="30" min="5" max="150">
+      <input type="number" id="resetTotalCardsInput" value="150" min="5" max="150">
       <label style="font-size:0.85rem; color:#ccc; margin-top:6px; display:block;">상품 / 소유자 / 번호 설정</label>
       <div id="resetPrizeInputs" style="margin-top:6px;"></div>
       <button onclick="addPrizeInput('resetPrizeInputs')" style="background:rgba(255,255,255,0.15); color:#fff; font-size:0.8rem; padding:6px; margin-bottom:15px; border:1px solid rgba(255,255,255,0.2);">+ 상품 추가</button>
@@ -1209,15 +1176,10 @@ let isCheatMode = false;
 let titleClickCount = 0;
 let titleClickTimer = null;
 
-// 맨 위 어묵 제목 5번 클릭 시 비밀 치트모드 켜기/끄기
 function handleTitleCheatClick() {
   titleClickCount++;
   clearTimeout(titleClickTimer);
-  
-  titleClickTimer = setTimeout(() => {
-    titleClickCount = 0;
-  }, 1000);
-
+  titleClickTimer = setTimeout(() => { titleClickCount = 0; }, 1000);
   if (titleClickCount >= 5) {
     titleClickCount = 0;
     isCheatMode = !isCheatMode;
@@ -1233,37 +1195,25 @@ function getYouTubeVideoId(url) {
     if (hostname === "youtu.be" || hostname === "www.youtu.be") {
       return u.pathname.replace(/^\/+/, "").split("/")[0].split("?")[0];
     }
-    if (hostname === "youtube.com" || hostname === "www.youtube.com" || hostname === "m.youtube.com") {
+    if (hostname.includes("youtube.com")) {
       const v = u.searchParams.get("v");
       if (v) return v;
-      if (u.pathname.startsWith("/shorts/")) {
-        return u.pathname.split("/shorts/")[1].split("/")[0];
-      }
-      if (u.pathname.startsWith("/embed/")) {
-        return u.pathname.split("/embed/")[1].split("/")[0];
-      }
+      if (u.pathname.startsWith("/shorts/")) return u.pathname.split("/shorts/")[1].split("/")[0];
+      if (u.pathname.startsWith("/embed/")) return u.pathname.split("/embed/")[1].split("/")[0];
     }
     return null;
-  } catch (e) {
-    return null;
-  }
+  } catch (e) { return null; }
 }
 
 function playYouTubeVideo(videoId) {
-  if (!videoId) {
-    alert("YouTube 영상 주소를 인식하지 못했습니다.");
-    return;
-  }
+  if (!videoId) return;
   const box = document.getElementById("youtubePlayerBox");
   const frame = document.getElementById("youtubePlayerFrame");
   youtubeCurrentId = videoId;
   frame.src = "https://www.youtube.com/embed/" + encodeURIComponent(videoId) + "?autoplay=1&playsinline=1&rel=0&modestbranding=1&enablejsapi=1&origin=" + encodeURIComponent(window.location.origin);
   box.classList.add("show");
   const playBtn = document.getElementById("musicPlayPauseBtn");
-  if (playBtn) {
-    playBtn.dataset.playing = "true";
-    playBtn.textContent = "⏸️";
-  }
+  if (playBtn) { playBtn.dataset.playing = "true"; playBtn.textContent = "⏸️"; }
 }
 
 function closeYouTubePlayer() {
@@ -1278,18 +1228,11 @@ function closeYouTubePlayer() {
 function playExternalAudio() {
   const input = document.getElementById("externalAudioUrl");
   const url = input.value.trim();
-  if (!url) {
-    alert("음악 링크 URL을 입력해주세요.");
-    return;
-  }
+  if (!url) { alert("음악 링크 URL을 입력해주세요."); return; }
   const youtubeId = getYouTubeVideoId(url);
   if (youtubeId) {
     const audioPlayer = document.getElementById("externalAudioPlayer");
-    if (audioPlayer) {
-      audioPlayer.pause();
-      audioPlayer.removeAttribute("src");
-      audioPlayer.load();
-    }
+    if (audioPlayer) { audioPlayer.pause(); audioPlayer.removeAttribute("src"); audioPlayer.load(); }
     playYouTubeVideo(youtubeId);
     return;
   }
@@ -1303,15 +1246,10 @@ function playExternalAudio() {
   player.onpause = updateMusicButton;
   player.onended = updateMusicButton;
   resetMusicControls();
-  player.play().catch((error) => {
-    console.error("외부 오디오 재생 실패:", error);
-    alert("오디오를 재생할 수 없습니다.");
-  });
+  player.play().catch(() => { alert("오디오를 재생할 수 없습니다."); });
 }
 
-function getAudioPlayer() {
-  return document.getElementById("externalAudioPlayer");
-}
+function getAudioPlayer() { return document.getElementById("externalAudioPlayer"); }
 
 function sendYouTubeCommand(func, args = []) {
   const frame = document.getElementById("youtubePlayerFrame");
@@ -1334,15 +1272,8 @@ function toggleMusicPlayback() {
     }
     return;
   }
-  if (!audio || !audio.src) {
-    alert("먼저 YouTube 또는 MP3/WAV 링크를 재생해주세요.");
-    return;
-  }
-  if (audio.paused) {
-    audio.play().catch(() => {});
-  } else {
-    audio.pause();
-  }
+  if (!audio || !audio.src) { alert("먼저 YouTube 또는 MP3/WAV 링크를 재생해주세요."); return; }
+  if (audio.paused) { audio.play().catch(() => {}); } else { audio.pause(); }
   updateMusicButton();
 }
 
@@ -1417,12 +1348,11 @@ function initIndexedDB() {
 
 async function saveSoundToDB(file) {
   if (!dbInstance) await initIndexedDB();
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const transaction = dbInstance.transaction(["sounds"], "readwrite");
     const store = transaction.objectStore("sounds");
     const req = store.add({ name: file.name, data: file, createdAt: Date.now() });
     req.onsuccess = (e) => { resolve(e.target.result); };
-    req.onerror = (e) => { reject(e); };
   });
 }
 
@@ -1433,7 +1363,6 @@ async function getAllSoundsFromDB() {
     const store = transaction.objectStore("sounds");
     const req = store.getAll();
     req.onsuccess = () => { resolve(req.result || []); };
-    req.onerror = () => { resolve([]); };
   });
 }
 
@@ -1522,12 +1451,8 @@ async function removeSound(id) {
 }
 
 function getAudioContext() {
-  if (!audioCtx) {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  }
-  if (audioCtx.state === "suspended") {
-    audioCtx.resume();
-  }
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === "suspended") audioCtx.resume();
   return audioCtx;
 }
 
@@ -1571,7 +1496,7 @@ function playLoseSound() {
 function playWinSound() {
   if (!winAudio) return;
   winAudio.currentTime = 0;
-  winAudio.play().catch(e => console.log("음원 재생 제한:", e));
+  winAudio.play().catch(() => {});
 }
 
 const charImages = [
@@ -1584,9 +1509,8 @@ window.addEventListener("DOMContentLoaded", async () => {
   await initIndexedDB();
   renderSoundLists();
   const savedName = localStorage.getItem("kuji_nickname");
-  if (savedName) {
-    document.getElementById("nicknameInput").value = savedName;
-  }
+  if (savedName) document.getElementById("nicknameInput").value = savedName;
+
   const urlParams = new URLSearchParams(window.location.search);
   const roomParam = urlParams.get("room");
   const viewMode = urlParams.get("view");
@@ -1594,9 +1518,8 @@ window.addEventListener("DOMContentLoaded", async () => {
     openHistoryViewOnly(roomParam.toUpperCase());
     return;
   }
-  if (roomParam) {
-    document.getElementById("roomInput").value = roomParam.toUpperCase();
-  }
+  if (roomParam) document.getElementById("roomInput").value = roomParam.toUpperCase();
+  
   addPrizeInput("prizeInputs");
   addPrizeInput("prizeInputs");
   setupZoomDrag();
@@ -1615,8 +1538,8 @@ function addPrizeInput(containerId, initialNum = "", initialOwner = "", initialN
   div.className = "prize-item";
   div.innerHTML = `
     <div class="prize-item-row">
-      <input type="number" placeholder="번호" class="p-num" value="${escapeHtml(initialNum)}" style="width:65px;">
-      <input type="text" placeholder="소유자(누구건지)" class="p-owner" value="${escapeHtml(initialOwner)}" style="width:110px;">
+      <input type="number" placeholder="번호 (1~150)" class="p-num" value="${escapeHtml(initialNum)}" style="width:75px;">
+      <input type="text" placeholder="소유자" class="p-owner" value="${escapeHtml(initialOwner)}" style="width:110px;">
       <input type="text" placeholder="상품 이름" class="p-name" value="${escapeHtml(initialName)}">
     </div>
     <input type="file" accept="image/*" class="p-file">
@@ -1633,16 +1556,11 @@ function compressAndReadFile(file, defaultVal = "https://via.placeholder.com/150
       const img = new Image();
       img.onload = () => {
         const canvas = document.createElement("canvas");
-        let width = img.width;
-        let height = img.height;
+        let width = img.width, height = img.height;
         const max_size = 300;
-        if (width > height) {
-          if (width > max_size) { height *= max_size / width; width = max_size; }
-        } else {
-          if (height > max_size) { width *= max_size / height; height = max_size; }
-        }
-        canvas.width = width;
-        canvas.height = height;
+        if (width > height) { if (width > max_size) { height *= max_size / width; width = max_size; } }
+        else { if (height > max_size) { width *= max_size / height; height = max_size; } }
+        canvas.width = width; canvas.height = height;
         canvas.getContext("2d").drawImage(img, 0, 0, width, height);
         resolve(canvas.toDataURL("image/jpeg", 0.7));
       };
@@ -1683,7 +1601,7 @@ async function createRoom() {
   const btn = document.getElementById("btnCreateRoom");
   btn.disabled = true;
   btn.textContent = "방 생성 중...";
-  let total = parseInt(document.getElementById("totalCardsInput").value) || 30;
+  let total = parseInt(document.getElementById("totalCardsInput").value) || 150;
   const prevRoomCode = document.getElementById("prevRoomInput").value.trim().toUpperCase();
   prizesData = await parsePrizeInputsFromContainer("prizeInputs");
 
@@ -1697,9 +1615,7 @@ async function createRoom() {
         inheritedHistory = oldData.history || {};
         inheritedRound = (oldData.round || 1) + 1;
       }
-    } catch (e) {
-      console.log("이전 방 불러오기 실패:", e);
-    }
+    } catch (e) {}
   }
 
   const code = Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -1726,22 +1642,15 @@ async function createRoom() {
 function joinRoom() {
   saveNickname();
   const code = document.getElementById("roomInput").value.trim().toUpperCase();
-  if (!code) {
-    alert("방 코드를 입력해주세요.");
-    return;
-  }
+  if (!code) { alert("방 코드를 입력해주세요."); return; }
   db.ref("rooms/" + code).once("value", snapshot => {
     if (snapshot.exists()) {
       const data = snapshot.val();
       let currentPlayers = data.players || [];
-      if (!currentPlayers.includes(myName)) {
-        currentPlayers.push(myName);
-      }
+      if (!currentPlayers.includes(myName)) currentPlayers.push(myName);
       db.ref("rooms/" + code + "/players").set(currentPlayers);
       enterRoom(code);
-    } else {
-      alert("방이 존재하지 않습니다.");
-    }
+    } else { alert("방이 존재하지 않습니다."); }
   });
 }
 
@@ -1760,7 +1669,7 @@ function enterRoom(code) {
         const oldCard = currentCardsData[idx];
         if (oldCard && !oldCard.picked && card.picked) {
           const prize = (data.prizes || {})[card.value];
-          if (prize) { playWinSound(); } else { playLoseSound(); }
+          if (prize) playWinSound(); else playLoseSound();
         }
       });
     }
@@ -1773,10 +1682,7 @@ function enterRoom(code) {
     hostName = data.host || "방장";
 
     document.getElementById("roundDisplay").textContent = `현재 회차: ${currentRound}회차`;
-
-    if (isHost()) {
-      document.getElementById("hostControls").classList.remove("hidden");
-    }
+    if (isHost()) document.getElementById("hostControls").classList.remove("hidden");
 
     renderPlayersOrder();
     renderPrizeBoard();
@@ -1784,9 +1690,7 @@ function enterRoom(code) {
   });
 }
 
-function isHost() {
-  return (hostName && hostName.trim() === myName.trim());
-}
+function isHost() { return (hostName && hostName.trim() === myName.trim()); }
 
 function getCurrentTurnPlayer() {
   if (!playersList || playersList.length === 0) return "미지정";
@@ -1794,9 +1698,7 @@ function getCurrentTurnPlayer() {
   return playersList[pickedCount % playersList.length];
 }
 
-function isAllOpened() {
-  return (currentCardsData.length > 0 && currentCardsData.every(c => c.picked));
-}
+function isAllOpened() { return (currentCardsData.length > 0 && currentCardsData.every(c => c.picked)); }
 
 function renderPlayersOrder() {
   document.getElementById("hostName").textContent = hostName;
@@ -1866,27 +1768,52 @@ function renderPrizeBoard() {
   });
 }
 
+// 1~15행, 1~10열 가드 좌표 레이아웃 렌더링
 function renderGrid(cards) {
-  const grid = document.getElementById("grid");
+  const container = document.getElementById("coordinateRowsContainer");
+  if (!container) return;
+  container.innerHTML = "";
+
   let remainingCount = 0;
+  const totalRows = 15;
+  const colsPerRow = 10;
 
-  cards.forEach((card, index) => {
-    if (!card.picked) remainingCount++;
-    let cardElem = document.getElementById(`kuji-card-${index}`);
-    const prize = prizesData[card.value];
-    const isWin = card.picked && !!prize;
+  for (let r = 0; r < totalRows; r++) {
+    const rowDiv = document.createElement("div");
+    rowDiv.className = "coordinate-grid-row";
 
-    if (!cardElem) {
-      cardElem = document.createElement("div");
+    // 좌측 행 번호 (1 ~ 15)
+    const labelDiv = document.createElement("div");
+    labelDiv.className = "row-label";
+    labelDiv.textContent = (r + 1);
+    rowDiv.appendChild(labelDiv);
+
+    // 해당 행의 카드 10개 배치 (총 150장)
+    for (let c = 0; c < colsPerRow; c++) {
+      const index = r * colsPerRow + c;
+      const card = cards[index];
+
+      if (!card) {
+        // 카드가 부족할 경우 빈 공간 처리
+        const emptySlot = document.createElement("div");
+        rowDiv.appendChild(emptySlot);
+        continue;
+      }
+
+      if (!card.picked) remainingCount++;
+      const prize = prizesData[card.value];
+      const isWin = card.picked && !!prize;
+
+      const cardElem = document.createElement("div");
       cardElem.id = `kuji-card-${index}`;
-      cardElem.className = "kuji-card";
+      cardElem.className = "kuji-card" + (card.picked ? " picked" : "") + (isWin ? " win" : "");
       cardElem.onclick = () => openCardZoomModal(index);
 
       const contentDiv = document.createElement("div");
       contentDiv.className = "card-content";
       contentDiv.innerHTML = `
-        <div class="card-number" id="card-num-${index}"></div>
-        <div class="card-picker" id="card-picker-${index}"></div>
+        <div class="card-number" id="card-num-${index}">${card.value}</div>
+        <div class="card-picker" id="card-picker-${index}" style="display: ${card.pickedBy ? 'inline-block' : 'none'};">${escapeHtml(card.pickedBy)}</div>
       `;
       cardElem.appendChild(contentDiv);
 
@@ -1894,52 +1821,24 @@ function renderGrid(cards) {
       coverElem.className = "card-cover";
       coverElem.id = `card-cover-${index}`;
       coverElem.style.backgroundImage = `url('${card.img || charImages[0]}')`;
-      cardElem.appendChild(coverElem);
 
-      grid.appendChild(cardElem);
-    }
-
-    const numElem = document.getElementById(`card-num-${index}`);
-    const pickerElem = document.getElementById(`card-picker-${index}`);
-    numElem.textContent = card.value;
-
-    if (pickerElem) {
-      if (card.pickedBy) {
-        pickerElem.textContent = card.pickedBy;
-        pickerElem.style.display = "inline-block";
-      } else {
-        pickerElem.style.display = "none";
-      }
-    }
-
-    const coverElem = document.getElementById(`card-cover-${index}`);
-    if (coverElem) {
-      // 치트모드가 켜진 사용자에게만 당첨 위치 표시 (방장이든 참가자든 상관없이 켠 사람만 보임)
       if (isCheatMode && !card.picked) {
         if (prize) {
           coverElem.style.border = "2px solid #ff3333";
           coverElem.title = `당첨: ${prize.name} (${card.value}번)`;
-        } else {
-          coverElem.style.border = "none";
-          coverElem.title = `꽝 (${card.value}번)`;
         }
-      } else {
-        coverElem.style.border = "none";
-        coverElem.title = "";
       }
+      cardElem.appendChild(coverElem);
+      rowDiv.appendChild(cardElem);
     }
-
-    cardElem.className = "kuji-card" + (card.picked ? " picked" : "") + (isWin ? " win" : "");
-  });
+    container.appendChild(rowDiv);
+  }
 
   document.getElementById("status").textContent = `남은 카드: ${remainingCount}장`;
 }
 
 function openCardZoomModal(index) {
-  if (!isHost()) {
-    alert("방장만 카드를 선택하고 개봉할 수 있습니다.");
-    return;
-  }
+  if (!isHost()) { alert("방장만 카드를 선택하고 개봉할 수 있습니다."); return; }
   const card = currentCardsData[index];
   if (!card || card.picked) return;
   selectedIndex = index;
@@ -1959,24 +1858,18 @@ function closeZoomModal() {
 
 function setupZoomDrag() {
   const coverElem = document.getElementById("zoomCardCover");
-  let startX = 0;
-  let currentDiff = 0;
-  let isDragging = false;
+  let startX = 0, currentDiff = 0, isDragging = false;
 
   const onStart = (x) => {
     if (selectedIndex === null) return;
-    startX = x;
-    currentDiff = 0;
-    isDragging = true;
+    startX = x; currentDiff = 0; isDragging = true;
     coverElem.style.transition = "none";
   };
-
   const onMove = (x) => {
     if (!isDragging) return;
     currentDiff = x - startX;
     coverElem.style.transform = `translateX(${currentDiff}px) rotate(${currentDiff * 0.1}deg)`;
   };
-
   const onEnd = () => {
     if (!isDragging) return;
     isDragging = false;
@@ -2010,13 +1903,8 @@ function forceRipOpen(direction = "right") {
 
 function reselectRandomCard() {
   let unpickedIndices = [];
-  currentCardsData.forEach((c, idx) => {
-    if (!c.picked) unpickedIndices.push(idx);
-  });
-  if (unpickedIndices.length === 0) {
-    alert("남은 카드가 없습니다.");
-    return;
-  }
+  currentCardsData.forEach((c, idx) => { if (!c.picked) unpickedIndices.push(idx); });
+  if (unpickedIndices.length === 0) { alert("남은 카드가 없습니다."); return; }
   const newIndex = unpickedIndices[Math.floor(Math.random() * unpickedIndices.length)];
   openCardZoomModal(newIndex);
 }
@@ -2030,10 +1918,7 @@ function showNumberRevealAnimation(val, player, isWin, owner) {
 }
 
 function pickCard(index) {
-  if (!isHost()) {
-    alert("방장만 카드를 뽑을 수 있습니다.");
-    return;
-  }
+  if (!isHost()) { alert("방장만 카드를 뽑을 수 있습니다."); return; }
   const card = currentCardsData[index];
   if (!card || card.picked) return;
   const turnPlayer = getCurrentTurnPlayer();
@@ -2045,14 +1930,11 @@ function pickCard(index) {
 
   if (isWin) {
     playWinSound();
-    if (typeof confetti === "function") {
-      confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 } });
-    }
+    if (typeof confetti === "function") confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 } });
     const nowStr = new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
     const roundHist = historyByRound[`round_${currentRound}`] || [];
-    const itemId = Date.now().toString();
     roundHist.push({
-      id: itemId,
+      id: Date.now().toString(),
       num: card.value,
       from: owner,
       to: turnPlayer,
@@ -2073,20 +1955,13 @@ function pickCard(index) {
 }
 
 function shuffleAndOpenRandom() {
-  if (!isHost()) {
-    alert("방장만 셔플할 수 있습니다.");
-    return;
-  }
+  if (!isHost()) { alert("방장만 셔플할 수 있습니다."); return; }
   let count = parseInt(document.getElementById("shuffleCountInput").value) || 5;
   let shuffledCards = [...currentCardsData];
   let unpickedIndices = [];
-  shuffledCards.forEach((c, idx) => {
-    if (!c.picked) unpickedIndices.push(idx);
-  });
-  if (unpickedIndices.length === 0) {
-    alert("남아있는 카드가 없습니다.");
-    return;
-  }
+  shuffledCards.forEach((c, idx) => { if (!c.picked) unpickedIndices.push(idx); });
+  if (unpickedIndices.length === 0) { alert("남아있는 카드가 없습니다."); return; }
+  
   playShuffleSound();
   unpickedIndices.forEach(idx => {
     const elem = document.getElementById(`kuji-card-${idx}`);
@@ -2101,9 +1976,7 @@ function shuffleAndOpenRandom() {
     for (let k = 0; k < count; k++) {
       let unpickedValues = unpickedIndices.map(i => shuffledCards[i]);
       unpickedValues = shuffle(unpickedValues);
-      unpickedIndices.forEach((origIdx, i) => {
-        shuffledCards[origIdx] = unpickedValues[i];
-      });
+      unpickedIndices.forEach((origIdx, i) => { shuffledCards[origIdx] = unpickedValues[i]; });
     }
     db.ref("rooms/" + currentRoom + "/cards").set(shuffledCards).then(() => {
       const randomTarget = unpickedIndices[Math.floor(Math.random() * unpickedIndices.length)];
@@ -2113,13 +1986,10 @@ function shuffleAndOpenRandom() {
 }
 
 function openResetModal() {
-  if (!isHost()) {
-    alert("방장만 다음 회차를 시작할 수 있습니다.");
-    return;
-  }
+  if (!isHost()) { alert("방장만 다음 회차를 시작할 수 있습니다."); return; }
   const modal = document.getElementById("resetModal");
   const totalInput = document.getElementById("totalCardsInput");
-  document.getElementById("resetTotalCardsInput").value = totalInput ? totalInput.value : 30;
+  document.getElementById("resetTotalCardsInput").value = totalInput ? totalInput.value : 150;
   const container = document.getElementById("resetPrizeInputs");
   container.innerHTML = "";
   addPrizeInput("resetPrizeInputs");
@@ -2127,13 +1997,11 @@ function openResetModal() {
   modal.classList.remove("hidden");
 }
 
-function closeResetModal() {
-  document.getElementById("resetModal").classList.add("hidden");
-}
+function closeResetModal() { document.getElementById("resetModal").classList.add("hidden"); }
 
 async function executeResetWithPrizes() {
   if (!isHost()) return;
-  let total = parseInt(document.getElementById("resetTotalCardsInput").value) || 30;
+  let total = parseInt(document.getElementById("resetTotalCardsInput").value) || 150;
   let newPrizes = await parsePrizeInputsFromContainer("resetPrizeInputs");
   const numbers = shuffle(Array.from({ length: total }, (_, i) => i + 1));
   const newCards = numbers.map(num => ({
@@ -2159,36 +2027,20 @@ function openHistoryNewTab() {
 }
 
 function copyShareLink() {
-  if (!currentRoom) {
-    alert("참여 중인 방 코드가 없습니다.");
-    return;
-  }
+  if (!currentRoom) { alert("참여 중인 방 코드가 없습니다."); return; }
   const shareUrl = `${window.location.origin}${window.location.pathname}?room=${currentRoom}`;
   if (navigator.clipboard && window.isSecureContext) {
     navigator.clipboard.writeText(shareUrl).then(() => {
       alert("초대 링크가 클립보드에 복사되었습니다!\n" + shareUrl);
-    }).catch(() => {
-      fallbackCopyText(shareUrl);
     });
   } else {
-    fallbackCopyText(shareUrl);
+    const t = document.createElement("textarea");
+    t.value = shareUrl;
+    document.body.appendChild(t);
+    t.select();
+    try { document.execCommand('copy'); alert("초대 링크가 복사되었습니다!"); } catch (e) {}
+    document.body.removeChild(t);
   }
-}
-
-function fallbackCopyText(text) {
-  const t = document.createElement("textarea");
-  t.value = text;
-  t.style.position = "fixed";
-  document.body.appendChild(t);
-  t.focus();
-  t.select();
-  try {
-    document.execCommand('copy');
-    alert("초대 링크가 클립보드에 복사되었습니다!\n" + text);
-  } catch (err) {
-    alert("링크 복사에 실패했습니다: " + text);
-  }
-  document.body.removeChild(t);
 }
 
 function openHistoryViewOnly(code) {
@@ -2214,19 +2066,16 @@ function renderFullHistoryView(historyData) {
   const container = document.getElementById("historyRoundsContainer");
   if (!container) return;
   container.innerHTML = "";
-
   const roundKeys = Object.keys(historyData).sort();
   if (roundKeys.length === 0) {
     container.innerHTML = `<div style="color:#aaa; font-size:0.9rem; padding:10px;">아직 기록된 당첨 내역이 없습니다.</div>`;
     return;
   }
-
   roundKeys.forEach(rKey => {
     const items = historyData[rKey] || [];
     const roundNum = rKey.replace("round_", "");
     const group = document.createElement("div");
     group.className = "round-group";
-
     let itemsHtml = "";
     items.forEach(it => {
       itemsHtml += `
@@ -2244,7 +2093,6 @@ function renderFullHistoryView(historyData) {
         </div>
       `;
     });
-
     group.innerHTML = `
       <div class="round-title">
         <span>🔄 ${roundNum}회차 당첨 기록</span>
@@ -2282,14 +2130,8 @@ function renderUserSummaryView(historyData) {
   userNames.forEach(uName => {
     const box = document.createElement("div");
     box.className = "summary-box";
-
-    const recList = usersMap[uName].receive.map(it =>
-      `• <b>${escapeHtml(it.from)}</b> ➔ [${escapeHtml(it.prizeName)}]`
-    ).join("<br>") || `<span style="color:#777;">없음</span>`;
-
-    const sendList = usersMap[uName].send.map(it =>
-      `• ➔ <b>${escapeHtml(it.to)}</b> [${escapeHtml(it.prizeName)}]`
-    ).join("<br>") || `<span style="color:#777;">없음</span>`;
+    const recList = usersMap[uName].receive.map(it => `• <b>${escapeHtml(it.from)}</b> ➔ [${escapeHtml(it.prizeName)}]`).join("<br>") || `<span style="color:#777;">없음</span>`;
+    const sendList = usersMap[uName].send.map(it => `• ➔ <b>${escapeHtml(it.to)}</b> [${escapeHtml(it.prizeName)}]`).join("<br>") || `<span style="color:#777;">없음</span>`;
 
     box.innerHTML = `
       <h5>👤 ${escapeHtml(uName)}</h5>
@@ -2305,9 +2147,7 @@ function renderUserSummaryView(historyData) {
 }
 
 function generateDefaultSummaryText(historyData) {
-  const ulsanShipments = {};
-  const generalShipments = {};
-
+  const ulsanShipments = {}, generalShipments = {};
   Object.keys(historyData).forEach(rKey => {
     const items = historyData[rKey] || [];
     items.forEach(item => {
@@ -2320,21 +2160,17 @@ function generateDefaultSummaryText(historyData) {
       targetMap[sender].push(prizeName);
     });
   });
-
   const ulsanKeys = Object.keys(ulsanShipments);
   const ulsanText = ulsanKeys.length === 0 ? "없음" : ulsanKeys.map(name => `${name} - ${ulsanShipments[name].join(", ")}`).join("\n");
   const generalKeys = Object.keys(generalShipments);
   const generalText = generalKeys.length === 0 ? "없음" : generalKeys.map(name => `${name} - ${generalShipments[name].join(", ")}`).join("\n");
-
   return `울산 보낼물건\n${ulsanText}\n\n보낼물건\n${generalText}\n`;
 }
 
 function renderGrandSummary(historyData, customSummary = null) {
   const container = document.getElementById("grandSummaryContent");
   let totalPrizesCount = 0;
-  Object.keys(historyData).forEach(rKey => {
-    totalPrizesCount += (historyData[rKey] || []).length;
-  });
+  Object.keys(historyData).forEach(rKey => { totalPrizesCount += (historyData[rKey] || []).length; });
 
   document.getElementById("grandTotalCountBadge").textContent = `총 당첨: ${totalPrizesCount}건`;
   const displayText = (customSummary !== null && customSummary !== undefined) ? customSummary : generateDefaultSummaryText(historyData);
@@ -2360,26 +2196,19 @@ function saveGrandSummaryText() {
 
 function resetGrandSummaryText() {
   if (!currentRoom) return;
-  if (confirm("자동 계산된 원본 텍스트로 복원하시겠습니까?\n(수정 내역 초기화)")) {
+  if (confirm("자동 계산된 원본 텍스트로 복원하시겠습니까?")) {
     db.ref(`rooms/${currentRoom}/customGrandSummary`).remove().then(() => {
-      alert("원본 자동계산 내용으로 복원되었습니다.");
+      alert("원본 내용으로 복원되었습니다.");
     });
   }
 }
 
-function copyGrandSummaryTest() {
+function copyGrandSummaryText() {
   const textarea = document.getElementById("grandSummaryTextArea");
   if (!textarea) return;
-  const textToCopy = textarea.value;
-  if (navigator.clipboard && window.isSecureContext) {
-    navigator.clipboard.writeText(textToCopy).then(() => {
-      alert("총정리 내역이 클립보드에 복사되었습니다!");
-    });
-  } else {
-    textarea.select();
-    document.execCommand("copy");
-    alert("총정리 내역이 클립보드에 복사되었습니다!");
-  }
+  textarea.select();
+  document.execCommand("copy");
+  alert("총정리 내역이 클립보드에 복사되었습니다!");
 }
 </script>
 </body>
