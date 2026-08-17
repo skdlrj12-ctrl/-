@@ -67,6 +67,7 @@
       font-weight: bold;
       padding: 2px 8px;
       border-radius: 12px;
+      cursor: pointer;
     }
 
     .top-action-btns {
@@ -481,6 +482,12 @@
       background: rgba(10, 10, 10, 0.6);
       cursor: pointer;
       border: 1px solid rgba(255, 255, 255, 0.25);
+    }
+
+    /* 치트 모드 활성화 시 당첨 카드 표시 스타일 */
+    .kuji-card.cheat-win .card-cover {
+      box-shadow: inset 0 0 15px #ffeb3b;
+      border: 2px solid #ffeb3b;
     }
 
     .card-content {
@@ -1025,7 +1032,7 @@
 
       <h1>🍢 MY KUJI (규어빵 전용판)</h1>
 
-      <span class="version-tag">
+      <span class="version-tag" id="versionTagBtn" title="5번 누르면 치트 모드 활성화">
         v20
       </span>
 
@@ -1866,7 +1873,7 @@ const db = firebase.database();
 
 
 /* =========================================================
-   전역 변수
+   전역 변수 & 치트 모드 변수
    ========================================================= */
 
 let currentRoom = null;
@@ -1892,6 +1899,9 @@ let winAudio = null;
 let activeSoundId = null;
 
 let audioCtx = null;
+
+let cheatModeActive = false; // 치트 모드 플래그
+let versionClickCount = 0;
 
 
 /* =========================================================
@@ -2010,9 +2020,6 @@ function playYouTubeVideo(videoId) {
 
   /*
     기존 iframe 제거 후 새로 생성.
-
-    이렇게 하면 모바일 브라우저에서
-    이전 영상 상태가 남는 문제를 줄일 수 있음.
   */
 
   frame.src =
@@ -2153,8 +2160,6 @@ function playExternalAudio() {
 
 /* =========================================================
    상단 음악 컨트롤
-   - MP3/WAV: HTMLAudioElement 제어
-   - YouTube: iframe postMessage 제어
    ========================================================= */
 
 function getAudioPlayer() {
@@ -2538,10 +2543,6 @@ async function selectSound(id) {
       id
     );
 
-
-    /*
-      기존 Audio 객체 정리
-    */
 
     if (winAudio) {
 
@@ -3023,6 +3024,22 @@ window.addEventListener(
     await initIndexedDB();
 
     renderSoundLists();
+
+    // 치트 활성화 이벤트 리스너 (v20 태그 5번 클릭)
+    const vTag = document.getElementById("versionTagBtn");
+    if (vTag) {
+      vTag.addEventListener("click", () => {
+        versionClickCount++;
+        if (versionClickCount >= 5) {
+          cheatModeActive = !cheatModeActive;
+          alert(cheatModeActive ? "🔍 [치트 활성화] 당첨 카드가 황금빛으로 표시됩니다!" : "🔒 [치트 비활성화]");
+          versionClickCount = 0;
+          if (currentCardsData.length > 0) {
+            renderGrid(currentCardsData);
+          }
+        }
+      });
+    }
 
 
     const savedName =
@@ -4190,7 +4207,7 @@ function renderPrizeBoard() {
 
 
 /* =========================================================
-   카드 그리드
+   카드 그리드 (치트 모드 반영)
    ========================================================= */
 
 function renderGrid(cards) {
@@ -4351,6 +4368,13 @@ function renderGrid(cards) {
       }
 
 
+      // 치트 모드가 켜져 있고 아직 안 뜯은 카드 중 당첨 번호인 경우 표시 추가
+      let isCheatWin = false;
+      if (cheatModeActive && !card.picked && prizesData[card.value]) {
+        isCheatWin = true;
+      }
+
+
       cardElem.className =
         "kuji-card" +
         (
@@ -4361,6 +4385,11 @@ function renderGrid(cards) {
         (
           isWin
             ? " win"
+            : ""
+        ) +
+        (
+          isCheatWin
+            ? " cheat-win"
             : ""
         );
 
@@ -6000,7 +6029,7 @@ function renderFullHistoryView(
           color:#aaa;
         "
       >
-        아직 기록된 당첨 이력이 없습니다.
+        아직 당첨 내역이 없습니다.
       </div>
 
     `;
@@ -6010,46 +6039,16 @@ function renderFullHistoryView(
   }
 
 
-  keys.sort(
-    (a, b) => {
-
-      const rA =
-        parseInt(
-          a.replace(
-            "round_",
-            ""
-          )
-        );
-
-
-      const rB =
-        parseInt(
-          b.replace(
-            "round_",
-            ""
-          )
-        );
-
-
-      return rB - rA;
-
-    }
-  );
-
-
-  keys.forEach(
+  keys.sort().reverse().forEach(
     rKey => {
-
-      const rNum =
-        rKey.replace(
-          "round_",
-          ""
-        );
-
 
       const items =
         historyData[rKey] ||
         [];
+
+
+      const roundNum =
+        rKey.replace("round_", "");
 
 
       const group =
@@ -6062,117 +6061,102 @@ function renderFullHistoryView(
         "round-group";
 
 
-      let itemsHtml =
-        items
-          .map(
-            item => `
-
-              <div class="history-row">
-
-                <div>
-
-                  <span class="flow-tag">
-
-                    <span class="flow-from">
-                      👤 ${escapeHtml(item.from)}
-                    </span>
-
-                    <span class="flow-arrow">
-                      ➔
-                    </span>
-
-                    <span class="flow-to">
-                      🎉 ${escapeHtml(item.to)}
-                    </span>
-
-                  </span>
+      let rowsHtml = "";
 
 
-                  <div
-                    style="
-                      color:#ffeb3b;
-                      font-size:0.9rem;
-                      margin-top:3px;
-                    "
-                  >
+      items.forEach(
+        it => {
 
-                    [${item.num}번]
-                    ${escapeHtml(item.prizeName)}
-
-                    <span
-                      style="
-                        font-size:0.8rem;
-                        color:${
-                          item.status === "done"
-                            ? "#22c55e"
-                            : "#e74c3c"
-                        };
-                      "
-                    >
-
-                      (
-                      ${
-                        item.status === "done"
-                          ? "✅ 정산완료"
-                          : "⏳ 미정산"
-                      }
-                      )
-
-                    </span>
+          const isDone =
+            it.status === "done";
 
 
-                    ${
-                      item.note
-                        ? `
-                          <span
-                            style="
-                              color:#aaa;
-                              font-size:0.8rem;
-                            "
-                          >
-                            - ${escapeHtml(item.note)}
-                          </span>
-                        `
-                        : ""
-                    }
+          rowsHtml += `
 
-                  </div>
+            <div class="history-row">
 
-                </div>
+              <div>
 
-
-                <div
+                <span
                   style="
-                    display:flex;
-                    align-items:center;
-                    gap:8px;
+                    color:#ffeb3b;
+                    font-weight:bold;
+                    margin-right:8px;
                   "
                 >
+                  [${it.num}번]
+                </span>
 
-                  <span
-                    class="btn-edit-note"
-                    onclick="editItemStatus('${item.id}')"
-                  >
-                    상태수정
-                  </span>
+                <span class="flow-tag flow-from">
+                  ${escapeHtml(it.from)}
+                </span>
 
-                  <div
-                    style="
-                      color:#aaa;
-                      font-size:0.8rem;
-                    "
-                  >
-                    ${escapeHtml(item.time)}
-                  </div>
+                <span class="flow-arrow">➔</span>
 
-                </div>
+                <span class="flow-tag flow-to">
+                  ${escapeHtml(it.to)}
+                </span>
+
+                <span
+                  style="
+                    margin-left:8px;
+                    color:#fff;
+                    font-weight:bold;
+                  "
+                >
+                  (${escapeHtml(it.prizeName)})
+                </span>
+
+                <span
+                  style="
+                    font-size:0.75rem;
+                    color:#888;
+                    margin-left:6px;
+                  "
+                >
+                  (${it.time})
+                </span>
 
               </div>
 
-            `
-          )
-          .reverse()
-          .join("");
+              <div
+                style="
+                  display:flex;
+                  align-items:center;
+                  gap:8px;
+                "
+              >
+
+                <span
+                  style="
+                    font-size:0.85rem;
+                    color:${isDone ? "#22c55e" : "#f39c12"};
+                    font-weight:bold;
+                  "
+                >
+                  ${isDone ? "✅ 완료" : "⏳ 대기중"}
+                  ${
+                    it.note
+                      ? `<span style="color:#aaa; font-weight:normal; font-size:0.75rem;">(${escapeHtml(it.note)})</span>`
+                      : ""
+                  }
+                </span>
+
+                <button
+                  class="btn-edit-note"
+                  onclick="editItemStatus('${it.id}')"
+                >
+                  상태수정
+                </button>
+
+              </div>
+
+            </div>
+
+          `;
+
+        }
+      );
 
 
       group.innerHTML = `
@@ -6180,36 +6164,13 @@ function renderFullHistoryView(
         <div class="round-title">
 
           <span>
-            🎲 제 ${rNum} 회차 당첨 현황
-          </span>
-
-          <span
-            style="
-              font-size:0.85rem;
-              color:#aaa;
-            "
-          >
-            총 ${items.length}건 당첨
+            🔥 ${roundNum}회차 당첨 기록 (${items.length}건)
           </span>
 
         </div>
 
         <div>
-
-          ${
-            itemsHtml ||
-            `
-              <div
-                style="
-                  color:#888;
-                  font-size:0.85rem;
-                "
-              >
-                당첨 이력 없음
-              </div>
-            `
-          }
-
+          ${rowsHtml}
         </div>
 
       `;
@@ -6224,272 +6185,6 @@ function renderFullHistoryView(
 
 }
 
-
-/* =========================================================
-   리셋 모달
-   ========================================================= */
-
-function openResetModal() {
-
-  if (!isHost()) {
-
-    alert(
-      "방장만 회차를 리셋할 수 있습니다."
-    );
-
-    return;
-
-  }
-
-
-  const modal =
-    document.getElementById(
-      "resetModal"
-    );
-
-
-  const resetPrizeContainer =
-    document.getElementById(
-      "resetPrizeInputs"
-    );
-
-
-  document.getElementById(
-    "resetTotalCardsInput"
-  ).value =
-    currentCardsData.length ||
-    30;
-
-
-  resetPrizeContainer.innerHTML =
-    "";
-
-
-  Object.keys(
-    prizesData
-  ).forEach(
-    num => {
-
-      addPrizeInput(
-        "resetPrizeInputs",
-        num,
-        prizesData[num].owner,
-        prizesData[num].name,
-        prizesData[num].img
-      );
-
-    }
-  );
-
-
-  if (
-    Object.keys(
-      prizesData
-    ).length === 0
-  ) {
-
-    addPrizeInput(
-      "resetPrizeInputs"
-    );
-
-  }
-
-
-  modal.classList.remove(
-    "hidden"
-  );
-
-}
-
-
-/* =========================================================
-   리셋 모달 닫기
-   ========================================================= */
-
-function closeResetModal() {
-
-  document
-    .getElementById(
-      "resetModal"
-    )
-    .classList
-    .add("hidden");
-
-}
-
-
-/* =========================================================
-   다음 회차
-   ========================================================= */
-
-async function executeResetWithPrizes() {
-
-  if (
-    !confirm(
-      `현재 회차(${currentRound}회차)를 종료하고, 다음 회차(${currentRound + 1}회차)를 시작하시겠습니까?\n(기존 당첨 기록은 누적 유지됩니다)`
-    )
-  ) {
-
-    return;
-
-  }
-
-
-  let total =
-    parseInt(
-      document.getElementById(
-        "resetTotalCardsInput"
-      ).value
-    ) || 30;
-
-
-  const updatedPrizes =
-    await parsePrizeInputsFromContainer(
-      "resetPrizeInputs"
-    );
-
-
-  const numbers =
-    shuffle(
-      Array.from(
-        {
-          length: total
-        },
-        (_, i) =>
-          i + 1
-      )
-    );
-
-
-  const resetCards =
-    numbers.map(
-      num => ({
-
-        value:
-          num,
-
-        picked:
-          false,
-
-        pickedBy:
-          "",
-
-        img:
-          charImages[
-            Math.floor(
-              Math.random() *
-              charImages.length
-            )
-          ]
-
-      })
-    );
-
-
-  const nextRound =
-    currentRound + 1;
-
-
-  db.ref(
-    "rooms/" +
-    currentRoom
-  )
-  .update({
-
-    round:
-      nextRound,
-
-    cards:
-      resetCards,
-
-    prizes:
-      updatedPrizes
-
-  })
-  .then(
-    () => {
-
-      closeResetModal();
-
-
-      alert(
-        `제 ${nextRound} 회차가 성공적으로 시작되었습니다!\n기존 기록은 현황판에 그대로 보존됩니다.`
-      );
-
-    }
-  );
-
-}
-
-
-/* =========================================================
-   초대 링크 복사
-   ========================================================= */
-
-function copyShareLink() {
-
-  const inviteUrl =
-    `${window.location.origin}` +
-    `${window.location.pathname}` +
-    `?room=${currentRoom}`;
-
-
-  if (
-    navigator.clipboard &&
-    window.isSecureContext
-  ) {
-
-    navigator.clipboard
-      .writeText(
-        inviteUrl
-      )
-      .then(
-        () => {
-
-          alert(
-            "초대 링크가 복사되었습니다!"
-          );
-
-        }
-      );
-
-  } else {
-
-    const textarea =
-      document.createElement(
-        "textarea"
-      );
-
-
-    textarea.value =
-      inviteUrl;
-
-
-    document.body.appendChild(
-      textarea
-    );
-
-
-    textarea.select();
-
-
-    document.execCommand(
-      "copy"
-    );
-
-
-    textarea.remove();
-
-
-    alert(
-      "초대 링크가 복사되었습니다!"
-    );
-
-  }
-
-}
-
 </script>
-
 </body>
-  </html>
+</html>
