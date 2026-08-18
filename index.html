@@ -1009,7 +1009,7 @@
       <input type="number" id="totalCardsInput" value="150" min="5" max="150">
       <label>2. 이전 방 현황 이어가기 (선택)</label>
       <input type="text" id="prevRoomInput" placeholder="이전 방 코드 6자리 (누적 현황 유지)" maxlength="6" style="text-transform:uppercase;">
-      <label>3. 당첨 번호, 수령자, 발송자, 상품 및 사진 설정</label>
+      <label>3. 당첨 번호, 소유자, 발송자, 상품 및 사진 설정</label>
       <div id="prizeInputs"></div>
       <button onclick="addPrizeInput('prizeInputs')" style="background:rgba(255,255,255,0.15); color:#fff; font-size:0.85rem; padding:6px; border:1px solid rgba(255,255,255,0.2);">+ 당첨 상품 추가</button>
     </div>
@@ -1131,7 +1131,7 @@
       <h3 style="color:#ffeb3b; margin-bottom:12px; font-size:1.1rem;">🔄 다음 회차 시작 (판 리셋 & 상품 교체)</h3>
       <label style="font-size:0.85rem; color:#ccc;">카드 총 수량</label>
       <input type="number" id="resetTotalCardsInput" value="150" min="5" max="150">
-      <label style="font-size:0.85rem; color:#ccc; margin-top:6px; display:block;">상품 설정 (번호, 수령자, 발송자, 이름, 사진)</label>
+      <label style="font-size:0.85rem; color:#ccc; margin-top:6px; display:block;">상품 설정 (번호, 소유자, 발송자, 이름, 사진)</label>
       <div id="resetPrizeInputs" style="margin-top:6px;"></div>
       <button onclick="addPrizeInput('resetPrizeInputs')" style="background:rgba(255,255,255,0.15); color:#fff; font-size:0.8rem; padding:6px; margin-bottom:15px; border:1px solid rgba(255,255,255,0.2);">+ 상품 추가</button>
       <div style="display:flex; gap:8px;">
@@ -1562,7 +1562,7 @@ function addPrizeInput(containerId, initialNum = "", initialOwner = "", initialN
   div.innerHTML = `
     <div class="prize-item-row">
       <input type="number" placeholder="번호 (1~150)" class="p-num" value="${escapeHtml(initialNum)}" style="width:85px; margin-bottom:0;">
-      <input type="text" placeholder="수령자" class="p-owner" value="${escapeHtml(initialOwner)}" style="flex-grow:1; margin-bottom:0;">
+      <input type="text" placeholder="소유자" class="p-owner" value="${escapeHtml(initialOwner)}" style="flex-grow:1; margin-bottom:0;">
       <input type="text" placeholder="상품 발송자" class="p-sender" value="${escapeHtml(initialSender)}" style="flex-grow:1; margin-bottom:0;">
     </div>
     <input type="text" placeholder="상품 이름" class="p-name" value="${escapeHtml(initialName)}">
@@ -1701,7 +1701,6 @@ function enterRoom(code) {
   if (roomRef) roomRef.off();
   roomRef = db.ref("rooms/" + code);
 
-  // [수정] 자동 정리 로직에서 의도치 않게 인원이 튕기는 현상을 방지하도록 안전 처리 추가
   setupAutoRoomCleanup(code);
 
   roomRef.on("value", snapshot => {
@@ -1757,14 +1756,11 @@ function enterRoom(code) {
 }
 
 function setupAutoRoomCleanup(code) {
-  // [수정] 새로고침이나 단순 이동 시 방 전체가 비워지거나 유저가 잘못 빠져나가는 오류 방지
   window.addEventListener("beforeunload", () => {
     if (!currentRoom) return;
-    // 방장인 경우 창을 닫을 때 방 전체를 지우지 않고 플레이어 목록에서만 가볍게 제외하도록 수정
     const updatedPlayers = playersList.filter(p => p !== myName);
     const updatedWaiting = waitingList.filter(w => w !== myName);
     if (isHost()) {
-      // 방장이 나갈 때는 방 자체를 지우지 않고 다른 참가자 유지를 위해 방장 권한만 위임하거나 유지
       return;
     }
     if (updatedPlayers.length > 0 || updatedWaiting.length > 0) {
@@ -1893,7 +1889,7 @@ function renderPrizeBoard() {
       <img src="${prize.img}" onerror="this.src='https://via.placeholder.com/150?text=Prize'">
       <div class="prize-info">
         <div class="num">[${num}번] ${escapeHtml(prize.name)}</div>
-        <div class="owner">👤 수령: ${escapeHtml(prize.owner || "방장")} | 발송: ${escapeHtml(prize.sender || "방장")}</div>
+        <div class="owner">👤 소유자: ${escapeHtml(prize.owner || "방장")} | 발송: ${escapeHtml(prize.sender || "방장")}</div>
         <div class="winner">
           ${winnerName ? `🎉 당첨: ${escapeHtml(winnerName)}` : "⏳ 미당첨"}
         </div>
@@ -2117,7 +2113,9 @@ function pickCard(index) {
   const turnPlayer = getCurrentTurnPlayer();
   const prize = prizesData[card.value];
   const isWin = !!prize;
-  const owner = prize ? (prize.owner || "방장") : "";
+  
+  // [수정 핵심] 당첨 시 총 현황판의 '수령자'가 카드를 뽑은 사람(turnPlayer)으로 자동 등록되도록 설정
+  const owner = isWin ? turnPlayer : (prize ? (prize.owner || "방장") : "");
   const sender = prize ? (prize.sender || "방장") : "";
 
   showNumberRevealAnimation(card.value, turnPlayer, isWin, { owner, sender });
@@ -2348,9 +2346,9 @@ function renderFullHistoryView(historyData) {
             <span style="color:#aaa; font-size:0.8rem; margin-left:6px;">(${it.dateStr || ""} ${it.time})</span>
           </div>
           <div>
-            <span class="flow-tag flow-from">발송:${escapeHtml(it.from)}</span>
+            <span class="flow-tag flow-from">보낼사람:${escapeHtml(it.from)}</span>
             <span class="flow-arrow">➔</span>
-            <span class="flow-tag flow-to">수령:${escapeHtml(it.to)}</span>
+            <span class="flow-tag flow-to">받을사람:${escapeHtml(it.to)}</span>
           </div>
         </div>
       `;
@@ -2400,9 +2398,9 @@ function renderUserSummaryView(historyData) {
     box.innerHTML = `
       <h5>👤 ${escapeHtml(uName)}</h5>
       <div class="item-list-sm">
-        <div style="color:#22c55e; font-weight:bold; margin-top:4px;">📥 받아야 할 물건 (${usersMap[uName].receive.length}개):</div>
+        <div style="color:#22c55e; font-weight:bold; margin-top:4px;">📥 받을 사람 (물건): (${usersMap[uName].receive.length}개):</div>
         ${recList}
-        <div style="color:#f39c12; font-weight:bold; margin-top:8px;">📤 보내야 할 물건 (${usersMap[uName].send.length}개):</div>
+        <div style="color:#f39c12; font-weight:bold; margin-top:8px;">📤 보낼 사람 (물건): (${usersMap[uName].send.length}개):</div>
         ${sendList}
       </div>
     `;
@@ -2421,17 +2419,17 @@ function generateDefaultSummaryText(historyData) {
       const dateStr = item.dateStr || "날짜미상";
 
       if (!sendMap[sender]) sendMap[sender] = [];
-      sendMap[sender].push(`[${dateStr}] 보낼물건: ${prizeName} (대상: ${receiver}, 종류: 피규어)`);
+      sendMap[sender].push(`[${dateStr}] 보낼사람: ${prizeName} (대상: ${receiver}, 종류: 피규어)`);
 
       if (!receiveMap[receiver]) receiveMap[receiver] = [];
-      receiveMap[receiver].push(`[${dateStr}] 받아야할물건: ${prizeName} (보낸사람: ${sender}, 종류: 피규어)`);
+      receiveMap[receiver].push(`[${dateStr}] 받을사람: ${prizeName} (보낸사람: ${sender}, 종류: 피규어)`);
     });
   });
-  let textOut = "=== [월.일 별 총 현황판 / 모든 게임 및 모든 회차 누적] ===\n\n[보낼 물건 목록]\n";
+  let textOut = "=== [월.일 별 총 현황판 / 모든 게임 및 모든 회차 누적] ===\n\n[보낼 사람 목록]\n";
   for (let s in sendMap) {
     textOut += `- ${s}:\n  ` + sendMap[s].join("\n  ") + "\n";
   }
-  textOut += "\n[받아야 할 물건 목록]\n";
+  textOut += "\n[받을 사람 목록]\n";
   for (let r in receiveMap) {
     textOut += `- ${r}:\n  ` + receiveMap[r].join("\n  ") + "\n";
   }
