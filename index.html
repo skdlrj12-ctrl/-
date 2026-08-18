@@ -234,7 +234,6 @@
       font-size: 0.95rem;
     }
 
-    /* 상품 입력 폼 스타일 수정: 번호, 수령자, 발송자 한 줄 / 이름, 사진 아래쪽 */
     .prize-item {
       display: flex;
       flex-direction: column;
@@ -1555,7 +1554,6 @@ function saveNickname() {
   localStorage.setItem("kuji_nickname", myName);
 }
 
-/* 요청하신 변경 반영: 번호, 수령자, 발송자 한 줄 / 이름, 사진 아래 배치 */
 function addPrizeInput(containerId, initialNum = "", initialOwner = "", initialName = "", initialImg = "", initialSender = "") {
   const container = document.getElementById(containerId);
   if (!container) return;
@@ -2063,22 +2061,30 @@ function setupZoomDrag() {
 
 function forceRipOpen(direction = "right") {
   if (!isHost() || selectedIndex === null) return;
+  
+  const chosenIndex = selectedIndex;
   const coverElem = document.getElementById("zoomCardCover");
   const finalTransform = `translateX(${direction === "right" ? "200%" : "-200%"}) rotate(${direction === "right" ? "45deg" : "-45deg"})`;
-  coverElem.style.transition = "transform 0.3s ease-out";
-  coverElem.style.transform = finalTransform;
   
+  if (coverElem) {
+    coverElem.style.transition = "transform 0.3s ease-out";
+    coverElem.style.transform = finalTransform;
+  }
+  
+  selectedIndex = null;
+
   if (currentRoom) {
     db.ref("rooms/" + currentRoom).update({
-      activeZoomTransform: finalTransform
+      activeZoomTransform: finalTransform,
+      activeZoomIndex: null
     });
   }
 
   setTimeout(() => {
-    const chosenIndex = selectedIndex;
-    closeZoomModal();
+    const modal = document.getElementById("cardZoomModal");
+    if (modal) modal.classList.add("hidden");
     pickCard(chosenIndex);
-  }, 220);
+  }, 300);
 }
 
 function reselectRandomCard() {
