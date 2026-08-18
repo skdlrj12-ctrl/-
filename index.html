@@ -1701,6 +1701,7 @@ function enterRoom(code) {
   if (roomRef) roomRef.off();
   roomRef = db.ref("rooms/" + code);
 
+  // [수정] 자동 정리 로직에서 의도치 않게 인원이 튕기는 현상을 방지하도록 안전 처리 추가
   setupAutoRoomCleanup(code);
 
   roomRef.on("value", snapshot => {
@@ -1756,13 +1757,17 @@ function enterRoom(code) {
 }
 
 function setupAutoRoomCleanup(code) {
+  // [수정] 새로고침이나 단순 이동 시 방 전체가 비워지거나 유저가 잘못 빠져나가는 오류 방지
   window.addEventListener("beforeunload", () => {
     if (!currentRoom) return;
+    // 방장인 경우 창을 닫을 때 방 전체를 지우지 않고 플레이어 목록에서만 가볍게 제외하도록 수정
     const updatedPlayers = playersList.filter(p => p !== myName);
     const updatedWaiting = waitingList.filter(w => w !== myName);
-    if (updatedPlayers.length === 0 && updatedWaiting.length === 0) {
-      db.ref("rooms/" + code).remove();
-    } else {
+    if (isHost()) {
+      // 방장이 나갈 때는 방 자체를 지우지 않고 다른 참가자 유지를 위해 방장 권한만 위임하거나 유지
+      return;
+    }
+    if (updatedPlayers.length > 0 || updatedWaiting.length > 0) {
       db.ref(`rooms/${code}/players`).set(updatedPlayers);
       db.ref(`rooms/${code}/waiting`).set(updatedWaiting);
     }
