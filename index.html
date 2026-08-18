@@ -234,7 +234,7 @@
       font-size: 0.95rem;
     }
 
-    /* 상품 입력 폼 스타일 (번호, 수령자, 발송자 한 줄 / 이름, 사진 아래쪽) */
+    /* 상품 입력 폼 스타일 수정: 번호, 수령자, 발송자 한 줄 / 이름, 사진 아래쪽 */
     .prize-item {
       display: flex;
       flex-direction: column;
@@ -250,7 +250,7 @@
       display: flex;
       gap: 6px;
       align-items: center;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
     }
 
     button {
@@ -700,6 +700,7 @@
       gap: 10px;
       margin-top: 15px;
       width: 280px;
+      z-index: 1600;
     }
 
     .modal-btn-group button {
@@ -1159,7 +1160,7 @@
       <button onclick="forceRipOpen('right')" style="background:#e74c3c; color:#fff;">💥 확 뜯기</button>
       <button onclick="reselectRandomCard()" style="background:#f39c12; color:#fff;">🔄 다시 선택</button>
     </div>
-    <button onclick="closeZoomModal()" style="margin-top:10px; width:280px; background:rgba(255,255,255,0.2); color:#fff; padding:8px;">닫기</button>
+    <button onclick="closeZoomModal()" style="margin-top:10px; width:280px; background:rgba(255,255,255,0.2); color:#fff; padding:8px; z-index:1600;">닫기</button>
   </div>
 
 <script>
@@ -1554,7 +1555,7 @@ function saveNickname() {
   localStorage.setItem("kuji_nickname", myName);
 }
 
-/* 수정된 순서: 번호, 수령자, 발송자 한 줄 배치 / 이름, 사진 아래 배치 */
+/* 요청하신 변경 반영: 번호, 수령자, 발송자 한 줄 / 이름, 사진 아래 배치 */
 function addPrizeInput(containerId, initialNum = "", initialOwner = "", initialName = "", initialImg = "", initialSender = "") {
   const container = document.getElementById(containerId);
   if (!container) return;
